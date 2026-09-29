@@ -9343,6 +9343,576 @@
         }
       }
     },
+    "/api/v1/me/questionnaire": {
+      "get": {
+        "tags": [
+          "salud"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pending": {
+                      "type": "boolean"
+                    },
+                    "last": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "parq": {
+                          "minItems": 7,
+                          "maxItems": 7,
+                          "type": "array",
+                          "items": {
+                            "type": "boolean"
+                          }
+                        },
+                        "anamnesis": {
+                          "type": "object",
+                          "properties": {
+                            "pastInjuries": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 1500
+                            },
+                            "surgeries": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 1000
+                            },
+                            "medication": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 1000
+                            },
+                            "painNow": {
+                              "default": 0,
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 10
+                            },
+                            "painArea": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 200
+                            },
+                            "currentActivity": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 1000
+                            },
+                            "goal": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 1000
+                            },
+                            "other": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 1500
+                            }
+                          },
+                          "required": [
+                            "pastInjuries",
+                            "surgeries",
+                            "medication",
+                            "painNow",
+                            "painArea",
+                            "currentActivity",
+                            "goal",
+                            "other"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "id": {
+                          "type": "string"
+                        },
+                        "submittedAt": {
+                          "type": "string"
+                        },
+                        "reviewedAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "alerts": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          }
+                        }
+                      },
+                      "required": [
+                        "parq",
+                        "anamnesis",
+                        "id",
+                        "submittedAt",
+                        "reviewedAt",
+                        "alerts"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "pending",
+                    "last"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "salud"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "parq": {
+                    "minItems": 7,
+                    "maxItems": 7,
+                    "type": "array",
+                    "items": {
+                      "type": "boolean"
+                    }
+                  },
+                  "anamnesis": {
+                    "type": "object",
+                    "properties": {
+                      "pastInjuries": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 1500
+                      },
+                      "surgeries": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 1000
+                      },
+                      "medication": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 1000
+                      },
+                      "painNow": {
+                        "default": 0,
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 10
+                      },
+                      "painArea": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "currentActivity": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 1000
+                      },
+                      "goal": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 1000
+                      },
+                      "other": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 1500
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "parq",
+                  "anamnesis"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "parq": {
+                      "minItems": 7,
+                      "maxItems": 7,
+                      "type": "array",
+                      "items": {
+                        "type": "boolean"
+                      }
+                    },
+                    "anamnesis": {
+                      "type": "object",
+                      "properties": {
+                        "pastInjuries": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 1500
+                        },
+                        "surgeries": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 1000
+                        },
+                        "medication": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 1000
+                        },
+                        "painNow": {
+                          "default": 0,
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 10
+                        },
+                        "painArea": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 200
+                        },
+                        "currentActivity": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 1000
+                        },
+                        "goal": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 1000
+                        },
+                        "other": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 1500
+                        }
+                      },
+                      "required": [
+                        "pastInjuries",
+                        "surgeries",
+                        "medication",
+                        "painNow",
+                        "painArea",
+                        "currentActivity",
+                        "goal",
+                        "other"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "submittedAt": {
+                      "type": "string"
+                    },
+                    "reviewedAt": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "alerts": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "required": [
+                    "parq",
+                    "anamnesis",
+                    "id",
+                    "submittedAt",
+                    "reviewedAt",
+                    "alerts"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/clients/{id}/questionnaire": {
+      "get": {
+        "tags": [
+          "salud"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pending": {
+                      "type": "boolean"
+                    },
+                    "last": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "parq": {
+                          "minItems": 7,
+                          "maxItems": 7,
+                          "type": "array",
+                          "items": {
+                            "type": "boolean"
+                          }
+                        },
+                        "anamnesis": {
+                          "type": "object",
+                          "properties": {
+                            "pastInjuries": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 1500
+                            },
+                            "surgeries": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 1000
+                            },
+                            "medication": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 1000
+                            },
+                            "painNow": {
+                              "default": 0,
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 10
+                            },
+                            "painArea": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 200
+                            },
+                            "currentActivity": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 1000
+                            },
+                            "goal": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 1000
+                            },
+                            "other": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 1500
+                            }
+                          },
+                          "required": [
+                            "pastInjuries",
+                            "surgeries",
+                            "medication",
+                            "painNow",
+                            "painArea",
+                            "currentActivity",
+                            "goal",
+                            "other"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "id": {
+                          "type": "string"
+                        },
+                        "submittedAt": {
+                          "type": "string"
+                        },
+                        "reviewedAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "alerts": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          }
+                        }
+                      },
+                      "required": [
+                        "parq",
+                        "anamnesis",
+                        "id",
+                        "submittedAt",
+                        "reviewedAt",
+                        "alerts"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "pending",
+                    "last"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/clients/{id}/questionnaire/review": {
+      "post": {
+        "tags": [
+          "salud"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/clients/{id}/questionnaire/request": {
+      "post": {
+        "tags": [
+          "salud"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/questionnaires/unreviewed": {
+      "get": {
+        "tags": [
+          "salud"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "clientId": {
+                        "type": "string"
+                      },
+                      "clientName": {
+                        "type": "string"
+                      },
+                      "alerts": {
+                        "type": "number"
+                      },
+                      "submittedAt": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "clientId",
+                      "clientName",
+                      "alerts",
+                      "submittedAt"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/conversations": {
       "get": {
         "tags": [

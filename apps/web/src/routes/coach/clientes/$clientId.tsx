@@ -19,6 +19,7 @@ import { ClientTraining } from "../../../components/training/client-training";
 import { ClientNutrition } from "../../../components/nutrition/client-nutrition";
 import { ClientAgenda } from "../../../components/agenda/client-agenda";
 import { ClientProgress } from "../../../components/progress/client-progress";
+import { QuestionnaireAlert, QuestionnaireSummary } from "../../../components/clients/health-questionnaire";
 import { clientQuery, useClientAction, useInvite, useResetLink, useUpdateClient } from "../../../lib/queries";
 import { useMe } from "../../../lib/auth";
 import { age, fmtDate } from "../../../lib/format";
@@ -60,6 +61,7 @@ function ClientPage() {
           <HealthAlert>{c.healthNotes}</HealthAlert>
         </div>
       )}
+      <QuestionnaireAlert client={c} />
       <Tabs
         value={tab}
         onValueChange={setTab}
@@ -79,6 +81,7 @@ function ClientPage() {
           <ClientProgress who={c.id} name={c.name} />
         </TabPanel>
         <TabPanel value="ficha">
+          <QuestionnaireSummary client={c} />
           <ClientForm client={c} />
         </TabPanel>
         <TabPanel value="nutricion">

@@ -15,6 +15,7 @@ import { appointmentLabel, mealsFor } from "@coach/shared";
 import { hhmm, localDate, myAppointmentsQuery } from "../../lib/agenda";
 import { fromIso } from "../../lib/dates";
 import { cn } from "../../lib/cn";
+import { myQuestionnaireQuery } from "../../lib/questionnaire";
 
 export const Route = createFileRoute("/app/")({
   component: Today,
@@ -35,6 +36,7 @@ function Today() {
       <p className="text-ink-2">Hola, {firstName(me.name)}.</p>
       <h1 className="font-wide mt-1 text-[28px] leading-[1.1] sm:text-[34px]">{cap(dayLong(t))}</h1>
 
+      <QuestionnairePrompt />
       <section className="mt-8" aria-labelledby="t-train">
         <BlockTitle id="t-train">Entreno de hoy</BlockTitle>
         {q.isPending ? (
@@ -153,6 +155,22 @@ function NextAppointment() {
         {next.title || appointmentLabel({ ...next, clientName: null })}
         {next.location && <span className="text-ink-2">, {next.location}</span>}
       </p>
+    </section>
+  );
+}
+
+function QuestionnairePrompt() {
+  const q = useQuery(myQuestionnaireQuery);
+  if (!q.data?.pending) return null;
+  return (
+    <section className="mt-6 border-l-[5px] border-primary bg-primary-soft px-4 py-3.5" aria-labelledby="t-q">
+      <h2 id="t-q" className="font-medium text-ink">
+        {q.data.last ? "Tu entrenador te pide que actualices tu cuestionario de salud" : "Antes de empezar: tu cuestionario de salud"}
+      </h2>
+      <p className="mt-0.5 text-sm text-ink-2">Son unos 3 minutos y le ayuda a ajustar el entrenamiento a ti.</p>
+      <Link to="/app/salud" className={buttonClass("primary", "md", "mt-3")}>
+        Rellenarlo ahora
+      </Link>
     </section>
   );
 }

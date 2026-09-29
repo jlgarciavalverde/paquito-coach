@@ -104,7 +104,8 @@ function RegisterForm({ preview, inviteToken, joinCode, footer }: { preview: Inv
     () => api<Me>("/auth/register", { body: { inviteToken, joinCode, name, email, password, healthDataConsent: consent } }),
     (me) => {
       qc.setQueryData(meQuery.queryKey, me);
-      void navigate({ to: homeFor(me) });
+      // Con invitación ya está activo: lo primero, el cuestionario de salud (puede posponerlo).
+      void navigate({ to: me.clientStatus === "active" ? "/app/salud" : homeFor(me) });
     },
   );
   const coach = firstName(preview.coachName);

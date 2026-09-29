@@ -36,7 +36,9 @@ export function Dialog({ open, onOpenChange, title, description, children, foote
         <D.Overlay className={overlay} />
         <D.Content className="fixed top-1/2 left-1/2 z-50 flex max-h-[90dvh] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 flex-col rounded-[var(--radius-zone)] bg-paper shadow-[var(--shadow-float)] outline-none data-[state=open]:animate-[dialog-in_180ms_var(--ease-out-soft)]">
           <Head title={title} description={description} />
-          <div className="overflow-y-auto px-6 py-5">{children}</div>
+          <div className="overflow-y-auto px-6 py-5" tabIndex={0}>
+            {children}
+          </div>
           {footer && <div className="flex flex-col-reverse gap-2 border-t border-rule px-6 py-4 sm:flex-row sm:justify-end">{footer}</div>}
         </D.Content>
       </D.Portal>
@@ -57,7 +59,10 @@ export function SidePanel({ open, onOpenChange, title, description, children, fo
           )}
         >
           <Head title={title} description={description} />
-          <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>
+          {/* Enfocable: si dentro solo hay texto, con teclado también tiene que poder desplazarse. */}
+          <div className="flex-1 overflow-y-auto px-6 py-5 focus-visible:outline-offset-[-2px]" tabIndex={0}>
+            {children}
+          </div>
           {footer && <div className="flex flex-col-reverse gap-2 border-t border-rule bg-tray px-6 py-4 sm:flex-row sm:justify-end">{footer}</div>}
         </D.Content>
       </D.Portal>

@@ -7,3 +7,4 @@ export * from "./nutrition";
 export * from "./agenda";
 export * from "./chat";
 export * from "./progress";
+export * from "./questionnaire";

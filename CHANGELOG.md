@@ -1,6 +1,14 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [0.8.0] — 2026-09-29
+### Añadido
+- **Cuestionario de salud**: PAR-Q+ (siete preguntas) y anamnesis (lesiones, operaciones, medicación, dolor 0–10, actividad, objetivo). Aparece al terminar el registro y en «Hoy» mientras esté pendiente; se puede posponer.
+- Las respuestas de riesgo (un «sí» o dolor ≥ 5) salen como alerta en la ficha y en «Hoy» del entrenador hasta que las revisa; puede pedir que se repita.
+- Incluido en la copia de datos (RGPD).
+### Corregido
+- Las zonas con scroll de las hojas laterales y diálogos se pueden recorrer con el teclado.
+
 ## [0.7.0] — 2026-09-29
 ### Añadido
 - **Progreso**: peso, cintura, cadera y % de grasa con gráficas (el cliente y el entrenador pueden anotarlos); cargas por ejercicio con 1RM estimado y mejor serie de cada sesión, calculadas de lo que el cliente registra; tabla con los datos de cada gráfica.

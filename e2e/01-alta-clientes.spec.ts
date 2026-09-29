@@ -81,8 +81,14 @@ test("el cliente se registra con la invitación (móvil)", async ({ browser }) =
   await expect(create).toBeDisabled(); // sin consentimiento RGPD no se puede
   await lucia.getByRole("checkbox").check();
   await create.click();
+  // Lo primero tras registrarse: el cuestionario de salud (se puede posponer)
+  await expect(lucia).toHaveURL(/\/app\/salud$/);
+  await expect(lucia.getByRole("heading", { name: "Antes de empezar" })).toBeVisible();
+  await expectAccessible(lucia, "cuestionario de salud");
+  await lucia.getByRole("link", { name: "Lo haré más tarde" }).click();
   await expect(lucia).toHaveURL(/\/app$/);
   await expect(lucia.getByText("Hola, Lucía.")).toBeVisible();
+  await expect(lucia.getByText("Antes de empezar: tu cuestionario de salud")).toBeVisible();
   await expectAccessible(lucia, "hoy (cliente)");
   // La invitación ya no vale
   const again = await newPage(browser);

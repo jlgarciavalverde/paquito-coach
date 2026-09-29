@@ -15,6 +15,7 @@ import { WorkoutPanel } from "../../components/training/workout-panel";
 import { WorkoutStatusMark } from "../../components/training/workout-status";
 import { WeekMatrix } from "../../components/training/week-matrix";
 import { FirstSteps } from "../../components/first-steps";
+import { unreviewedQuery } from "../../lib/questionnaire";
 import { appointmentsQuery, hhmm } from "../../lib/agenda";
 import { appointmentLabel } from "@coach/shared";
 import { plusDays } from "../../lib/dates";
@@ -119,6 +120,7 @@ function CoachToday() {
 
         <aside className="flex flex-col gap-8">
           <PendingRequests />
+          <UnreviewedQuestionnaires />
 
           <section aria-labelledby="activity-title">
             <BlockTitle id="activity-title">Lo último que han hecho</BlockTitle>
@@ -175,5 +177,27 @@ function CoachToday() {
       </div>
       <WorkoutPanel id={openId} onClose={() => setOpenId(null)} />
     </>
+  );
+}
+
+function UnreviewedQuestionnaires() {
+  const q = useQuery(unreviewedQuery);
+  if (!q.data?.length) return null;
+  return (
+    <section aria-labelledby="unrev-title" className="border-l-[5px] border-plate-red bg-plate-red-soft px-4 py-3.5">
+      <h2 id="unrev-title" className="text-sm font-medium text-ink">
+        Cuestionarios de salud por revisar
+      </h2>
+      <ul className="mt-2 flex flex-col gap-1 text-sm">
+        {q.data.map((r) => (
+          <li key={r.clientId}>
+            <Link to="/coach/clientes/$clientId" params={{ clientId: r.clientId }} className="flex justify-between gap-3 py-1 hover:underline">
+              <span className="font-medium text-ink">{r.clientName}</span>
+              <span className="text-ink-2">{r.alerts === 1 ? "1 alerta" : `${r.alerts} alertas`}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

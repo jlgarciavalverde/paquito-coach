@@ -67,6 +67,8 @@ export const clientProfiles = pgTable(
     privateNotes: text("private_notes"),
     tags: text("tags").array().notNull().default(sql`'{}'::text[]`),
     status: clientStatusEnum("status").notNull(),
+    /** El entrenador ha pedido que vuelva a rellenar el cuestionario de salud. */
+    questionnaireRequestedAt: ts("questionnaire_requested_at"),
     createdAt: createdAt(),
     updatedAt: ts("updated_at").notNull().defaultNow(),
   },
@@ -313,4 +315,22 @@ export const bodyMetrics = pgTable(
     updatedAt: ts("updated_at").notNull().defaultNow(),
   },
   (t) => [uniqueIndex("body_metrics_client_date_uq").on(t.clientId, t.date)],
+);
+
+// ── F8: cuestionario de salud (PAR-Q+ y anamnesis) ─────────────────────────────
+
+export const questionnaires = pgTable(
+  "questionnaires",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id").notNull().references(() => clientProfiles.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull().default("parq"),
+    answers: jsonb("answers").$type<{ parq: boolean[]; anamnesis: Record<string, unknown> }>().notNull(),
+    alerts: jsonb("alerts").$type<number[]>().notNull(),
+    submittedAt: ts("submitted_at").notNull().defaultNow(),
+    reviewedAt: ts("reviewed_at"),
+    reviewedBy: uuid("reviewed_by").references(() => users.id, { onDelete: "set null" }),
+  },
+  (t) => [index("questionnaires_client_idx").on(t.clientId, t.submittedAt)],
 );

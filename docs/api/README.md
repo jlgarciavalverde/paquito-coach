@@ -16,7 +16,7 @@
 | 410 `invite_used`, `invite_invalid`, `reset_invalid` | enlace caducado o usado |
 | 429 `rate_limited`, `locked` | límite por IP o bloqueo por cuenta |
 
-## Endpoints (v0.7)
+## Endpoints (v0.8)
 | Método | Ruta | Quién | Qué |
 |---|---|---|---|
 | GET | `/auth/setup-status` | público | ¿falta el alta inicial? |
@@ -66,4 +66,8 @@
 | GET · PUT | `/me/metrics` | cliente activo | mis medidas |
 | GET | `/clients/:id/progress/exercises` · `/clients/:id/progress?exerciseId=` | entrenador | resumen por ejercicio · serie de sesiones (e1RM Epley) |
 | GET | `/me/progress/exercises` · `/me/progress?exerciseId=` | cliente activo | lo mismo, propio |
+| GET · POST | `/me/questionnaire` | cliente activo | estado (pendiente, último) · enviar PAR-Q+ y anamnesis |
+| GET | `/clients/:id/questionnaire` | entrenador | estado y respuestas (auditado) |
+| POST | `/clients/:id/questionnaire/review` · `/request` | entrenador | marcar revisado · pedir que lo repita |
+| GET | `/questionnaires/unreviewed` | entrenador | clientes con alertas sin revisar |
 | GET | `/health` | público | versión, uptime, BD |
