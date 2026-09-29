@@ -34,8 +34,20 @@ export const AppointmentPatch = z.object({
   notes: z.string().trim().max(1000).optional(),
 });
 
+/** Qué pasó con la cita: las «hechas» y «no vino» descuentan del bono del cliente; «cancelada» no. */
+export const AttendanceStatus = z.enum(["scheduled", "done", "no_show", "cancelled"]);
+export type AttendanceStatus = z.infer<typeof AttendanceStatus>;
+export const ATTENDANCE_LABEL: Record<AttendanceStatus, string> = {
+  scheduled: "Programada",
+  done: "Hecha",
+  no_show: "No vino",
+  cancelled: "Cancelada",
+};
+
 export const Appointment = z.object({
   id: z.string(),
+  status: AttendanceStatus,
+  packId: z.string().nullable(),
   clientId: z.string().nullable(),
   clientName: z.string().nullable(),
   kind: AppointmentKind,

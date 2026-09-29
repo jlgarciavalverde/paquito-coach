@@ -38,6 +38,7 @@ import { registerQuestionnaire } from "./routes/questionnaire";
 import { registerAttention } from "./routes/attention";
 import { registerFollowup } from "./routes/followup";
 import { registerPrograms } from "./routes/programs";
+import { registerPacks } from "./routes/packs";
 import { Hub } from "./lib/realtime";
 import { createPushSender, type PushSender } from "./lib/push";
 import { seedExercises } from "./db/seed";
@@ -191,6 +192,7 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender } = {})
       registerAttention(api, ctx);
       registerFollowup(api, ctx);
       registerPrograms(api, ctx);
+      registerPacks(api, ctx);
       registerChat(api, ctx, { hub, push, mediaDir: join(cfg.dataDir, "media"), vapidPublicKey: cfg.vapidPublicKey });
     },
     { prefix: "/api/v1" },

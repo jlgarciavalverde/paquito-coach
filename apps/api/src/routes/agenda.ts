@@ -12,6 +12,8 @@ type Row = typeof appointments.$inferSelect;
 
 const toAppointment = (a: Row, clientName: string | null): Appointment => ({
   id: a.id,
+  status: a.status,
+  packId: a.packId,
   clientId: a.clientId,
   clientName,
   kind: a.kind,

@@ -8,6 +8,8 @@ import { hhmm, localDate, myAppointmentsQuery } from "../../lib/agenda";
 import { myWorkoutsQuery } from "../../lib/training";
 import { dayShort, plusDays, today } from "../../lib/dates";
 import { cn } from "../../lib/cn";
+import { myPacksQuery } from "../../lib/packs";
+import { packUsable } from "@coach/shared";
 
 export const Route = createFileRoute("/app/agenda")({
   component: MyAgenda,
@@ -27,6 +29,7 @@ function MyAgenda() {
   return (
     <>
       <PageTitle title="Agenda" lead="Tus sesiones y entrenos de las próximas dos semanas." />
+      <MyPacks />
       <div className="border-t border-rule">
         {rows.map(({ d, a, w }) => (
           <section key={d} className="grid grid-cols-[64px_1fr] gap-3 border-b border-rule py-3">
@@ -57,5 +60,22 @@ function MyAgenda() {
         ))}
       </div>
     </>
+  );
+}
+
+/** Su bono en uso: cuántas sesiones le quedan y hasta cuándo. */
+function MyPacks() {
+  const q = useQuery(myPacksQuery);
+  const t = today();
+  const p = (q.data ?? []).find((x) => packUsable(x, t)) ?? (q.data ?? []).at(-1);
+  if (!p) return null;
+  return (
+    <p className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[var(--radius-zone)] bg-tray px-4 py-3 text-sm">
+      <span className="font-medium">{p.name}</span>
+      <span className="text-ink-2">
+        {p.remaining === 0 ? "Agotado: habla con tu entrenador para renovarlo." : `Te ${p.remaining === 1 ? "queda 1 sesión" : `quedan ${p.remaining} sesiones`} de ${p.total}`}
+        {p.remaining > 0 && p.expires ? `, hasta el ${dayShort(p.expires)}` : ""}.
+      </span>
+    </p>
   );
 }

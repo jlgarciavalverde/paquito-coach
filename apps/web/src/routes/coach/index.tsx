@@ -11,6 +11,7 @@ import { BlockTitle, Monogram, PlateMark } from "../../components/ui/layout";
 import { Button, buttonClass } from "../../components/ui/button";
 import { Skeleton } from "../../components/ui/spinner";
 import { PendingRequests } from "../../components/clients/pending-requests";
+import { QuickDone } from "../../components/agenda/attendance";
 import { WorkoutPanel } from "../../components/training/workout-panel";
 import { WorkoutStatusMark } from "../../components/training/workout-status";
 import { WeekMatrix } from "../../components/training/week-matrix";
@@ -70,7 +71,7 @@ function CoachToday() {
               <BlockTitle action={<Link to="/coach/calendario" className="text-sm font-medium text-primary hover:underline">Abrir agenda</Link>}>Citas de hoy</BlockTitle>
               <ol className="divide-y divide-rule border-y border-rule">
                 {apptList.map((a) => (
-                  <li key={a.id} className="grid grid-cols-[96px_1fr] items-baseline gap-3 py-3">
+                  <li key={a.id} className="grid grid-cols-[96px_1fr_auto] items-baseline gap-3 py-3">
                     <span className={cn("font-narrow text-[16px]", new Date(a.endsAt) < new Date() ? "text-ink-3" : "text-ink")}>
                       {hhmm(a.startsAt)}–{hhmm(a.endsAt)}
                     </span>
@@ -78,6 +79,7 @@ function CoachToday() {
                       <span className="block truncate font-medium">{appointmentLabel(a)}</span>
                       {a.location && <span className="block truncate text-[13px] text-ink-2">{a.location}</span>}
                     </span>
+                    {new Date(a.startsAt) <= new Date() ? <QuickDone appointment={a} /> : <span />}
                   </li>
                 ))}
               </ol>
@@ -203,14 +205,14 @@ function CoachToday() {
 function NeedsAttention() {
   const q = useQuery(attentionQuery);
   if (!q.data?.length) return null;
-  const tone = { health: "red", missed: "red", unanswered: "blue", checkin: "blue", inactive: "yellow" } as const;
+  const tone = { health: "red", missed: "red", unanswered: "blue", checkin: "blue", pack: "yellow", inactive: "yellow" } as const;
   return (
     <section aria-labelledby="att-title">
       <BlockTitle id="att-title">Necesitan atención</BlockTitle>
       <ul className="divide-y divide-rule border-y border-rule">
         {q.data.map((a) => (
           <li key={a.clientId} className="py-2.5">
-            <Link to="/coach/clientes/$clientId" params={{ clientId: a.clientId }} search={a.reasons[0]?.kind === "checkin" ? { pestana: "seguimiento" } : a.reasons[0]?.kind === "health" ? { pestana: "ficha" } : {}} className="flex items-center gap-3 hover:text-primary">
+            <Link to="/coach/clientes/$clientId" params={{ clientId: a.clientId }} search={a.reasons[0]?.kind === "checkin" ? { pestana: "seguimiento" } : a.reasons[0]?.kind === "health" ? { pestana: "ficha" } : a.reasons[0]?.kind === "pack" ? { pestana: "agenda" } : {}} className="flex items-center gap-3 hover:text-primary">
               <Monogram name={a.clientName} size={32} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-medium text-ink">{a.clientName}</span>

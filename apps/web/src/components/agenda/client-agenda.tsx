@@ -5,6 +5,7 @@ import type { Appointment, Client } from "@coach/shared";
 import { Button, buttonClass } from "../ui/button";
 import { ListView } from "./calendar";
 import { AppointmentPanel, type AppointmentDraft } from "./appointment-panel";
+import { ClientPacks } from "./client-packs";
 import { WorkoutPanel } from "../training/workout-panel";
 import { appointmentsQuery } from "../../lib/agenda";
 import { clientWorkoutsQuery } from "../../lib/training";
@@ -22,6 +23,7 @@ export function ClientAgenda({ client }: { client: Client }) {
   const days = Array.from({ length: 28 }, (_, i) => plusDays(t, i));
   return (
     <div>
+      <ClientPacks client={client} />
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-ink-2">Próximas cuatro semanas.</p>
         <div className="flex gap-2">

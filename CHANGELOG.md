@@ -1,6 +1,13 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [1.5.0] — 2026-09-29 · Bonos de sesiones
+### Añadido
+- **Bonos** (ficha → Agenda): sesiones, precio, caducidad y si está pagado. Cada cita con cliente marcada «Hecha» o «No vino» descuenta del bono más antiguo que siga valiendo; «Cancelada» no descuenta y volver a «Programada» la devuelve.
+- **Asistencia** en cada cita (Programada, Hecha, No vino, Cancelada) y botón «Marcar hecha» en las citas de Hoy que ya han empezado.
+- «Necesitan atención» avisa cuando queda 1 sesión, el bono se agota o caduca. El cliente ve en su Agenda cuántas sesiones le quedan.
+- Demo con bonos de ejemplo. Bonos y asistencia en la copia RGPD.
+
 ## [1.4.0] — 2026-09-29 · Programas de varias semanas
 ### Añadido
 - **Programas** (Entrenos → Programas): rejilla de semanas × días con una rutina en cada día, «Copiar la semana 1 a todas» y subida de carga semanal (kg o %). Se aplican a uno o varios clientes desde una fecha y crean todos los entrenos de una vez («Pierna A, semana 2 de 6»), con la carga de cada semana ya puesta.

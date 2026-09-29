@@ -6,6 +6,7 @@ import { Button } from "../ui/button";
 import { Select, TextArea, TextField } from "../ui/field";
 import { useToast } from "../ui/toast";
 import { useConfirm } from "../ui/confirm";
+import { AttendanceControl } from "./attendance";
 import { FormError } from "../form-error";
 import { clientsQuery } from "../../lib/queries";
 import { atLocal, localDate, minutesOf, useAppointmentMutation } from "../../lib/agenda";
@@ -82,6 +83,7 @@ export function AppointmentPanel({ appointment, draft, onClose }: { appointment?
       }
     >
       <div className="flex flex-col gap-5">
+        {appointment?.clientId && <AttendanceControl appointment={appointment} />}
         <Select label="Cliente" value={f.clientId} onChange={(e) => setF({ ...f, clientId: e.target.value })}>
           <option value="">Sin cliente</option>
           {[...active, ...noAccount].map((c) => (

@@ -84,4 +84,8 @@
 | GET · POST · PUT · DELETE | `/programs[/:id]` | entrenador | programas de varias semanas (`slots`: semana, día, rutina; `progression`) |
 | POST | `/programs/:id/assign` | entrenador | aplica a clientes desde `start`: crea los entrenos (`program_run_id`) |
 | GET · POST | `/clients/:id/program-runs` · `/program-runs/:id/end` | entrenador | programas aplicados con su progreso · terminar (borra lo pendiente sin empezar) |
+| GET · POST | `/clients/:id/packs` | entrenador | bonos del cliente con usadas y restantes |
+| PUT · DELETE | `/packs/:id` | entrenador | editar (o `archived`) · borrar si no se ha usado (409 si sí) |
+| POST | `/appointments/:id/attendance` | entrenador | `status`: scheduled/done/no_show/cancelled; descuenta o devuelve del bono |
+| GET | `/me/packs` | cliente activo | sus bonos en uso |
 | GET | `/health` | público | versión, uptime, BD |

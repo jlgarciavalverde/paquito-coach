@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 import type { MealDay, RoutineBlock, WorkoutLog } from "@coach/shared";
 import { questionnaireAlerts } from "@coach/shared";
 import type { DB } from "../db/client";
-import { appointments, bodyMetrics, checkinAssignments, checkinForms, checkinResponses, clientProfiles, exercises, mealChecks, mealPlans, messages, metricDefs, metricValues, questionnaires, routines, studios, users, workouts } from "../db/schema";
+import { appointments, bodyMetrics, checkinAssignments, checkinForms, checkinResponses, clientProfiles, exercises, sessionPacks, mealChecks, mealPlans, messages, metricDefs, metricValues, questionnaires, routines, studios, users, workouts } from "../db/schema";
 import { hashPassword } from "../lib/passwords";
 import { newJoinCode } from "../lib/tokens";
 
@@ -152,6 +152,12 @@ export async function resetDemo(db: DB) {
   await db.insert(questionnaires).values({ studioId, clientId: active[2]!.id, answers, alerts: questionnaireAlerts(answers) });
   const ok = { parq: Array(7).fill(false), anamnesis: { ...answers.anamnesis, painNow: 0, pastInjuries: "", medication: "", painArea: "" } };
   for (const c of [active[0]!, active[1]!, active[3]!]) await db.insert(questionnaires).values({ studioId, clientId: c.id, answers: ok, alerts: [], reviewedAt: new Date(), reviewedBy: coach!.id });
+
+  // Bonos: Lucía con un bono de 10 (pagado) y las sesiones pasadas descontadas; Iker a punto de agotarlo
+  const [pl] = await db.insert(sessionPacks).values({ studioId, clientId: lucia.id, name: "Bono 10 sesiones", total: 10, price: 300, paid: true }).returning();
+  const [pi] = await db.insert(sessionPacks).values({ studioId, clientId: active[1]!.id, name: "Bono 5 sesiones", total: 5, price: 160, paid: false }).returning();
+  for (let w = 1; w <= 4; w++) await db.insert(appointments).values({ studioId, clientId: lucia.id, kind: "session", startsAt: madridAt(-7 * w, 9), endsAt: madridAt(-7 * w, 10), location: "Estudio", status: "done", packId: pl!.id, createdBy: coach!.id });
+  for (let w = 1; w <= 4; w++) await db.insert(appointments).values({ studioId, clientId: active[1]!.id, kind: "session", startsAt: madridAt(-7 * w, 18), endsAt: madridAt(-7 * w, 19), location: "Estudio", status: w === 2 ? "no_show" : "done", packId: pi!.id, createdBy: coach!.id });
 
   // Seguimiento: dolor y flexión de rodilla de Lucía (readaptación de LCA) y su check-in semanal
   const [eva] = await db.insert(metricDefs).values({ studioId, name: "Dolor (EVA)", unit: "/10", higherIsBetter: false }).returning();

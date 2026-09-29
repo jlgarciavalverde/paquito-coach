@@ -243,6 +243,9 @@ export const appointments = pgTable(
     endsAt: ts("ends_at").notNull(),
     location: text("location").notNull().default(""),
     notes: text("notes").notNull().default(""),
+    /** H3: asistencia y bono del que descuenta. */
+    status: text("status").$type<"scheduled" | "done" | "no_show" | "cancelled">().notNull().default("scheduled"),
+    packId: uuid("pack_id").references((): AnyPgColumn => sessionPacks.id, { onDelete: "set null" }),
     createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
     createdAt: createdAt(),
     updatedAt: ts("updated_at").notNull().defaultNow(),
@@ -467,4 +470,24 @@ export const programRuns = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("program_runs_client_idx").on(t.clientId)],
+);
+
+// ── H3: bonos de sesiones ──────────────────────────────────────────────────────
+
+export const sessionPacks = pgTable(
+  "session_packs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id").notNull().references(() => clientProfiles.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    total: integer("total").notNull(),
+    expires: date("expires", { mode: "string" }),
+    price: real("price"),
+    paid: boolean("paid").notNull().default(false),
+    notes: text("notes").notNull().default(""),
+    archivedAt: ts("archived_at"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("session_packs_client_idx").on(t.clientId)],
 );

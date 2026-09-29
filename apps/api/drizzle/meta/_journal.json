@@ -78,6 +78,13 @@
       "when": 1790709428766,
       "tag": "0010_programas",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1790709999914,
+      "tag": "0011_bonos",
+      "breakpoints": true
     }
   ]
 }

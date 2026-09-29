@@ -4,6 +4,7 @@ import { z } from "zod";
 import { AttentionItem, Ok } from "@coach/shared";
 import { checkinAssignments, checkinResponses, clientProfiles, messages, questionnaires, workouts } from "../db/schema";
 import { madridClock } from "../lib/scheduler";
+import { packAlerts } from "../lib/packs";
 import { requireCoach } from "../lib/session";
 import { typed, type Ctx } from "./ctx";
 
@@ -74,7 +75,9 @@ export function registerAttention(app: FastifyInstance, { db }: Ctx) {
     for (const id of new Set(overdue.map((o) => o.clientId)))
       if (!newCheckins.some((c) => c.clientId === id)) add(id, { kind: "checkin", text: "Check-in sin contestar" });
 
-    const order: Record<string, number> = { health: 0, missed: 1, unanswered: 2, checkin: 3, inactive: 4 };
+    for (const [id, text] of await packAlerts(db, u.studioId, ids)) add(id, { kind: "pack", text });
+
+    const order: Record<string, number> = { health: 0, missed: 1, unanswered: 2, checkin: 3, pack: 4, inactive: 5 };
     return clients
       .filter((c) => reasons.has(c.id))
       .map((c) => ({ clientId: c.id, clientName: c.name, reasons: reasons.get(c.id)!.sort((a, b) => order[a.kind]! - order[b.kind]!) }))
