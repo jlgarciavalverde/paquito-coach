@@ -5,3 +5,4 @@ export * from "./clients";
 export * from "./training";
 export * from "./nutrition";
 export * from "./agenda";
+export * from "./chat";

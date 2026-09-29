@@ -16,7 +16,7 @@
 | 410 `invite_used`, `invite_invalid`, `reset_invalid` | enlace caducado o usado |
 | 429 `rate_limited`, `locked` | límite por IP o bloqueo por cuenta |
 
-## Endpoints (v0.4)
+## Endpoints (v0.5)
 | Método | Ruta | Quién | Qué |
 |---|---|---|---|
 | GET | `/auth/setup-status` | público | ¿falta el alta inicial? |
@@ -53,4 +53,11 @@
 | GET · POST | `/appointments` (`from`, `to` ISO, `clientId`) | entrenador | citas que se solapan con el rango (máx. 2 meses) · crear |
 | PATCH · DELETE | `/appointments/:id` | entrenador | mover/editar · borrar |
 | GET | `/me/appointments?from&to` | cliente activo | mis citas (sin notas internas) |
+| GET | `/conversations` | entrenador | bandeja: último mensaje y no leídos por cliente |
+| GET · POST | `/conversations/:clientId/messages` (`before`, `limit`) | entrenador | leer (paginado hacia atrás) · escribir |
+| POST | `/conversations/:clientId/read` | entrenador | marcar como leída |
+| GET · POST | `/me/messages` · POST `/me/messages/read` · GET `/me/unread` | cliente activo | su conversación |
+| POST | `/media?clientId=` (multipart, 8 MB, JPG/PNG/WEBP/GIF por bytes) · GET `/media/:id` | participantes | fotos del chat |
+| GET · POST · DELETE | `/push/key` · `/push/subscriptions` | con sesión | avisos push (VAPID) |
+| WS | `/ws` | con sesión + Origin permitido | eventos `message.new`, `message.read`, `workout.completed` |
 | GET | `/health` | público | versión, uptime, BD |

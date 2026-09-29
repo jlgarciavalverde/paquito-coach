@@ -6,7 +6,7 @@ import { CopyField } from "../../components/ui/copy-field";
 import { BlockTitle, PageTitle } from "../../components/ui/layout";
 import { Skeleton } from "../../components/ui/spinner";
 import { useToast } from "../../components/ui/toast";
-import { PasswordSetting, SessionsSetting, ThemeSetting } from "../../components/account-settings";
+import { PasswordSetting, PushSetting, SessionsSetting, ThemeSetting } from "../../components/account-settings";
 import { api } from "../../lib/api";
 import { useMe } from "../../lib/auth";
 import { joinCodeQuery } from "../../lib/queries";
@@ -23,6 +23,7 @@ function Settings() {
       <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 [&>*]:min-w-0">
         <div className="flex flex-col gap-12">
           <JoinCodeSetting />
+          <PushSetting />
           <ThemeSetting />
         </div>
         <div className="flex flex-col gap-12">

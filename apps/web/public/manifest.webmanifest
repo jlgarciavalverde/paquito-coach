@@ -1,0 +1,16 @@
+{
+  "name": "Paquito Coach",
+  "short_name": "Coach",
+  "description": "Tus entrenos, tus comidas, tu agenda y el chat con tu entrenador.",
+  "lang": "es",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F9FAF9",
+  "theme_color": "#F9FAF9",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -6,9 +6,11 @@ import { routeTree } from "./routeTree.gen";
 import { ToastProvider } from "./components/ui/toast";
 import { RequestError } from "./lib/api";
 import { applyStoredTheme } from "./lib/theme";
+import { registerServiceWorker } from "./lib/push";
 import "./styles.css";
 
 applyStoredTheme();
+registerServiceWorker();
 
 const queryClient = new QueryClient({
   defaultOptions: {

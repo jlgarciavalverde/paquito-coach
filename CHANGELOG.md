@@ -1,6 +1,12 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [0.5.0] — 2026-09-29
+### Añadido
+- **Mensajes**: conversación privada entre el entrenador y cada cliente, en tiempo real; fotos; no leídos en la barra y en la bandeja; «visto».
+- Avisos push en el móvil y el ordenador (se activan en Ajustes/Perfil); la app se puede instalar en la pantalla de inicio.
+- «Hoy» del entrenador se actualiza solo cuando un cliente termina un entreno.
+
 ## [0.4.0] — 2026-09-29
 ### Añadido
 - **Agenda**: citas (sesión, valoración u otro; con o sin cliente; lugar y notas internas); calendario de semana (7:00–22:00, franja de todo el día con entrenos y comidas), mes y lista; filtro por cliente y capas; arrastrar citas y entrenos para cambiarlos de día u hora; crear cita pulsando un hueco.

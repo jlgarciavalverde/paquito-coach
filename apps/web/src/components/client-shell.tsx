@@ -3,6 +3,9 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Barbell, CalendarBlank, ChatCircle, ForkKnife, SunHorizon, UserCircle, type Icon } from "@phosphor-icons/react";
 import { Brand } from "./brand";
 import { cn } from "../lib/cn";
+import { useQuery } from "@tanstack/react-query";
+import { myUnreadQuery } from "../lib/chat";
+import { useRealtime } from "../lib/realtime";
 
 const TABS: { to: string; label: string; icon: Icon; exact?: boolean }[] = [
   { to: "/app", label: "Hoy", icon: SunHorizon, exact: true },
@@ -16,6 +19,8 @@ const TABS: { to: string; label: string; icon: Icon; exact?: boolean }[] = [
 /** Marco del cliente: pensado para el móvil (barra inferior); en escritorio, una columna con pestañas arriba. */
 export function ClientShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
+  useRealtime("client");
+  const unread = useQuery({ ...myUnreadQuery, refetchInterval: 120_000 }).data?.unread ?? 0;
   const active = (t: (typeof TABS)[number]) => (t.exact ? path === t.to || path === `${t.to}/` : path.startsWith(t.to));
   return (
     <div className="min-h-dvh">
@@ -31,6 +36,11 @@ export function ClientShell({ children }: { children: ReactNode }) {
                 className={cn("flex items-center border-b-2 text-sm font-medium", active(t) ? "border-primary text-ink" : "border-transparent text-ink-2 hover:text-ink")}
               >
                 {t.label}
+                {t.to === "/app/chat" && unread > 0 && (
+                  <span className="font-narrow ml-1.5 rounded-[3px] bg-primary px-1.5 text-[12px] leading-[18px] text-primary-ink" aria-label={`${unread} sin leer`}>
+                    {unread}
+                  </span>
+                )}
               </Link>
             ))}
           </nav>
@@ -46,6 +56,7 @@ export function ClientShell({ children }: { children: ReactNode }) {
               {on && <span className="absolute inset-x-3 top-0 h-[3px] rounded-b-[2px] bg-primary" aria-hidden="true" />}
               <I size={21} weight={on ? "fill" : "regular"} />
               {t.label}
+              {t.to === "/app/chat" && unread > 0 && <span className="absolute top-1.5 left-1/2 ml-2.5 h-2.5 w-[5px] rounded-[1px] bg-primary" aria-label={`${unread} sin leer`} />}
             </Link>
           );
         })}

@@ -49,7 +49,7 @@ export const Me = z.object({
   name: z.string(),
   email: z.string(),
   role: Role,
-  studio: z.object({ id: z.string(), name: z.string() }),
+  studio: z.object({ id: z.string(), name: z.string(), coachName: z.string() }),
   /** Solo clientes: estado de su vínculo con el entrenador. */
   clientStatus: z.enum(["invited", "pending", "active", "archived", "no_account"]).nullable(),
 });

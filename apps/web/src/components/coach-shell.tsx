@@ -6,6 +6,8 @@ import { Brand } from "./brand";
 import { Monogram } from "./ui/layout";
 import { useLogout, useMe } from "../lib/auth";
 import { clientsQuery } from "../lib/queries";
+import { conversationsQuery } from "../lib/chat";
+import { useRealtime } from "../lib/realtime";
 import { cn } from "../lib/cn";
 
 type NavItem = { to: string; label: string; icon: Icon; exact?: boolean };
@@ -30,7 +32,9 @@ export function CoachShell({ children }: { children: ReactNode }) {
   const logout = useLogout();
   const isActive = useIsActive();
   const pending = useQuery(clientsQuery("pending")).data?.length ?? 0;
-
+  useRealtime("coach");
+  const unread = (useQuery({ ...conversationsQuery, refetchInterval: 120_000 }).data ?? []).reduce((n, c) => n + c.unread, 0);
+  const badge = (to: string) => (to === "/coach/clientes" ? pending : to === "/coach/chat" ? unread : 0);
   return (
     <div className="min-h-dvh">
       <header className="sticky top-0 z-30 border-b border-rule bg-paper/95 backdrop-blur-sm">
@@ -49,9 +53,12 @@ export function CoachShell({ children }: { children: ReactNode }) {
                   className={cn("relative flex items-center gap-1.5 border-b-2 text-sm font-medium transition-colors", on ? "border-primary text-ink" : "border-transparent text-ink-2 hover:text-ink")}
                 >
                   {it.label}
-                  {it.to === "/coach/clientes" && pending > 0 && (
-                    <span className="font-narrow rounded-[3px] bg-plate-red px-1.5 text-[12px] leading-[18px] text-paper" aria-label={`${pending} por revisar`}>
-                      {pending}
+                  {badge(it.to) > 0 && (
+                    <span
+                      className={cn("font-narrow rounded-[3px] px-1.5 text-[12px] leading-[18px]", it.to === "/coach/chat" ? "bg-primary text-primary-ink" : "bg-plate-red text-paper")}
+                      aria-label={it.to === "/coach/chat" ? `${badge(it.to)} sin leer` : `${badge(it.to)} por revisar`}
+                    >
+                      {badge(it.to)}
                     </span>
                   )}
                 </Link>
@@ -84,7 +91,9 @@ export function CoachShell({ children }: { children: ReactNode }) {
               {on && <span className="absolute inset-x-3 top-0 h-[3px] rounded-b-[2px] bg-primary" aria-hidden="true" />}
               <I size={21} weight={on ? "fill" : "regular"} />
               {it.label}
-              {it.to === "/coach/clientes" && pending > 0 && <span className="absolute top-1.5 left-1/2 ml-2.5 h-2.5 w-[5px] rounded-[1px] bg-plate-red" aria-label={`${pending} por revisar`} />}
+              {badge(it.to) > 0 && (
+                <span className={cn("absolute top-1.5 left-1/2 ml-2.5 h-2.5 w-[5px] rounded-[1px]", it.to === "/coach/chat" ? "bg-primary" : "bg-plate-red")} aria-label={it.to === "/coach/chat" ? `${badge(it.to)} sin leer` : `${badge(it.to)} por revisar`} />
+              )}
             </Link>
           );
         })}

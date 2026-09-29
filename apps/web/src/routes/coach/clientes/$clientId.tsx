@@ -12,7 +12,7 @@ import { TabPanel, Tabs } from "../../../components/ui/tabs";
 import { useToast } from "../../../components/ui/toast";
 import { CopyField } from "../../../components/ui/copy-field";
 import { FormError } from "../../../components/form-error";
-import { ComingSoon } from "../../../components/coming-soon";
+import { Thread } from "../../../components/chat/thread";
 import { StatusMark } from "../../../components/clients/status-mark";
 import { ShareInvite } from "../../../components/clients/share-invite";
 import { ClientTraining } from "../../../components/training/client-training";
@@ -80,9 +80,15 @@ function ClientPage() {
           <ClientAgenda client={c} />
         </TabPanel>
         <TabPanel value="chat">
-          <ComingSoon title="Conversación" phase={5}>
-            Mensajes en tiempo real con fotos, sin compartir tu número de teléfono.
-          </ComingSoon>
+          <div className="flex h-[70dvh] min-h-[420px] flex-col">
+            <Thread
+              threadKey={c.id}
+              mine={(m) => m.fromCoach}
+              otherName={c.name}
+              disabledReason={c.userId ? undefined : `${c.name} aún no tiene cuenta en la app. Invítale para poder escribirle.`}
+              className="flex-1"
+            />
+          </div>
         </TabPanel>
       </Tabs>
     </article>

@@ -7,6 +7,7 @@ import { resetThrottle } from "./lib/throttle";
 export const TEST_DB_URL = process.env.TEST_DATABASE_URL ?? "postgres://coach:coach@127.0.0.1:5433/coach_test";
 export const ORIGIN = "http://test.local";
 export const SETUP_CODE = "codigo-de-instalacion";
+export const TEST_DATA_DIR = new URL("../.test-data/", import.meta.url).pathname;
 
 /** Vacía la base de datos de test (las migraciones se vuelven a aplicar al construir la app). */
 export async function resetDb() {
@@ -16,8 +17,9 @@ export async function resetDb() {
   resetThrottle();
 }
 
-export async function testApp(over: Partial<AppConfig> = {}): Promise<App> {
-  return buildApp({
+export async function testApp(over: Partial<AppConfig> = {}, opts: Parameters<typeof buildApp>[1] = {}): Promise<App> {
+  return buildApp(
+    {
     databaseUrl: TEST_DB_URL,
     version: "test",
     allowedOrigins: [ORIGIN],
@@ -30,8 +32,11 @@ export async function testApp(over: Partial<AppConfig> = {}): Promise<App> {
     exposeDocs: false,
     logLevel: "silent",
     seedExercises: false,
+    dataDir: TEST_DATA_DIR,
     ...over,
-  });
+    },
+    opts,
+  );
 }
 
 /** Cliente HTTP con su propia cookie de sesión, como un navegador. */

@@ -7,6 +7,9 @@ import rateLimit from "@fastify/rate-limit";
 import fastifyStatic from "@fastify/static";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
+import multipart from "@fastify/multipart";
+import websocket from "@fastify/websocket";
+import { join } from "node:path";
 import {
   hasZodFastifySchemaValidationErrors,
   jsonSchemaTransform,
@@ -28,6 +31,9 @@ import { registerStudio } from "./routes/studio";
 import { registerTraining } from "./routes/training";
 import { registerNutrition } from "./routes/nutrition";
 import { registerAgenda } from "./routes/agenda";
+import { registerChat } from "./routes/chat";
+import { Hub } from "./lib/realtime";
+import { createPushSender, type PushSender } from "./lib/push";
 import { seedExercises } from "./db/seed";
 import type { Ctx } from "./routes/ctx";
 
@@ -35,11 +41,13 @@ export type App = FastifyInstance & { db: DB };
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
-export async function buildApp(cfg: AppConfig): Promise<App> {
+export async function buildApp(cfg: AppConfig, opts: { push?: PushSender } = {}): Promise<App> {
   const { db, sql: pg } = createDb(cfg.databaseUrl);
   await runMigrations(db);
   if (cfg.seedExercises !== false) await seedExercises(db);
-  const ctx: Ctx = { db, cfg };
+  const hub = new Hub();
+  const ctx: Ctx = { db, cfg, hub };
+  const push = opts.push ?? createPushSender(db, { publicKey: cfg.vapidPublicKey, privateKey: cfg.vapidPrivateKey, subject: cfg.vapidSubject ?? "mailto:admin@example.com" });
 
   const app = Fastify({
     logger:
@@ -57,7 +65,12 @@ export async function buildApp(cfg: AppConfig): Promise<App> {
 
   const clientIp = (req: { headers: Record<string, unknown>; ip: string }) => {
     const cf = req.headers["cf-connecting-ip"];
-    return cfg.trustCloudflare && typeof cf === "string" && cf.length < 64 ? cf : req.ip;
+    if (cfg.trustCloudflare && typeof cf === "string" && cf.length < 64) return cf;
+    try {
+      return req.ip;
+    } catch {
+      return "sin-ip"; // peticiones inyectadas sin socket (tests de WebSocket)
+    }
   };
 
   await app.register(helmet, {
@@ -68,7 +81,8 @@ export async function buildApp(cfg: AppConfig): Promise<App> {
         styleSrc: ["'self'", "'unsafe-inline'"], // Motion anima con estilos en línea
         imgSrc: ["'self'", "data:", "blob:"],
         fontSrc: ["'self'"],
-        connectSrc: ["'self'"],
+        // El canal en tiempo real (wss://…/ws): algunos Safari no lo incluyen en 'self'.
+        connectSrc: ["'self'", ...cfg.allowedOrigins.map((o) => o.replace(/^http/, "ws"))],
         mediaSrc: ["'self'", "blob:"],
         frameSrc: ["https://www.youtube-nocookie.com", "https://player.vimeo.com"],
         workerSrc: ["'self'"],
@@ -85,6 +99,8 @@ export async function buildApp(cfg: AppConfig): Promise<App> {
     crossOriginEmbedderPolicy: false,
   });
   await app.register(cookie);
+  await app.register(multipart, { limits: { fileSize: 8 * 1024 * 1024, files: 1, fields: 5 } });
+  await app.register(websocket, { options: { maxPayload: 1024 } });
   await app.register(rateLimit, {
     global: true,
     max: cfg.globalRateLimit,
@@ -120,6 +136,7 @@ export async function buildApp(cfg: AppConfig): Promise<App> {
   // CSRF: además de SameSite=Lax, toda petición que modifica datos debe venir de un origen permitido.
   app.addHook("onRequest", async (req, reply) => {
     if (SAFE_METHODS.has(req.method)) return;
+    if (req.url.startsWith("/ws")) return;
     const origin = req.headers.origin;
     if (!origin || !cfg.allowedOrigins.includes(origin)) {
       return reply.code(403).send({ error: "bad_origin", message: "Origen no permitido" });
@@ -149,9 +166,25 @@ export async function buildApp(cfg: AppConfig): Promise<App> {
       registerTraining(api, ctx);
       registerNutrition(api, ctx);
       registerAgenda(api, ctx);
+      registerChat(api, ctx, { hub, push, mediaDir: join(cfg.dataDir, "media"), vapidPublicKey: cfg.vapidPublicKey });
     },
     { prefix: "/api/v1" },
   );
+  // Canal en tiempo real. Se autentica con la misma cookie y SOLO desde un origen permitido
+  // (sin esta comprobación, otra web podría abrir el socket con la cookie del usuario: CSWSH).
+  app.get("/ws", { websocket: true }, (socket, req) => {
+    const origin = req.headers.origin;
+    if (!req.user || !origin || !cfg.allowedOrigins.includes(origin)) {
+      socket.close(4401, "unauthorized");
+      return;
+    }
+    hub.add(req.user.id, socket);
+    socket.send(JSON.stringify({ type: "ready" }));
+    socket.on("message", () => {}); // el canal es solo de bajada
+  });
+  const pinger = setInterval(() => hub.pingAll(), 30_000);
+  pinger.unref();
+
   registerHealth(app, ctx, async () => {
     await db.execute(sql`select 1`);
   });
@@ -174,6 +207,7 @@ export async function buildApp(cfg: AppConfig): Promise<App> {
   });
 
   app.addHook("onClose", async () => {
+    clearInterval(pinger);
     await pg.end({ timeout: 5 });
   });
 

@@ -18,7 +18,7 @@ import {
   WorkoutRange,
   type RoutineBlock,
 } from "@coach/shared";
-import { clientProfiles, exercises, routines, workouts } from "../db/schema";
+import { clientProfiles, exercises, routines, users, workouts } from "../db/schema";
 import { audit } from "../lib/audit";
 import { HttpError, notFound } from "../lib/errors";
 import { requireActiveClient, requireCoach, requireUser } from "../lib/session";
@@ -59,7 +59,7 @@ const toWorkout = (w: WorkoutRow, clientName: string): Workout => ({
   routineId: w.routineId,
 });
 
-export function registerTraining(app: FastifyInstance, { db }: Ctx) {
+export function registerTraining(app: FastifyInstance, { db, hub }: Ctx) {
   const api = typed(app);
 
   /** Todos los ids de ejercicio de unos bloques deben existir y ser comunes o de este estudio. */
@@ -321,6 +321,8 @@ export function registerTraining(app: FastifyInstance, { db }: Ctx) {
       })
       .where(eq(workouts.id, w.id))
       .returning();
+    const coaches = await db.select({ id: users.id }).from(users).where(and(eq(users.studioId, w.studioId), eq(users.role, "coach")));
+    hub.send(coaches.map((c) => c.id), { type: "workout.completed", workoutId: w.id, clientId: w.clientId });
     return toWorkout(upd!, name);
   });
 

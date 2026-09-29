@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { bigserial, boolean, date, index, integer, jsonb, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { bigserial, boolean, date, index, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import type { MealDay, RoutineBlock, Targets, WorkoutLog } from "@coach/shared";
 
 /**
@@ -243,3 +243,53 @@ export const appointments = pgTable(
   },
   (t) => [index("appointments_studio_time_idx").on(t.studioId, t.startsAt), index("appointments_client_time_idx").on(t.clientId, t.startsAt)],
 );
+
+// ── F5: mensajes ───────────────────────────────────────────────────────────────
+
+/** Archivos subidos (fotos del chat). Se guardan en disco (DATA_DIR/media) con el id como nombre. */
+export const media = pgTable("media", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+  uploaderId: uuid("uploader_id").references(() => users.id, { onDelete: "set null" }),
+  /** Conversación a la que pertenece (el cliente); decide quién puede verlo. */
+  clientId: uuid("client_id").references(() => clientProfiles.id, { onDelete: "cascade" }),
+  mime: text("mime").notNull(),
+  size: integer("size").notNull(),
+  createdAt: createdAt(),
+});
+
+/** Una conversación por cliente: la clave es `client_id`. */
+export const messages = pgTable(
+  "messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id").notNull().references(() => clientProfiles.id, { onDelete: "cascade" }),
+    senderId: uuid("sender_id").references(() => users.id, { onDelete: "set null" }),
+    fromCoach: boolean("from_coach").notNull(),
+    body: text("body").notNull().default(""),
+    mediaId: uuid("media_id").references(() => media.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("messages_client_time_idx").on(t.clientId, t.createdAt), index("messages_studio_time_idx").on(t.studioId, t.createdAt)],
+);
+
+/** Hasta cuándo ha leído cada persona cada conversación. */
+export const conversationReads = pgTable(
+  "conversation_reads",
+  {
+    clientId: uuid("client_id").notNull().references(() => clientProfiles.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    lastReadAt: ts("last_read_at").notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.clientId, t.userId] })],
+);
+
+export const pushSubscriptions = pgTable("push_subscriptions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  endpoint: text("endpoint").notNull().unique(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  createdAt: createdAt(),
+});

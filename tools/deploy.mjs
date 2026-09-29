@@ -38,6 +38,13 @@ if (!hasEnv) {
   throw new Error(`Falta ${DIR}/.env en el VPS. Créalo a partir de .env.example (ver docs/OPERACIONES.md → «Primera instalación») y vuelve a lanzar.`);
 }
 
+// Carpeta de datos (fotos del chat) y claves de avisos push: se crean en el VPS la primera vez, sin salir de él.
+sh("ssh", [HOST, `mkdir -p ${DIR}/data/media`]);
+sh("ssh", [
+  HOST,
+  `cd ${DIR} && grep -q '^VAPID_PUBLIC_KEY=.' .env || { K=$(docker run --rm --entrypoint node ${IMAGE}:${version} -e "const k=require('web-push').generateVAPIDKeys();console.log(k.publicKey+' '+k.privateKey)"); set -- $K; sed -i '/^VAPID_PUBLIC_KEY=/d;/^VAPID_PRIVATE_KEY=/d;/^VAPID_SUBJECT=/d' .env; printf 'VAPID_PUBLIC_KEY=%s\nVAPID_PRIVATE_KEY=%s\nVAPID_SUBJECT=mailto:admin@redgarverde.com\n' "$1" "$2" >> .env; echo "  claves VAPID generadas"; }`,
+]);
+
 if (previous) {
   console.log(`→ Copia de la base de datos antes de actualizar (versión actual: ${previous})…`);
   try {

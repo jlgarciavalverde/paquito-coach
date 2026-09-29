@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { SessionInfo } from "@coach/shared";
 import { Button } from "./ui/button";
@@ -11,6 +11,8 @@ import { useSubmit } from "../lib/use-form";
 import { getThemePref, setThemePref, type ThemePref } from "../lib/theme";
 import { relativeTime } from "../lib/format";
 import { cn } from "../lib/cn";
+import { disablePush, enablePush, pushState, type PushState } from "../lib/push";
+import { errorMessage } from "../lib/api";
 
 export function ThemeSetting() {
   const [pref, setPref] = useState<ThemePref>(getThemePref);
@@ -103,4 +105,42 @@ function describeUA(ua: string | null) {
   const os = /iPhone|iPad/.test(ua) ? "iPhone o iPad" : /Android/.test(ua) ? "Android" : /Mac OS/.test(ua) ? "Mac" : /Windows/.test(ua) ? "Windows" : /Linux/.test(ua) ? "Linux" : "";
   const br = /Edg\//.test(ua) ? "Edge" : /Chrome\//.test(ua) ? "Chrome" : /Firefox\//.test(ua) ? "Firefox" : /Safari\//.test(ua) ? "Safari" : "Navegador";
   return os ? `${br} en ${os}` : br;
+}
+
+/** Avisos en este dispositivo (mensajes nuevos). Cada dispositivo se activa por separado. */
+export function PushSetting() {
+  const toast = useToast();
+  const [state, setState] = useState<PushState | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    pushState().then(setState, () => setState("unsupported"));
+  }, []);
+  const run = async (fn: () => Promise<PushState>) => {
+    setBusy(true);
+    try {
+      setState(await fn());
+    } catch (e) {
+      toast(errorMessage(e), "error");
+    } finally {
+      setBusy(false);
+    }
+  };
+  const text: Record<PushState, string> = {
+    on: "Activados en este dispositivo. Te avisaremos de los mensajes nuevos.",
+    off: "Recibe un aviso cuando te escriban, aunque no tengas la app abierta.",
+    denied: "El navegador tiene bloqueados los avisos de esta web. Permítelos en los ajustes del navegador y vuelve aquí.",
+    unsupported: "Este navegador no admite avisos. En iPhone, añade primero la app a la pantalla de inicio (Compartir → Añadir a pantalla de inicio).",
+    unconfigured: "Los avisos aún no están configurados en el servidor.",
+  };
+  return (
+    <section>
+      <BlockTitle>Avisos</BlockTitle>
+      <p className="max-w-[56ch] text-sm text-ink-2">{state ? text[state] : "Comprobando…"}</p>
+      {(state === "off" || state === "on") && (
+        <Button variant={state === "on" ? "quiet" : "secondary"} className="mt-3" loading={busy} onClick={() => run(state === "on" ? disablePush : enablePush)}>
+          {state === "on" ? "Desactivar avisos aquí" : "Activar avisos"}
+        </Button>
+      )}
+    </section>
+  );
 }

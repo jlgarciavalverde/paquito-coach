@@ -9,6 +9,16 @@ import { hashPassword, isCommonPassword, verifyPassword } from "../lib/passwords
 import { requireUser } from "../lib/session";
 import { typed, type Ctx } from "./ctx";
 
+async function firstCoachName(db: DB, studioId: string) {
+  const [c] = await db
+    .select({ name: users.name })
+    .from(users)
+    .where(and(eq(users.studioId, studioId), eq(users.role, "coach")))
+    .orderBy(users.createdAt)
+    .limit(1);
+  return c?.name ?? "";
+}
+
 export async function meOf(db: DB, userId: string): Promise<Me> {
   const [row] = await db
     .select({ u: users, st: studios, c: clientProfiles })
@@ -23,7 +33,7 @@ export async function meOf(db: DB, userId: string): Promise<Me> {
     name: row.u.name,
     email: row.u.email,
     role: row.u.role,
-    studio: { id: row.st.id, name: row.st.name },
+    studio: { id: row.st.id, name: row.st.name, coachName: row.u.role === "coach" ? row.u.name : await firstCoachName(db, row.st.id) },
     clientStatus: row.u.role === "client" ? (row.c?.status ?? null) : null,
   };
 }

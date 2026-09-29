@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm *)",
+      "Bash(npx tsc *)",
+      "Bash(npx vite *)",
+      "Bash(npx vitest *)",
+      "Bash(npx playwright *)",
+      "Bash(npx drizzle-kit *)",
+      "Bash(node tools/*)",
+      "Bash(node --import tsx *)",
+      "Bash(docker compose -f docker-compose.dev.yml *)",
+      "Bash(docker ps *)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(gitleaks *)",
+      "Bash(curl -s *)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./deploy/.env)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(rm -rf *)"
+    ]
+  }
+}

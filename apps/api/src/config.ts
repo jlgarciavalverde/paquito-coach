@@ -19,6 +19,11 @@ export interface AppConfig {
   logLevel?: string;
   /** Cargar la biblioteca común de ejercicios si está vacía (los tests que no la usan la desactivan). */
   seedExercises?: boolean;
+  /** Carpeta de datos persistentes (fotos del chat en `media/`). */
+  dataDir: string;
+  vapidPublicKey?: string;
+  vapidPrivateKey?: string;
+  vapidSubject?: string;
 }
 
 export function configFromEnv(env = process.env): AppConfig {
@@ -38,5 +43,9 @@ export function configFromEnv(env = process.env): AppConfig {
     exposeDocs: env.EXPOSE_API_DOCS === "1" || !prod,
     webDir: env.WEB_DIR,
     logLevel: env.LOG_LEVEL,
+    dataDir: env.DATA_DIR ?? "data",
+    vapidPublicKey: env.VAPID_PUBLIC_KEY || undefined,
+    vapidPrivateKey: env.VAPID_PRIVATE_KEY || undefined,
+    vapidSubject: env.VAPID_SUBJECT || "mailto:admin@redgarverde.com",
   };
 }

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "../../components/ui/button";
 import { Monogram } from "../../components/ui/layout";
-import { PasswordSetting, SessionsSetting, ThemeSetting } from "../../components/account-settings";
+import { PasswordSetting, PushSetting, SessionsSetting, ThemeSetting } from "../../components/account-settings";
 import { useLogout, useMe } from "../../lib/auth";
 
 export const Route = createFileRoute("/app/perfil")({
@@ -23,6 +23,7 @@ function Profile() {
         </div>
       </div>
       <div className="flex flex-col gap-12">
+        <PushSetting />
         <ThemeSetting />
         <PasswordSetting />
         <SessionsSetting />

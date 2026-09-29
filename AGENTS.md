@@ -80,9 +80,16 @@ deploy/             docker-compose.yml y .env.example de producción · tools/ s
 - **Rejillas y desbordamiento**: un hijo de `grid` tiene `min-width: auto`; una tabla o un texto largo dentro desborda en el móvil. Usar `grid-cols-1 … [&>*]:min-w-0` o `minmax(0,1fr)`. El e2e «ninguna pantalla desborda» lo vigila.
 - **Arrastrar (dnd-kit)**: el elemento arrastrable ES el botón (`DragButton`); no envolver un botón en otro control. Siempre hay alternativa sin arrastrar (el panel de edición con fecha y hora).
 - **Fechas y horas**: las fechas de día son `YYYY-MM-DD` locales (`lib/dates.ts`); las citas son instantes ISO; convertir con `atLocal`/`localDate`/`minutesOf` (`lib/agenda.ts`). Los e2e fijan `timezoneId: "Europe/Madrid"`.
+- **Horas de la BD vs. de la app**: Postgres corre en la VM de Colima y su reloj puede diferir del Mac. Para comparar con `created_at` (p. ej. «leído hasta») usar siempre `now()` de Postgres, no `new Date()`.
+- **WebSocket**: `/ws` exige cookie de sesión y `Origin` permitido (si no, 4401). En tests se usa `app.injectWS`; el `keyGenerator` del rate-limit tolera peticiones sin socket.
 - La semilla de ejercicios (`apps/api/src/db/exercise-seed.json`, ~2.500) solo se carga si la biblioteca común está vacía. Los tests la desactivan (`seedExercises: false`) salvo `training.test.ts`.
 - Fastify 5: `disableRequestLogging` está obsoleto → `logController: new LogController(...)`.
 - VPS: Docker **rootless**, sin compilar allí (temperatura), Cloudflare cachea por extensión (HTML y `/health` van con `no-store`).
+
+## Remote Control (mandar tareas desde el móvil o claude.ai/code)
+- `.claude/settings.json` (en git) permite sin preguntar los comandos habituales (pnpm, tests, build, git add/commit, compose de desarrollo) y **niega** leer `.env`, `git push --force` y `rm -rf`. El despliegue (`node tools/deploy.mjs`) y cualquier cosa fuera de la lista siguen pidiendo permiso.
+- `.claude/settings.local.json` (personal, fuera de git): `remoteControlAtStartup` y aviso al móvil cuando algo espera tu permiso.
+- Arrancar (en una terminal del Mac, en la raíz del repo): `caffeinate -i claude remote-control --name paquito-coach`. El Mac tiene que estar encendido y con esa terminal abierta.
 
 ## Skills del proyecto
 En `.claude/skills/` (Claude Code las carga solas; otros agentes: leer el `SKILL.md`):
