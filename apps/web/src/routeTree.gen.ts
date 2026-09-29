@@ -30,6 +30,7 @@ import { Route as CoachAjustesRouteImport } from './routes/coach/ajustes'
 import { Route as CoachCalendarioRouteImport } from './routes/coach/calendario'
 import { Route as CoachChatRouteImport } from './routes/coach/chat'
 import { Route as CoachClientesRouteImport } from './routes/coach/clientes'
+import { Route as AppCheckinAssignmentIdRouteImport } from './routes/app/checkin/$assignmentId'
 import { Route as AppEntrenoIndexRouteImport } from './routes/app/entreno/index'
 import { Route as AppEntrenoWorkoutIdRouteImport } from './routes/app/entreno/$workoutId'
 import { Route as CoachClientesIndexRouteImport } from './routes/coach/clientes/index'
@@ -38,6 +39,8 @@ import { Route as CoachEntrenosIndexRouteImport } from './routes/coach/entrenos/
 import { Route as CoachEntrenosRoutineIdRouteImport } from './routes/coach/entrenos/$routineId'
 import { Route as CoachNutricionIndexRouteImport } from './routes/coach/nutricion/index'
 import { Route as CoachNutricionPlanIdRouteImport } from './routes/coach/nutricion/$planId'
+import { Route as CoachSeguimientoIndexRouteImport } from './routes/coach/seguimiento/index'
+import { Route as CoachSeguimientoFormIdRouteImport } from './routes/coach/seguimiento/$formId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -144,6 +147,11 @@ const CoachClientesRoute = CoachClientesRouteImport.update({
   path: '/clientes',
   getParentRoute: () => CoachRoute,
 } as any)
+const AppCheckinAssignmentIdRoute = AppCheckinAssignmentIdRouteImport.update({
+  id: '/checkin/$assignmentId',
+  path: '/checkin/$assignmentId',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppEntrenoIndexRoute = AppEntrenoIndexRouteImport.update({
   id: '/entreno/',
   path: '/entreno/',
@@ -184,6 +192,16 @@ const CoachNutricionPlanIdRoute = CoachNutricionPlanIdRouteImport.update({
   path: '/nutricion/$planId',
   getParentRoute: () => CoachRoute,
 } as any)
+const CoachSeguimientoIndexRoute = CoachSeguimientoIndexRouteImport.update({
+  id: '/seguimiento/',
+  path: '/seguimiento/',
+  getParentRoute: () => CoachRoute,
+} as any)
+const CoachSeguimientoFormIdRoute = CoachSeguimientoFormIdRouteImport.update({
+  id: '/seguimiento/$formId',
+  path: '/seguimiento/$formId',
+  getParentRoute: () => CoachRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -207,14 +225,17 @@ export interface FileRoutesByFullPath {
   '/coach/clientes': typeof CoachClientesRouteWithChildren
   '/app/': typeof AppIndexRoute
   '/coach/': typeof CoachIndexRoute
+  '/app/checkin/$assignmentId': typeof AppCheckinAssignmentIdRoute
   '/app/entreno/$workoutId': typeof AppEntrenoWorkoutIdRoute
   '/coach/clientes/$clientId': typeof CoachClientesClientIdRoute
   '/coach/entrenos/$routineId': typeof CoachEntrenosRoutineIdRoute
   '/coach/nutricion/$planId': typeof CoachNutricionPlanIdRoute
+  '/coach/seguimiento/$formId': typeof CoachSeguimientoFormIdRoute
   '/app/entreno/': typeof AppEntrenoIndexRoute
   '/coach/clientes/': typeof CoachClientesIndexRoute
   '/coach/entrenos/': typeof CoachEntrenosIndexRoute
   '/coach/nutricion/': typeof CoachNutricionIndexRoute
+  '/coach/seguimiento/': typeof CoachSeguimientoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -235,14 +256,17 @@ export interface FileRoutesByTo {
   '/coach/chat': typeof CoachChatRoute
   '/app': typeof AppIndexRoute
   '/coach': typeof CoachIndexRoute
+  '/app/checkin/$assignmentId': typeof AppCheckinAssignmentIdRoute
   '/app/entreno/$workoutId': typeof AppEntrenoWorkoutIdRoute
   '/coach/clientes/$clientId': typeof CoachClientesClientIdRoute
   '/coach/entrenos/$routineId': typeof CoachEntrenosRoutineIdRoute
   '/coach/nutricion/$planId': typeof CoachNutricionPlanIdRoute
+  '/coach/seguimiento/$formId': typeof CoachSeguimientoFormIdRoute
   '/app/entreno': typeof AppEntrenoIndexRoute
   '/coach/clientes': typeof CoachClientesIndexRoute
   '/coach/entrenos': typeof CoachEntrenosIndexRoute
   '/coach/nutricion': typeof CoachNutricionIndexRoute
+  '/coach/seguimiento': typeof CoachSeguimientoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -267,14 +291,17 @@ export interface FileRoutesById {
   '/coach/clientes': typeof CoachClientesRouteWithChildren
   '/app/': typeof AppIndexRoute
   '/coach/': typeof CoachIndexRoute
+  '/app/checkin/$assignmentId': typeof AppCheckinAssignmentIdRoute
   '/app/entreno/$workoutId': typeof AppEntrenoWorkoutIdRoute
   '/coach/clientes/$clientId': typeof CoachClientesClientIdRoute
   '/coach/entrenos/$routineId': typeof CoachEntrenosRoutineIdRoute
   '/coach/nutricion/$planId': typeof CoachNutricionPlanIdRoute
+  '/coach/seguimiento/$formId': typeof CoachSeguimientoFormIdRoute
   '/app/entreno/': typeof AppEntrenoIndexRoute
   '/coach/clientes/': typeof CoachClientesIndexRoute
   '/coach/entrenos/': typeof CoachEntrenosIndexRoute
   '/coach/nutricion/': typeof CoachNutricionIndexRoute
+  '/coach/seguimiento/': typeof CoachSeguimientoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -300,14 +327,17 @@ export interface FileRouteTypes {
     | '/coach/clientes'
     | '/app/'
     | '/coach/'
+    | '/app/checkin/$assignmentId'
     | '/app/entreno/$workoutId'
     | '/coach/clientes/$clientId'
     | '/coach/entrenos/$routineId'
     | '/coach/nutricion/$planId'
+    | '/coach/seguimiento/$formId'
     | '/app/entreno/'
     | '/coach/clientes/'
     | '/coach/entrenos/'
     | '/coach/nutricion/'
+    | '/coach/seguimiento/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -328,14 +358,17 @@ export interface FileRouteTypes {
     | '/coach/chat'
     | '/app'
     | '/coach'
+    | '/app/checkin/$assignmentId'
     | '/app/entreno/$workoutId'
     | '/coach/clientes/$clientId'
     | '/coach/entrenos/$routineId'
     | '/coach/nutricion/$planId'
+    | '/coach/seguimiento/$formId'
     | '/app/entreno'
     | '/coach/clientes'
     | '/coach/entrenos'
     | '/coach/nutricion'
+    | '/coach/seguimiento'
   id:
     | '__root__'
     | '/'
@@ -359,14 +392,17 @@ export interface FileRouteTypes {
     | '/coach/clientes'
     | '/app/'
     | '/coach/'
+    | '/app/checkin/$assignmentId'
     | '/app/entreno/$workoutId'
     | '/coach/clientes/$clientId'
     | '/coach/entrenos/$routineId'
     | '/coach/nutricion/$planId'
+    | '/coach/seguimiento/$formId'
     | '/app/entreno/'
     | '/coach/clientes/'
     | '/coach/entrenos/'
     | '/coach/nutricion/'
+    | '/coach/seguimiento/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -530,6 +566,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoachClientesRouteImport
       parentRoute: typeof CoachRoute
     }
+    '/app/checkin/$assignmentId': {
+      id: '/app/checkin/$assignmentId'
+      path: '/checkin/$assignmentId'
+      fullPath: '/app/checkin/$assignmentId'
+      preLoaderRoute: typeof AppCheckinAssignmentIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/entreno/': {
       id: '/app/entreno/'
       path: '/entreno'
@@ -586,6 +629,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoachNutricionPlanIdRouteImport
       parentRoute: typeof CoachRoute
     }
+    '/coach/seguimiento/': {
+      id: '/coach/seguimiento/'
+      path: '/seguimiento'
+      fullPath: '/coach/seguimiento/'
+      preLoaderRoute: typeof CoachSeguimientoIndexRouteImport
+      parentRoute: typeof CoachRoute
+    }
+    '/coach/seguimiento/$formId': {
+      id: '/coach/seguimiento/$formId'
+      path: '/seguimiento/$formId'
+      fullPath: '/coach/seguimiento/$formId'
+      preLoaderRoute: typeof CoachSeguimientoFormIdRouteImport
+      parentRoute: typeof CoachRoute
+    }
   }
 }
 
@@ -597,6 +654,7 @@ interface AppRouteChildren {
   AppProgresoRoute: typeof AppProgresoRoute
   AppSaludRoute: typeof AppSaludRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppCheckinAssignmentIdRoute: typeof AppCheckinAssignmentIdRoute
   AppEntrenoWorkoutIdRoute: typeof AppEntrenoWorkoutIdRoute
   AppEntrenoIndexRoute: typeof AppEntrenoIndexRoute
 }
@@ -609,6 +667,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppProgresoRoute: AppProgresoRoute,
   AppSaludRoute: AppSaludRoute,
   AppIndexRoute: AppIndexRoute,
+  AppCheckinAssignmentIdRoute: AppCheckinAssignmentIdRoute,
   AppEntrenoWorkoutIdRoute: AppEntrenoWorkoutIdRoute,
   AppEntrenoIndexRoute: AppEntrenoIndexRoute,
 }
@@ -637,8 +696,10 @@ interface CoachRouteChildren {
   CoachIndexRoute: typeof CoachIndexRoute
   CoachEntrenosRoutineIdRoute: typeof CoachEntrenosRoutineIdRoute
   CoachNutricionPlanIdRoute: typeof CoachNutricionPlanIdRoute
+  CoachSeguimientoFormIdRoute: typeof CoachSeguimientoFormIdRoute
   CoachEntrenosIndexRoute: typeof CoachEntrenosIndexRoute
   CoachNutricionIndexRoute: typeof CoachNutricionIndexRoute
+  CoachSeguimientoIndexRoute: typeof CoachSeguimientoIndexRoute
 }
 
 const CoachRouteChildren: CoachRouteChildren = {
@@ -649,8 +710,10 @@ const CoachRouteChildren: CoachRouteChildren = {
   CoachIndexRoute: CoachIndexRoute,
   CoachEntrenosRoutineIdRoute: CoachEntrenosRoutineIdRoute,
   CoachNutricionPlanIdRoute: CoachNutricionPlanIdRoute,
+  CoachSeguimientoFormIdRoute: CoachSeguimientoFormIdRoute,
   CoachEntrenosIndexRoute: CoachEntrenosIndexRoute,
   CoachNutricionIndexRoute: CoachNutricionIndexRoute,
+  CoachSeguimientoIndexRoute: CoachSeguimientoIndexRoute,
 }
 
 const CoachRouteWithChildren = CoachRoute._addFileChildren(CoachRouteChildren)

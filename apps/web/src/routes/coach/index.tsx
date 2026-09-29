@@ -203,14 +203,14 @@ function CoachToday() {
 function NeedsAttention() {
   const q = useQuery(attentionQuery);
   if (!q.data?.length) return null;
-  const tone = { health: "red", missed: "red", unanswered: "blue", inactive: "yellow" } as const;
+  const tone = { health: "red", missed: "red", unanswered: "blue", checkin: "blue", inactive: "yellow" } as const;
   return (
     <section aria-labelledby="att-title">
       <BlockTitle id="att-title">Necesitan atención</BlockTitle>
       <ul className="divide-y divide-rule border-y border-rule">
         {q.data.map((a) => (
           <li key={a.clientId} className="py-2.5">
-            <Link to="/coach/clientes/$clientId" params={{ clientId: a.clientId }} className="flex items-center gap-3 hover:text-primary">
+            <Link to="/coach/clientes/$clientId" params={{ clientId: a.clientId }} search={a.reasons[0]?.kind === "checkin" ? { pestana: "seguimiento" } : a.reasons[0]?.kind === "health" ? { pestana: "ficha" } : {}} className="flex items-center gap-3 hover:text-primary">
               <Monogram name={a.clientName} size={32} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-medium text-ink">{a.clientName}</span>

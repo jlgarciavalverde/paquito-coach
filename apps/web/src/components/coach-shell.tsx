@@ -1,9 +1,10 @@
 import { useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Barbell, CalendarBlank, ChatCircle, ForkKnife, GearSix, MagnifyingGlass, SignOut, SunHorizon, UsersThree, type Icon } from "@phosphor-icons/react";
+import { Barbell, CalendarBlank, ChatCircle, ForkKnife, ClipboardText, DotsThreeCircle, GearSix, MagnifyingGlass, SignOut, SunHorizon, UsersThree, type Icon } from "@phosphor-icons/react";
 import { Brand } from "./brand";
 import { Monogram } from "./ui/layout";
+import { Menu, MenuItem } from "./ui/menu";
 import { Dialog } from "./ui/dialog";
 import { CommandPalette, Kbd } from "./command-palette";
 import { useCoachActions } from "./coach-actions";
@@ -24,7 +25,10 @@ export const COACH_NAV: NavItem[] = [
   { to: "/coach/nutricion", label: "Nutrición", icon: ForkKnife },
   { to: "/coach/calendario", label: "Agenda", icon: CalendarBlank },
   { to: "/coach/chat", label: "Mensajes", icon: ChatCircle },
+  { to: "/coach/seguimiento", label: "Seguimiento", icon: ClipboardText },
 ];
+/** En el móvil: los cuatro de uso diario abajo; el resto en «Más». */
+const MOBILE_MAIN = ["/coach", "/coach/clientes", "/coach/calendario", "/coach/chat"];
 
 function useIsActive() {
   const path = useRouterState({ select: (s) => s.location.pathname });
@@ -45,7 +49,7 @@ export function CoachShell({ children }: { children: ReactNode }) {
   const act = useCoachActions();
   const createPlan = useCreatePlan();
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const GO: Record<string, string> = { h: "/coach", c: "/coach/clientes", e: "/coach/entrenos", n: "/coach/nutricion", a: "/coach/calendario", m: "/coach/chat" };
+  const GO: Record<string, string> = { h: "/coach", c: "/coach/clientes", e: "/coach/entrenos", n: "/coach/nutricion", a: "/coach/calendario", m: "/coach/chat", s: "/coach/seguimiento" };
   useShortcuts({
     palette: () => setPalette(true),
     help: () => setHelp(true),
@@ -53,6 +57,7 @@ export function CoachShell({ children }: { children: ReactNode }) {
     create: () => {
       if (path.startsWith("/coach/entrenos")) void navigate({ to: "/coach/entrenos/$routineId", params: { routineId: "nueva" } });
       else if (path.startsWith("/coach/calendario")) act.newAppointment();
+      else if (path.startsWith("/coach/seguimiento")) void navigate({ to: "/coach/seguimiento/$formId", params: { formId: "nuevo" } });
       else if (path.startsWith("/coach/nutricion")) createPlan.mutate({ clientId: null }, { onSuccess: (p) => void navigate({ to: "/coach/nutricion/$planId", params: { planId: p.id } }) });
       else act.newClient();
     },
@@ -133,8 +138,8 @@ export function CoachShell({ children }: { children: ReactNode }) {
 
       <main className="mx-auto w-full max-w-[1280px] px-4 pt-6 pb-28 sm:px-6 md:pt-10 md:pb-16">{children}</main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-rule bg-paper pb-[env(safe-area-inset-bottom)] md:hidden" aria-label="Principal">
-        {COACH_NAV.map((it) => {
+      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-rule bg-paper pb-[env(safe-area-inset-bottom)] md:hidden" aria-label="Principal">
+        {COACH_NAV.filter((it) => MOBILE_MAIN.includes(it.to)).map((it) => {
           const on = isActive(it);
           const I = it.icon;
           return (
@@ -148,6 +153,30 @@ export function CoachShell({ children }: { children: ReactNode }) {
             </Link>
           );
         })}
+        {(() => {
+          const rest = COACH_NAV.filter((it) => !MOBILE_MAIN.includes(it.to));
+          const on = rest.some(isActive) || path.startsWith("/coach/ajustes");
+          return (
+            <Menu
+              trigger={
+                <button type="button" className={cn("relative flex flex-col items-center gap-0.5 pt-2 pb-2.5 text-[11px] font-medium", on ? "text-primary" : "text-ink-3")}>
+                  {on && <span className="absolute inset-x-3 top-0 h-[3px] rounded-b-[2px] bg-primary" aria-hidden="true" />}
+                  <DotsThreeCircle size={21} weight={on ? "fill" : "regular"} />
+                  Más
+                </button>
+              }
+            >
+              {rest.map((it) => (
+                <MenuItem key={it.to} asChild>
+                  <Link to={it.to}>{it.label}</Link>
+                </MenuItem>
+              ))}
+              <MenuItem asChild>
+                <Link to="/coach/ajustes">Ajustes</Link>
+              </MenuItem>
+            </Menu>
+          );
+        })()}
       </nav>
     </div>
   );

@@ -75,4 +75,10 @@
 | GET | `/clients/:id/questionnaire` | entrenador | estado y respuestas (auditado) |
 | POST | `/clients/:id/questionnaire/review` · `/request` | entrenador | marcar revisado · pedir que lo repita |
 | GET | `/questionnaires/unreviewed` | entrenador | clientes con alertas sin revisar |
+| GET · POST · DELETE | `/clients/:id/photos[/:photoId]` · `/me/photos[/:photoId]` | entrenador · cliente activo | fotos de progreso (antes `POST /media`) |
+| GET · POST · PUT | `/metric-defs[/:id]` | entrenador | medidas propias del estudio (`archived` para retirarlas) |
+| GET · PUT · DELETE | `/clients/:id/custom-metrics[/:metricId/:date]` · `/me/custom-metrics` | entrenador · cliente activo | valores de las medidas propias |
+| GET · POST · PUT · DELETE | `/checkin-forms[/:id]` · `POST /checkin-forms/:id/assign` | entrenador | formularios de check-in y a quién se piden |
+| GET · POST | `/clients/:id/checkins` · `/clients/:id/checkins/seen` · `DELETE /checkin-assignments/:id` | entrenador | programados y respuestas de un cliente |
+| GET · POST | `/me/checkins` · `/me/checkins/:assignmentId` | cliente activo | los que le tocan hoy · contestar |
 | GET | `/health` | público | versión, uptime, BD |

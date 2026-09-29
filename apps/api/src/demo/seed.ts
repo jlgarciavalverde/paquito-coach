@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 import type { MealDay, RoutineBlock, WorkoutLog } from "@coach/shared";
 import { questionnaireAlerts } from "@coach/shared";
 import type { DB } from "../db/client";
-import { appointments, bodyMetrics, clientProfiles, exercises, mealChecks, mealPlans, messages, questionnaires, routines, studios, users, workouts } from "../db/schema";
+import { appointments, bodyMetrics, checkinAssignments, checkinForms, checkinResponses, clientProfiles, exercises, mealChecks, mealPlans, messages, metricDefs, metricValues, questionnaires, routines, studios, users, workouts } from "../db/schema";
 import { hashPassword } from "../lib/passwords";
 import { newJoinCode } from "../lib/tokens";
 
@@ -152,6 +152,32 @@ export async function resetDemo(db: DB) {
   await db.insert(questionnaires).values({ studioId, clientId: active[2]!.id, answers, alerts: questionnaireAlerts(answers) });
   const ok = { parq: Array(7).fill(false), anamnesis: { ...answers.anamnesis, painNow: 0, pastInjuries: "", medication: "", painArea: "" } };
   for (const c of [active[0]!, active[1]!, active[3]!]) await db.insert(questionnaires).values({ studioId, clientId: c.id, answers: ok, alerts: [], reviewedAt: new Date(), reviewedBy: coach!.id });
+
+  // Seguimiento: dolor y flexión de rodilla de Lucía (readaptación de LCA) y su check-in semanal
+  const [eva] = await db.insert(metricDefs).values({ studioId, name: "Dolor (EVA)", unit: "/10", higherIsBetter: false }).returning();
+  const [flex] = await db.insert(metricDefs).values({ studioId, name: "Flexión de rodilla", unit: "°", clientCanLog: false }).returning();
+  for (let i = 0; i < 6; i++) {
+    await db.insert(metricValues).values({ studioId, clientId: lucia.id, metricId: eva!.id, date: madridDate(-35 + i * 7), value: Math.max(1, 5 - Math.floor(i * 0.8)), createdBy: lucia.userId });
+    await db.insert(metricValues).values({ studioId, clientId: lucia.id, metricId: flex!.id, date: madridDate(-35 + i * 7), value: 105 + i * 5, createdBy: coach!.id });
+  }
+  const qs = [
+    { id: "energia", kind: "scale" as const, label: "¿Qué tal de energía esta semana?", required: true },
+    { id: "sueno", kind: "scale" as const, label: "¿Cómo has dormido?", required: true },
+    { id: "plan", kind: "scale" as const, label: "¿Cuánto has cumplido el plan de entreno?", required: true },
+    { id: "dolor", kind: "yesno" as const, label: "¿Has tenido dolor o molestias?", required: true },
+    { id: "donde", kind: "text" as const, label: "Si es que sí, ¿dónde y cuándo?", required: false },
+    { id: "mas", kind: "text" as const, label: "¿Algo más que quieras contarme?", required: false },
+  ];
+  const [form] = await db.insert(checkinForms).values({ studioId, name: "Check-in semanal", intro: "Dos minutos para contarme qué tal la semana. Con esto ajusto tu plan.", questions: qs }).returning();
+  for (const c of [lucia, active[1]!]) {
+    const [a] = await db.insert(checkinAssignments).values({ studioId, clientId: c.id, formId: form!.id, everyDays: 7, nextDue: madridDate(c === lucia ? 0 : 3) }).returning();
+    for (let w = 3; w >= 1; w--)
+      await db.insert(checkinResponses).values({
+        studioId, clientId: c.id, assignmentId: a!.id, formName: form!.name, questions: qs, dueDate: madridDate(-7 * w),
+        answers: { energia: 6 + (3 - w), sueno: 7, plan: 8 + (w === 1 ? 1 : 0), dolor: w === 1 && c === lucia, ...(w === 1 && c === lucia ? { donde: "Rodilla al bajar escaleras, el jueves" } : {}) },
+        submittedAt: new Date(Date.now() - 7 * w * 86400000), seenAt: w === 1 ? null : new Date(),
+      });
+  }
 }
 
 /** Próximas 4:00 de Madrid, en ms desde ahora. */

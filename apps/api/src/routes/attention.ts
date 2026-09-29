@@ -2,7 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { and, desc, eq, gte, inArray, isNotNull, isNull, lt, sql } from "drizzle-orm";
 import { z } from "zod";
 import { AttentionItem, Ok } from "@coach/shared";
-import { clientProfiles, messages, questionnaires, workouts } from "../db/schema";
+import { checkinAssignments, checkinResponses, clientProfiles, messages, questionnaires, workouts } from "../db/schema";
 import { madridClock } from "../lib/scheduler";
 import { requireCoach } from "../lib/session";
 import { typed, type Ctx } from "./ctx";
@@ -19,6 +19,7 @@ const daysAgo = (date: string, n: number) => {
  * - Con entrenos asignados, pero ninguno hecho en 10 días.
  * - Cuestionario de salud con alertas sin revisar.
  * - Último mensaje del cliente sin contestar desde hace más de 24 h.
+ * - Check-in contestado sin revisar, o sin contestar más de 2 días después de tocarle.
  */
 export function registerAttention(app: FastifyInstance, { db }: Ctx) {
   const api = typed(app);
@@ -60,7 +61,20 @@ export function registerAttention(app: FastifyInstance, { db }: Ctx) {
       .orderBy(messages.clientId, desc(messages.createdAt));
     for (const m of lastMsgs) if (!m.fromCoach && m.old) add(m.clientId, { kind: "unanswered", text: "Mensaje sin contestar desde hace más de un día" });
 
-    const order: Record<string, number> = { health: 0, missed: 1, unanswered: 2, inactive: 3 };
+    const newCheckins = await db
+      .select({ clientId: checkinResponses.clientId, n: sql<number>`count(*)::int` })
+      .from(checkinResponses)
+      .where(and(inArray(checkinResponses.clientId, ids), isNull(checkinResponses.seenAt)))
+      .groupBy(checkinResponses.clientId);
+    for (const c of newCheckins) add(c.clientId, { kind: "checkin", text: c.n === 1 ? "Check-in nuevo por revisar" : `${c.n} check-ins nuevos por revisar` });
+    const overdue = await db
+      .select({ clientId: checkinAssignments.clientId })
+      .from(checkinAssignments)
+      .where(and(inArray(checkinAssignments.clientId, ids), lt(checkinAssignments.nextDue, daysAgo(today, 2))));
+    for (const id of new Set(overdue.map((o) => o.clientId)))
+      if (!newCheckins.some((c) => c.clientId === id)) add(id, { kind: "checkin", text: "Check-in sin contestar" });
+
+    const order: Record<string, number> = { health: 0, missed: 1, unanswered: 2, checkin: 3, inactive: 4 };
     return clients
       .filter((c) => reasons.has(c.id))
       .map((c) => ({ clientId: c.id, clientName: c.name, reasons: reasons.get(c.id)!.sort((a, b) => order[a.kind]! - order[b.kind]!) }))

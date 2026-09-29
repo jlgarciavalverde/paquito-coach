@@ -5,7 +5,7 @@ import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { Ok } from "@coach/shared";
 import type { DB } from "../db/client";
-import { appointments, bodyMetrics, clientProfiles, questionnaires, mealChecks, mealPlans, media, messages, users, workouts } from "../db/schema";
+import { appointments, bodyMetrics, checkinResponses, clientProfiles, metricDefs, metricValues, progressPhotos, questionnaires, mealChecks, mealPlans, media, messages, users, workouts } from "../db/schema";
 import { audit } from "../lib/audit";
 import { HttpError, notFound } from "../lib/errors";
 import { verifyPassword } from "../lib/passwords";
@@ -39,6 +39,9 @@ export function registerPrivacy(app: FastifyInstance, { db, cfg }: Ctx) {
       citas: await db.select({ tipo: appointments.kind, titulo: appointments.title, empieza: appointments.startsAt, termina: appointments.endsAt, lugar: appointments.location }).from(appointments).where(eq(appointments.clientId, clientId)).orderBy(asc(appointments.startsAt)),
       cuestionariosDeSalud: await db.select({ enviadoEl: questionnaires.submittedAt, respuestas: questionnaires.answers, alertas: questionnaires.alerts, revisadoEl: questionnaires.reviewedAt }).from(questionnaires).where(eq(questionnaires.clientId, clientId)),
       pesoYMedidas: await db.select({ fecha: bodyMetrics.date, pesoKg: bodyMetrics.weightKg, cinturaCm: bodyMetrics.waistCm, caderaCm: bodyMetrics.hipCm, grasaPct: bodyMetrics.bodyFatPct, nota: bodyMetrics.note }).from(bodyMetrics).where(eq(bodyMetrics.clientId, clientId)).orderBy(asc(bodyMetrics.date)),
+      fotosDeProgreso: await db.select({ fecha: progressPhotos.date, postura: progressPhotos.pose, foto: progressPhotos.mediaId }).from(progressPhotos).where(eq(progressPhotos.clientId, clientId)).orderBy(asc(progressPhotos.date)),
+      otrasMedidas: await db.select({ fecha: metricValues.date, medida: metricDefs.name, unidad: metricDefs.unit, valor: metricValues.value, nota: metricValues.note }).from(metricValues).innerJoin(metricDefs, eq(metricDefs.id, metricValues.metricId)).where(eq(metricValues.clientId, clientId)).orderBy(asc(metricValues.date)),
+      checkIns: await db.select({ formulario: checkinResponses.formName, preguntas: checkinResponses.questions, respuestas: checkinResponses.answers, tocaba: checkinResponses.dueDate, enviadoEl: checkinResponses.submittedAt }).from(checkinResponses).where(eq(checkinResponses.clientId, clientId)).orderBy(asc(checkinResponses.submittedAt)),
       mensajes: await db.select({ fecha: messages.createdAt, delEntrenador: messages.fromCoach, texto: messages.body, foto: messages.mediaId }).from(messages).where(eq(messages.clientId, clientId)).orderBy(asc(messages.createdAt)),
     };
   }

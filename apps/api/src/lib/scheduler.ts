@@ -1,6 +1,6 @@
 import { and, eq, gte, isNull, lt, sql } from "drizzle-orm";
 import type { DB } from "../db/client";
-import { appointments, clientProfiles, reminderLog, users, workouts } from "../db/schema";
+import { appointments, checkinAssignments, checkinForms, clientProfiles, reminderLog, users, workouts } from "../db/schema";
 import type { PushSender } from "./push";
 
 /** Hora y fecha en Madrid (el estudio está en España; ver docs/ESTADO.md si algún día hay estudios en otras zonas). */
@@ -44,6 +44,22 @@ export async function runReminders(db: DB, push: PushSender, now = new Date()) {
       ? { title: "¿Has entrenado hoy?", body: `Te falta anotar «${w.title}». Si no has podido, márcalo también: tu entrenador lo verá.`, url: "/app/entreno", tag: "recordatorio" }
       : { title: "Hoy toca entrenar", body: `Tienes «${w.title}». Ábrelo para ver los ejercicios.`, url: "/app", tag: "recordatorio" });
     sent.push(`${kind}:${w.userId}`);
+  }
+
+  // Check-ins que tocan hoy (por la mañana; uno por cliente y día)
+  if (!evening) {
+    const due = await db
+      .selectDistinctOn([users.id], { userId: users.id, form: checkinForms.name })
+      .from(checkinAssignments)
+      .innerJoin(checkinForms, eq(checkinForms.id, checkinAssignments.formId))
+      .innerJoin(clientProfiles, eq(clientProfiles.id, checkinAssignments.clientId))
+      .innerJoin(users, eq(users.id, clientProfiles.userId))
+      .where(and(eq(checkinAssignments.nextDue, date), eq(clientProfiles.status, "active"), eq(users.reminders, true), isNull(users.deletedAt)));
+    for (const d of due) {
+      if (!(await claim(db, "client-checkin", d.userId, date))) continue;
+      await push([d.userId], { title: "Te toca el check-in", body: `«${d.form}»: son dos minutos y le ayuda a tu entrenador a ajustar tu plan.`, url: "/app", tag: "checkin" });
+      sent.push(`client-checkin:${d.userId}`);
+    }
   }
 
   // Resumen para cada entrenador (solo por la mañana y si hay algo)

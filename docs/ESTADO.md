@@ -4,11 +4,11 @@
 > Formato: fecha · quién (modelo/herramienta) · qué. Lo más reciente arriba.
 
 ## Ahora mismo
-- **Versión**: **1.2.0** — MVP + post-MVP (F0–F10) + G1–G2 de la tanda de agilidad, **desplegada en joseluis-vps** (producción + demo).
+- **Versión**: **1.3.0** — MVP + post-MVP (F0–F10) + G1–G2 de agilidad + H1 de paridad con Harbiz, **desplegada en joseluis-vps** (producción + demo).
 - **Tanda en curso — agilidad** (plan `~/.claude/plans/mighty-splashing-widget.md`): G1 ✅ (v1.1.0: cuaderno con sugerencias, responder desde el entreno, «Necesitan atención»); G2 ✅ (v1.2.0: paleta ⌘K, atajos, acciones en la ficha, alta encadenada, progresión de cargas, deshacer); G3 editores ágiles (v1.3.0); G4 lista de clientes, barra móvil, optimismo, medición de pasos (v1.4.0).
-- **Después — paridad con Harbiz** (lo que Paquito usa hoy): H1 fotos de progreso, métricas propias y check-ins periódicos (v1.5.0); H2 programas de varias semanas (v1.6.0); H3 bonos de sesiones y reservas (v1.7.0); H4 biblioteca de contenido, logros e informes (v1.8.0). Sin cobros por ahora.
+- **Después — paridad con Harbiz** (lo que Paquito usa hoy): H1 ✅ (v1.3.0: check-ins periódicos, fotos de progreso, medidas propias, ADR 0011); H2 programas de varias semanas; H3 bonos de sesiones y reservas; H4 biblioteca de contenido, logros e informes. Se intercalan con G3–G4. Sin cobros por ahora.
 - **Aún no es pública**: falta la ruta en Cloudflare (bloqueo 3). Después, alta inicial en `/instalar` con el `SETUP_CODE` del `.env` del VPS.
-- **Siguiente tarea**: G3 (editores ágiles). En paralelo, que Paquito lo use (bloqueos).
+- **Siguiente tarea**: H2 (programas de varias semanas) o G3 (editores ágiles). En paralelo, que Paquito lo use (bloqueos).
 - **Plan aprobado**: `~/.claude/plans/mighty-splashing-widget.md` (resumen en `docs/producto/mvp.md`).
 
 ## Fases
@@ -56,6 +56,7 @@ claude mcp add shadcn -- npx -y shadcn@latest mcp
 - Imagen de producción probada en local: `/health` ok, CSP/HSTS, `/api/docs` 404, POST sin Origin → 403, backup diario escrito.
 
 ## Historial
+- **2026-09-29 · Claude (Opus 5.5)** · H1 → **1.3.0**: `packages/shared/src/followup.ts` (+tests), migración `0009_seguimiento` (progress_photos, metric_defs/values, checkin_forms/assignments/responses), `routes/followup.ts`, avisos en `attention.ts` y `scheduler.ts`, RGPD; web: `/coach/seguimiento` (+ editor `$formId`), pestaña Check-ins, `components/progress/{photos,custom-metrics}.tsx`, `/app/checkin/$assignmentId`, barra móvil con «Más». API 93, shared 10, e2e 33 + demo.
 - **2026-09-29 · Claude (Opus 5.5)** · G2 → **1.2.0**: `packages/shared/src/progression.ts` (+tests), `components/coach-actions.tsx` (proveedor de acciones: nuevo cliente, asignar, cita, medidas, escribir), `command-palette.tsx`, `lib/shortcuts.ts`, `ui/menu.tsx`, `ui/confirm.tsx` (`useConfirm`), `useUndoToast`; ficha con `?pestana=`. Paridad con Harbiz añadida al plan (H1–H4). API 88, shared 8, web 15, e2e 30 + demo 1.
 - **2026-09-29 · Claude (Opus 5.5)** · G1 → **1.1.0**: `GET /me/progress/last` (series de la última vez por ejercicio), `routes/attention.ts` (`/attention`, `/activity/seen`, con aislamiento), cuaderno reescrito (`suggest()`, foco a la siguiente serie, barra ±), `logDiff` en `prescription.tsx`, `QuickReply` en `workout-panel.tsx`, «Necesitan atención» en Hoy. e2e nuevo `09-agilidad`; el de agenda fija el reloj del navegador. API 87, web 15, e2e 29 + demo 1.
 - **2026-09-29 · Claude (Opus 5.5)** · F10 → **1.0.0**: `lib/scheduler.ts` + `reminder_log` + `users.reminders` + `PATCH /me/preferences`; `tools/{pull-backups,restore-drill,monitor,install-launchd}.sh` y plantillas `deploy/launchd/`. El primer simulacro real cazó que la copia diaria podía ser anterior al esquema (se elige la más reciente, sin presuponer tablas). Revisión de autorización de las rutas nuevas y `pnpm audit --prod` limpio. API 83 tests, e2e 28 + demo 1.

@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { bigserial, boolean, date, index, integer, jsonb, pgEnum, pgTable, primaryKey, real, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import type { MealDay, RoutineBlock, Targets, WorkoutLog } from "@coach/shared";
+import type { CheckinAnswers, CheckinQuestion, MealDay, RoutineBlock, Targets, WorkoutLog } from "@coach/shared";
 
 /**
  * Esquema de la base de datos. Regla de oro: toda tabla con datos de un estudio lleva `studio_id`
@@ -349,4 +349,90 @@ export const reminderLog = pgTable(
     sentAt: ts("sent_at").notNull().defaultNow(),
   },
   (t) => [primaryKey({ columns: [t.kind, t.userId, t.date] })],
+);
+
+// ── H1: evolución y seguimiento (fotos, métricas propias, check-ins) ───────────
+
+export const progressPhotos = pgTable(
+  "progress_photos",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id").notNull().references(() => clientProfiles.id, { onDelete: "cascade" }),
+    mediaId: uuid("media_id").notNull().references(() => media.id, { onDelete: "cascade" }),
+    date: date("date", { mode: "string" }).notNull(),
+    pose: text("pose").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index("progress_photos_client_idx").on(t.clientId, t.date)],
+);
+
+export const metricDefs = pgTable("metric_defs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  unit: text("unit").notNull().default(""),
+  higherIsBetter: boolean("higher_is_better").notNull().default(true),
+  clientCanLog: boolean("client_can_log").notNull().default(true),
+  archivedAt: ts("archived_at"),
+  createdAt: createdAt(),
+});
+
+export const metricValues = pgTable(
+  "metric_values",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id").notNull().references(() => clientProfiles.id, { onDelete: "cascade" }),
+    metricId: uuid("metric_id").notNull().references(() => metricDefs.id, { onDelete: "cascade" }),
+    date: date("date", { mode: "string" }).notNull(),
+    value: real("value").notNull(),
+    note: text("note"),
+    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+    updatedAt: ts("updated_at").notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("metric_values_uq").on(t.clientId, t.metricId, t.date)],
+);
+
+export const checkinForms = pgTable("checkin_forms", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  intro: text("intro").notNull().default(""),
+  questions: jsonb("questions").$type<CheckinQuestion[]>().notNull(),
+  archivedAt: ts("archived_at"),
+  updatedAt: ts("updated_at").notNull().defaultNow(),
+});
+
+/** Un formulario asignado a un cliente con su periodicidad; `next_due` es el próximo día que le toca. */
+export const checkinAssignments = pgTable(
+  "checkin_assignments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id").notNull().references(() => clientProfiles.id, { onDelete: "cascade" }),
+    formId: uuid("form_id").notNull().references(() => checkinForms.id, { onDelete: "cascade" }),
+    everyDays: integer("every_days").notNull(),
+    nextDue: date("next_due", { mode: "string" }).notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("checkin_assignments_uq").on(t.clientId, t.formId)],
+);
+
+/** Respuestas: guardan copia de las preguntas para que editar el formulario no cambie lo ya contestado. */
+export const checkinResponses = pgTable(
+  "checkin_responses",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id").notNull().references(() => clientProfiles.id, { onDelete: "cascade" }),
+    assignmentId: uuid("assignment_id").references(() => checkinAssignments.id, { onDelete: "set null" }),
+    formName: text("form_name").notNull(),
+    questions: jsonb("questions").$type<CheckinQuestion[]>().notNull(),
+    dueDate: date("due_date", { mode: "string" }).notNull(),
+    answers: jsonb("answers").$type<CheckinAnswers>().notNull(),
+    submittedAt: ts("submitted_at").notNull().defaultNow(),
+    seenAt: ts("seen_at"),
+  },
+  (t) => [index("checkin_responses_client_idx").on(t.clientId, t.submittedAt)],
 );

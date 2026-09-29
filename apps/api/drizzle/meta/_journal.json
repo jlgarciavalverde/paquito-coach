@@ -64,6 +64,13 @@
       "when": 1790692422892,
       "tag": "0008_recordatorios",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790708400901,
+      "tag": "0009_seguimiento",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,15 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [1.3.0] — 2026-09-29 · Seguimiento (paridad con Harbiz)
+### Añadido
+- **Check-ins periódicos**: formularios propios (escala 1–10, sí/no, número, texto, foto), con uno semanal ya preparado; se piden a uno o varios clientes cada 1, 2 o 4 semanas. El cliente lo ve en Hoy el día que toca (y le llega un aviso); las respuestas salen en la nueva pestaña «Check-ins» de la ficha, con la diferencia respecto a la vez anterior y una marca si ha tenido dolor.
+- **Fotos de progreso**: de frente, perfil y espaldas por fecha, y comparación de dos fechas lado a lado. Las sube el cliente o el entrenador.
+- **Medidas propias** (dolor EVA, grados de flexión, salto…): se definen en Seguimiento, se anotan en Progreso y tienen su gráfica con la tendencia (sabiendo si subir es bueno o malo).
+- Nueva sección **Seguimiento** (también en ⌘K y con `g s`). En el móvil del entrenador, la barra inferior queda con Hoy, Clientes, Agenda, Mensajes y «Más».
+- «Necesitan atención»: check-in nuevo por revisar o sin contestar; el enlace abre la pestaña que toca.
+- Demo con check-ins, dolor y flexión de rodilla de ejemplo. Todo incluido en la copia RGPD.
+
 ## [1.2.0] — 2026-09-29 · Cualquier cosa en dos pasos
 ### Añadido
 - **Paleta de órdenes** (⌘K / Ctrl K, «/» o el botón «Buscar»): clientes, rutinas y plantillas; crear cliente, cita, rutina o plantilla; si lo escrito apunta a un cliente, sus acciones directas (escribir, asignar rutina, nueva cita, anotar medidas). A pantalla completa en el móvil.

@@ -9,6 +9,8 @@ import { Skeleton } from "../ui/spinner";
 import { useToast, useUndoToast } from "../ui/toast";
 import { FormError } from "../form-error";
 import { LineChart } from "./line-chart";
+import { ProgressPhotos } from "./photos";
+import { CustomMetricsBlock } from "./custom-metrics";
 import { metricsQuery, progressExercisesQuery, progressQuery, useDeleteMetric, useSaveMetric, type Who } from "../../lib/progress";
 import { dayMonth, today } from "../../lib/dates";
 import { errorMessage } from "../../lib/api";
@@ -21,6 +23,8 @@ export function ClientProgress({ who, name }: { who: Who; name?: string }) {
   return (
     <div className="flex flex-col gap-12">
       <Measurements who={who} name={name} />
+      <CustomMetricsBlock who={who} name={name} />
+      <ProgressPhotos who={who} name={name} />
       <Loads who={who} name={name} />
     </div>
   );

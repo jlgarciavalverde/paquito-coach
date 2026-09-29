@@ -11,6 +11,7 @@ export const SHORTCUTS: Shortcut[] = [
   { keys: "g n", label: "Ir a Nutrición" },
   { keys: "g a", label: "Ir a Agenda" },
   { keys: "g m", label: "Ir a Mensajes" },
+  { keys: "g s", label: "Ir a Seguimiento" },
   { keys: "n", label: "Crear en la pantalla actual (cliente, rutina, cita, plantilla)" },
   { keys: "?", label: "Ver estos atajos" },
 ];

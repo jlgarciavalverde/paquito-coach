@@ -61,6 +61,8 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
       { id: "n-nut", group: "Ir a", label: "Nutrición", keywords: "comidas plantillas dieta", run: go("/coach/nutricion") },
       { id: "n-age", group: "Ir a", label: "Agenda", keywords: "calendario citas", run: go("/coach/calendario") },
       { id: "n-msg", group: "Ir a", label: "Mensajes", keywords: "chat", run: go("/coach/chat") },
+      { id: "n-seg", group: "Ir a", label: "Seguimiento", keywords: "check-in checkin formularios medidas propias", run: go("/coach/seguimiento") },
+      { id: "a-form", group: "Crear", label: "Nuevo formulario de check-in", keywords: "seguimiento cuestionario", run: go("/coach/seguimiento/nuevo") },
       { id: "n-aju", group: "Ir a", label: "Ajustes", keywords: "cuenta contraseña codigo tema avisos", run: go("/coach/ajustes") },
     ];
     const clientItems: Item[] = people.map((c) => ({

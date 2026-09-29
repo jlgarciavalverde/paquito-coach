@@ -5,7 +5,7 @@ import { ClientProgress } from "../../components/progress/client-progress";
 export const Route = createFileRoute("/app/progreso")({
   component: () => (
     <>
-      <PageTitle title="Progreso" lead="Tu peso, tus medidas y cómo suben tus cargas en cada ejercicio." />
+      <PageTitle title="Progreso" lead="Tu peso, tus medidas, tus fotos y cómo suben tus cargas en cada ejercicio." />
       <ClientProgress who="me" />
     </>
   ),

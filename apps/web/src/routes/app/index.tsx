@@ -16,6 +16,7 @@ import { hhmm, localDate, myAppointmentsQuery } from "../../lib/agenda";
 import { fromIso } from "../../lib/dates";
 import { cn } from "../../lib/cn";
 import { myQuestionnaireQuery } from "../../lib/questionnaire";
+import { myCheckinsQuery } from "../../lib/followup";
 
 export const Route = createFileRoute("/app/")({
   component: Today,
@@ -37,6 +38,7 @@ function Today() {
       <h1 className="font-wide mt-1 text-[28px] leading-[1.1] sm:text-[34px]">{cap(dayLong(t))}</h1>
 
       <QuestionnairePrompt />
+      <CheckinPrompt />
       <section className="mt-8" aria-labelledby="t-train">
         <BlockTitle id="t-train">Entreno de hoy</BlockTitle>
         {q.isPending ? (
@@ -155,6 +157,29 @@ function NextAppointment() {
         {next.title || appointmentLabel({ ...next, clientName: null })}
         {next.location && <span className="text-ink-2">, {next.location}</span>}
       </p>
+    </section>
+  );
+}
+
+function CheckinPrompt() {
+  const q = useQuery(myCheckinsQuery);
+  const health = useQuery(myQuestionnaireQuery);
+  const me = useMe()!;
+  const c = q.data?.[0];
+  // De uno en uno: primero el cuestionario de salud.
+  if (!c || health.data?.pending) return null;
+  return (
+    <section className="mt-6 border-l-[5px] border-primary bg-primary-soft px-4 py-3.5" aria-labelledby="t-ci">
+      <h2 id="t-ci" className="font-medium text-ink">
+        Te toca: {c.formName}
+      </h2>
+      <p className="mt-0.5 text-sm text-ink-2">
+        {c.questions.length} preguntas rápidas para {me.studio.coachName?.split(" ")[0] ?? "tu entrenador"}.
+        {q.data!.length > 1 && ` Y ${q.data!.length - 1} más después.`}
+      </p>
+      <Link to="/app/checkin/$assignmentId" params={{ assignmentId: c.assignmentId }} className={buttonClass("primary", "md", "mt-3")}>
+        Rellenarlo
+      </Link>
     </section>
   );
 }

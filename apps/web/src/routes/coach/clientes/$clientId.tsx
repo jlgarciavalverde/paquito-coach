@@ -22,6 +22,7 @@ import { ClientTraining } from "../../../components/training/client-training";
 import { ClientNutrition } from "../../../components/nutrition/client-nutrition";
 import { ClientAgenda } from "../../../components/agenda/client-agenda";
 import { ClientProgress } from "../../../components/progress/client-progress";
+import { ClientCheckins } from "../../../components/followup/client-checkins";
 import { QuestionnaireAlert, QuestionnaireSummary } from "../../../components/clients/health-questionnaire";
 import { clientQuery, useClientAction, useInvite, useResetLink, useUpdateClient } from "../../../lib/queries";
 import { useMe } from "../../../lib/auth";
@@ -31,7 +32,7 @@ import { useSubmit } from "../../../lib/use-form";
 import { cn } from "../../../lib/cn";
 import { useDocumentTitle } from "../../../lib/title";
 
-const TABS = ["entreno", "progreso", "ficha", "nutricion", "agenda", "chat"] as const;
+const TABS = ["entreno", "progreso", "seguimiento", "ficha", "nutricion", "agenda", "chat"] as const;
 export const Route = createFileRoute("/coach/clientes/$clientId")({
   validateSearch: z.object({ pestana: z.enum(TABS).optional() }),
   component: ClientPage,
@@ -77,6 +78,7 @@ function ClientPage() {
         items={[
           { value: "entreno", label: "Entreno" },
           { value: "progreso", label: "Progreso" },
+          { value: "seguimiento", label: "Check-ins" },
           { value: "ficha", label: "Ficha" },
           { value: "nutricion", label: "Nutrición" },
           { value: "agenda", label: "Agenda" },
@@ -88,6 +90,9 @@ function ClientPage() {
         </TabPanel>
         <TabPanel value="progreso">
           <ClientProgress who={c.id} name={c.name} />
+        </TabPanel>
+        <TabPanel value="seguimiento">
+          <ClientCheckins client={c} />
         </TabPanel>
         <TabPanel value="ficha">
           <QuestionnaireSummary client={c} />
