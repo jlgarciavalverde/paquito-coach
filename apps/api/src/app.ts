@@ -26,6 +26,7 @@ import { registerHealth } from "./routes/health";
 import { registerMe } from "./routes/me";
 import { registerStudio } from "./routes/studio";
 import { registerTraining } from "./routes/training";
+import { registerNutrition } from "./routes/nutrition";
 import { seedExercises } from "./db/seed";
 import type { Ctx } from "./routes/ctx";
 
@@ -145,6 +146,7 @@ export async function buildApp(cfg: AppConfig): Promise<App> {
       registerClients(api, ctx);
       registerStudio(api, ctx);
       registerTraining(api, ctx);
+      registerNutrition(api, ctx);
     },
     { prefix: "/api/v1" },
   );

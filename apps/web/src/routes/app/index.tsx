@@ -9,6 +9,10 @@ import { useMe } from "../../lib/auth";
 import { myWorkoutsQuery } from "../../lib/training";
 import { dayLong, dayShort, plusDays, today } from "../../lib/dates";
 import { firstName } from "../../lib/format";
+import { myChecksQuery, myPlanQuery } from "../../lib/nutrition";
+import { mealsFor } from "@coach/shared";
+import { fromIso } from "../../lib/dates";
+import { cn } from "../../lib/cn";
 
 export const Route = createFileRoute("/app/")({
   component: Today,
@@ -88,9 +92,45 @@ function Today() {
         </section>
       )}
 
-      <section className="mt-10 text-sm text-ink-2" aria-label="Más adelante">
-        <p>Tu plan de comidas y tu agenda aparecerán aquí cuando tu entrenador los prepare.</p>
-      </section>
+      <TodayMeals />
     </>
+  );
+}
+
+function TodayMeals() {
+  const t = today();
+  const plan = useQuery(myPlanQuery);
+  const checks = useQuery(myChecksQuery(t, t));
+  if (!plan.data) return null;
+  const meals = mealsFor(plan.data, fromIso(t).getDay());
+  if (meals.length === 0) return null;
+  const done = meals.filter((m) => (checks.data ?? []).some((c) => c.mealId === m.id && c.done));
+  return (
+    <section className="mt-10" aria-labelledby="t-meals">
+      <BlockTitle id="t-meals" action={<Link to="/app/comidas" className="text-sm font-medium text-primary hover:underline">Ver el día</Link>}>
+        Comidas de hoy
+      </BlockTitle>
+      <p className="text-ink-2">
+        <span className="font-narrow text-[18px] text-ink">
+          {done.length} de {meals.length}
+        </span>{" "}
+        marcadas como hechas.
+      </p>
+      <ul className="mt-2 flex flex-col gap-1 text-sm">
+        {meals.map((m) => {
+          const ok = done.includes(m);
+          return (
+            <li key={m.id} className="flex items-center gap-2">
+              <span className={cn("h-3.5 w-[5px] rounded-[1.5px]", ok ? "bg-plate-green" : "bg-rule-strong")} aria-hidden="true" />
+              <span className={ok ? "text-ink-2" : "text-ink"}>
+                {m.time && <span className="font-narrow mr-1.5 text-ink-3">{m.time}</span>}
+                {m.name}
+              </span>
+              {ok && <span className="sr-only">(hecha)</span>}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }

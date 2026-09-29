@@ -16,6 +16,7 @@ import { ComingSoon } from "../../../components/coming-soon";
 import { StatusMark } from "../../../components/clients/status-mark";
 import { ShareInvite } from "../../../components/clients/share-invite";
 import { ClientTraining } from "../../../components/training/client-training";
+import { ClientNutrition } from "../../../components/nutrition/client-nutrition";
 import { clientQuery, useClientAction, useInvite, useResetLink, useUpdateClient } from "../../../lib/queries";
 import { useMe } from "../../../lib/auth";
 import { age, fmtDate } from "../../../lib/format";
@@ -72,9 +73,7 @@ function ClientPage() {
           <ClientForm client={c} />
         </TabPanel>
         <TabPanel value="nutricion">
-          <ComingSoon title="Plan de comidas" phase={3}>
-            Plan semanal por días y comidas, con alternativas y objetivos de kcal y macros si los quieres. {c.name.split(" ")[0]} marcará lo que va cumpliendo.
-          </ComingSoon>
+          <ClientNutrition client={c} />
         </TabPanel>
         <TabPanel value="agenda">
           <ComingSoon title="Agenda" phase={4}>

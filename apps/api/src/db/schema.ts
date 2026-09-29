@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { bigserial, boolean, date, index, integer, jsonb, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import type { RoutineBlock, WorkoutLog } from "@coach/shared";
+import type { MealDay, RoutineBlock, Targets, WorkoutLog } from "@coach/shared";
 
 /**
  * Esquema de la base de datos. Regla de oro: toda tabla con datos de un estudio lleva `studio_id`
@@ -179,4 +179,45 @@ export const workouts = pgTable(
     updatedAt: ts("updated_at").notNull().defaultNow(),
   },
   (t) => [index("workouts_client_date_idx").on(t.clientId, t.date), index("workouts_studio_done_idx").on(t.studioId, t.completedAt)],
+);
+
+// ── F3: nutrición ──────────────────────────────────────────────────────────────
+
+/** Plan de comidas. `client_id` nulo = plantilla de la biblioteca. Un cliente tiene como mucho un plan activo. */
+export const mealPlans = pgTable(
+  "meal_plans",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id").references(() => clientProfiles.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    notes: text("notes").notNull().default(""),
+    targets: jsonb("targets").$type<Targets>().notNull(),
+    mode: text("mode").$type<"same" | "weekly">().notNull(),
+    days: jsonb("days").$type<MealDay[]>().notNull(),
+    active: boolean("active").notNull().default(false),
+    createdAt: createdAt(),
+    updatedAt: ts("updated_at").notNull().defaultNow(),
+    archivedAt: ts("archived_at"),
+  },
+  (t) => [
+    index("meal_plans_studio_idx").on(t.studioId),
+    uniqueIndex("meal_plans_one_active_uq").on(t.clientId).where(sql`${t.active} and ${t.archivedAt} is null`),
+  ],
+);
+
+/** Lo que el cliente marca como cumplido cada día. */
+export const mealChecks = pgTable(
+  "meal_checks",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id").notNull().references(() => clientProfiles.id, { onDelete: "cascade" }),
+    date: date("date", { mode: "string" }).notNull(),
+    mealId: text("meal_id").notNull(),
+    done: boolean("done").notNull(),
+    note: text("note"),
+    updatedAt: ts("updated_at").notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("meal_checks_uq").on(t.clientId, t.date, t.mealId)],
 );

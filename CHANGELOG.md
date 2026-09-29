@@ -1,6 +1,12 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [0.3.0] — 2026-09-29
+### Añadido
+- **Nutrición**: plantillas de planes de comidas; plan activo por cliente, igual todos los días o distinto cada día (copiar un día al resto); objetivos diarios de kcal y macros; comidas con hora, alimentos y cantidades, alternativas y notas; aplicar una plantilla a varios clientes (copia editable).
+- Cliente: pantalla «Comidas» por día con marcar comida hecha; resumen en «Hoy».
+- Ficha → pestaña «Nutrición»: plan, objetivos y cumplimiento de los últimos 7 días.
+
 ## [0.2.0] — 2026-09-29
 ### Añadido
 - **Entrenamiento**: biblioteca con 2.534 ejercicios en español + ejercicios propios con vídeo (YouTube/Vimeo); rutinas por bloques con series, reps, carga, RIR/RPE, tempo, descanso, notas y superseries (A1/A2); duplicar; asignar a varios clientes en días concretos o repetidos durante N semanas (copia congelada).

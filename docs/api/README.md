@@ -16,7 +16,7 @@
 | 410 `invite_used`, `invite_invalid`, `reset_invalid` | enlace caducado o usado |
 | 429 `rate_limited`, `locked` | límite por IP o bloqueo por cuenta |
 
-## Endpoints (v0.2)
+## Endpoints (v0.3)
 | Método | Ruta | Quién | Qué |
 |---|---|---|---|
 | GET | `/auth/setup-status` | público | ¿falta el alta inicial? |
@@ -44,4 +44,10 @@
 | PATCH · DELETE | `/workouts/:id` | entrenador | mover, indicaciones, quitar |
 | PUT | `/workouts/:id/log` | su cliente | autoguardado del cuaderno |
 | POST | `/workouts/:id/complete` · `/workouts/:id/reopen` | su cliente | terminar (RPE, comentario, o no hecho) · reabrir |
+| GET · POST | `/meal-plans` | entrenador | plantillas · crear (plantilla, plan de cliente en blanco o copia con `fromPlanId`) |
+| GET · PUT · DELETE | `/meal-plans/:id` | entrenador | plan o plantilla |
+| POST | `/meal-plans/:id/apply` | entrenador | aplicar a clientes (`clientIds`) |
+| GET | `/clients/:id/meal-plan` · `/clients/:id/meal-checks?from&to` | entrenador | plan activo · cumplimiento |
+| GET | `/me/meal-plan` · `/me/meal-checks?from&to` | cliente activo | mi plan · lo marcado |
+| PUT | `/me/meal-checks` | cliente activo | marcar/desmarcar una comida de un día |
 | GET | `/health` | público | versión, uptime, BD |
