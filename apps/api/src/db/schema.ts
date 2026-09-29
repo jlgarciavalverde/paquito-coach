@@ -521,3 +521,43 @@ export const resources = pgTable("resources", {
   clientIds: jsonb("client_ids").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
   createdAt: createdAt(),
 });
+
+// ── I1: IA con los documentos del entrenador ──────────────────────────────────
+
+/** Documentos del entrenador (su metodología). Se guarda el texto extraído, no el archivo. */
+export const aiDocuments = pgTable("ai_documents", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  kind: text("kind").$type<"pdf" | "docx" | "text">().notNull(),
+  status: text("status").$type<"ready" | "error">().notNull(),
+  error: text("error"),
+  chars: integer("chars").notNull().default(0),
+  createdAt: createdAt(),
+});
+
+export const aiChunks = pgTable(
+  "ai_chunks",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    documentId: uuid("document_id").notNull().references(() => aiDocuments.id, { onDelete: "cascade" }),
+    idx: integer("idx").notNull(),
+    text: text("text").notNull(),
+    embedding: real("embedding").array().notNull(),
+  },
+  (t) => [index("ai_chunks_studio_idx").on(t.studioId)],
+);
+
+/** Uso de la IA (para el límite diario propio y para saber cuánto se usa). */
+export const aiUsage = pgTable(
+  "ai_usage",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    tokens: integer("tokens").notNull().default(0),
+    createdAt: createdAt(),
+  },
+  (t) => [index("ai_usage_studio_idx").on(t.studioId, t.createdAt)],
+);

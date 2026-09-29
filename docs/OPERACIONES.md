@@ -55,5 +55,18 @@ las suscripciones de todos los dispositivos (habría que volver a activar los av
 Servicios `coach-demo` y `coach-demo-db` (ADR 0009). Se re-siembra sola al arrancar y cada noche a las 4:00. Para
 re-sembrarla a mano: `docker restart coach-demo`. No tiene copias de seguridad (no hay nada que conservar).
 
+## IA (Gemini)
+1. Paquito entra con su cuenta de Google en <https://aistudio.google.com/apikey> y crea una clave (plan gratuito). **No la pega en ningún chat.**
+2. En el VPS, sin que se vea ni quede en el historial:
+   ```sh
+   cd ~/servicios/coach && read -rsp "Clave de Gemini: " K && echo && \
+   (grep -v '^GEMINI_API_KEY=' .env; echo "GEMINI_API_KEY=$K") > .env.tmp && mv .env.tmp .env && chmod 600 .env && unset K && \
+   docker compose up -d coach
+   ```
+3. Comprobar en la app → IA: «Hoy llevas 0 de 150 peticiones». Si Google cambia el nombre del modelo, ajustar `GEMINI_MODEL` en el `.env`
+   (por defecto `gemini-flash-latest`) y reiniciar `coach`.
+- Límites: los del plan gratuito de Google (se ven en AI Studio) y el propio `AI_DAILY_LIMIT` por estudio y día.
+- Privacidad: solo se envían sus documentos y datos del cliente seudonimizados (ADR 0012). La demo usa respuestas de ejemplo.
+
 ## Salud y logs
 `docker ps --filter name=coach` · `docker logs coach --tail 100` · `curl -s https://paquito.redgarverde.com/health`

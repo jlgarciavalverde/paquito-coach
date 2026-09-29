@@ -13,6 +13,7 @@ export const SHORTCUTS: Shortcut[] = [
   { keys: "g m", label: "Ir a Mensajes" },
   { keys: "g s", label: "Ir a Seguimiento" },
   { keys: "g i", label: "Ir a Informes" },
+  { keys: "g x", label: "Ir a IA" },
   { keys: "n", label: "Crear en la pantalla actual (cliente, rutina, cita, plantilla)" },
   { keys: "?", label: "Ver estos atajos" },
 ];

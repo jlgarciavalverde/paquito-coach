@@ -24,6 +24,14 @@ export interface AppConfig {
   vapidPublicKey?: string;
   vapidPrivateKey?: string;
   vapidSubject?: string;
+  /** IA (Gemini, plan gratuito). Sin clave, la IA está desactivada. */
+  geminiApiKey?: string;
+  geminiModel: string;
+  geminiEmbedModel: string;
+  /** Límite propio de peticiones a la IA por estudio y día (el plan gratuito también tiene los suyos). */
+  aiDailyLimit: number;
+  /** Respuestas de ejemplo fijas en lugar de la IA real (demo y e2e). */
+  aiFake?: boolean;
   /** Instancia de demostración pública (base de datos propia, se re-siembra cada noche). */
   demoMode?: boolean;
 }
@@ -50,5 +58,10 @@ export function configFromEnv(env = process.env): AppConfig {
     vapidPrivateKey: env.VAPID_PRIVATE_KEY || undefined,
     vapidSubject: env.VAPID_SUBJECT || "mailto:admin@redgarverde.com",
     demoMode: env.DEMO_MODE === "1",
+    geminiApiKey: env.GEMINI_API_KEY || undefined,
+    geminiModel: env.GEMINI_MODEL || "gemini-flash-latest",
+    geminiEmbedModel: env.GEMINI_EMBED_MODEL || "gemini-embedding-001",
+    aiDailyLimit: Number(env.AI_DAILY_LIMIT ?? 150),
+    aiFake: env.AI_FAKE === "1",
   };
 }

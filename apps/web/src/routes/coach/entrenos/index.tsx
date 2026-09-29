@@ -1,7 +1,8 @@
 import { useDeferredValue, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { MagnifyingGlass, Plus } from "@phosphor-icons/react";
+import { MagnifyingGlass, Plus, Sparkle } from "@phosphor-icons/react";
+import { useCoachActions } from "../../../components/coach-actions";
 import { z } from "zod";
 import { MUSCLE_LABEL, MUSCLES, type Exercise, type Muscle, type Program, type Routine } from "@coach/shared";
 import { Button, buttonClass } from "../../../components/ui/button";
@@ -71,7 +72,10 @@ function Routines() {
     );
   return (
     <>
-      <div className="mb-3 flex justify-end">{newBtn}</div>
+      <div className="mb-3 flex justify-end gap-2">
+        <AiButton kind="routine" />
+        {newBtn}
+      </div>
       <ul className="divide-y divide-rule border-y border-rule">
         {q.data!.map((r) => (
           <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3.5">
@@ -115,7 +119,10 @@ function Programs() {
     );
   return (
     <>
-      <div className="mb-3 flex justify-end">{newBtn}</div>
+      <div className="mb-3 flex justify-end gap-2">
+        <AiButton kind="program" />
+        {newBtn}
+      </div>
       <ul className="divide-y divide-rule border-y border-rule">
         {q.data!.map((p) => (
           <li key={p.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3.5">
@@ -135,6 +142,16 @@ function Programs() {
       </ul>
       {assign && <ProgramAssignPanel program={assign} onClose={() => setAssign(null)} />}
     </>
+  );
+}
+
+/** «Generar con IA»: abre el panel de la IA en el tipo que toca. */
+function AiButton({ kind }: { kind: "routine" | "program" }) {
+  const act = useCoachActions();
+  return (
+    <Button variant="secondary" icon={<Sparkle size={16} />} onClick={() => act.generate(kind)}>
+      Generar con IA
+    </Button>
   );
 }
 

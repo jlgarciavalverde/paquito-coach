@@ -1,6 +1,14 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [1.8.0] — 2026-09-29 · IA con los documentos de Paquito
+### Añadido
+- **IA** (nueva sección, ⌘K y `g x`): Paquito sube sus documentos (PDF, Word o texto: metodología, pautas, tablas) y genera **rutinas, programas de varias semanas y planes de comidas** basados en ellos, además de **preguntar a sus documentos** con las fuentes citadas.
+- Lo generado es un borrador: la rutina se abre en el editor, el programa crea sus rutinas y la rejilla, y el plan de comidas se crea como plantilla o como plan del cliente; siempre se revisa antes de que llegue al cliente. Los ejercicios se emparejan con la biblioteca y se avisa de los que no están.
+- Botón «Generar con IA» en Entrenos, Programas, Nutrición y la ficha del cliente.
+- Gemini (plan gratuito) con límite diario propio; a Google solo van sus documentos y datos del cliente sin nombre ni contacto (lesiones solo si se marca). Aviso en la app y en `/privacidad`. ADR 0012.
+- La demo y los e2e usan respuestas de ejemplo (sin gastar cuota).
+
 ## [1.7.0] — 2026-09-29 · Material, logros e informes
 ### Añadido
 - **Material para clientes** (Seguimiento): enlaces y vídeos o PDFs (se comprueba que lo son de verdad, hasta 15 MB), para todos o para algunos clientes. El cliente lo ve en «Material» (desde Perfil y, si es nuevo, desde Hoy); un PDF solo lo pueden abrir aquellos con quienes se ha compartido.

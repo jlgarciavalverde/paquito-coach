@@ -95,4 +95,7 @@
 | GET · POST · PUT · DELETE | `/resources[/:id]` · `GET /me/resources` | entrenador · cliente activo | material para todos o para algunos clientes |
 | GET | `/me/achievements` | cliente activo | racha de semanas, total y récords del último mes |
 | GET | `/reports` | entrenador | informe del estudio (cumplimiento, sesiones, bonos, por cliente) |
+| GET | `/ai/status` · `/ai/documents` | entrenador | estado (activa, uso de hoy, límite) · documentos |
+| POST · DELETE | `/ai/documents` (multipart) · `/ai/documents/:id` | entrenador | subir PDF/DOCX/TXT (texto extraído y troceado) · quitar |
+| POST | `/ai/routine` · `/ai/program` · `/ai/meal-plan` · `/ai/ask` | entrenador | borradores validados con los esquemas de la app y fuentes; 409 sin clave, 429 al llegar al límite |
 | GET | `/health` | público | versión, uptime, BD |

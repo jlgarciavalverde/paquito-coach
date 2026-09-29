@@ -41,6 +41,10 @@ import { registerPrograms } from "./routes/programs";
 import { registerPacks } from "./routes/packs";
 import { registerBooking } from "./routes/booking";
 import { registerLibrary } from "./routes/library";
+import { registerAi } from "./routes/ai";
+import { createGemini } from "./lib/ai/gemini";
+import { createCannedAi } from "./lib/ai/canned";
+import type { AiProvider } from "./lib/ai/provider";
 import { Hub } from "./lib/realtime";
 import { createPushSender, type PushSender } from "./lib/push";
 import { seedExercises } from "./db/seed";
@@ -50,12 +54,21 @@ export type App = FastifyInstance & { db: DB; push: PushSender };
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
-export async function buildApp(cfg: AppConfig, opts: { push?: PushSender } = {}): Promise<App> {
+export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: AiProvider | null } = {}): Promise<App> {
   const { db, sql: pg } = createDb(cfg.databaseUrl);
   await runMigrations(db);
   if (cfg.seedExercises !== false) await seedExercises(db);
   const hub = new Hub();
   const ctx: Ctx = { db, cfg, hub };
+  // IA: sin clave (o en la demo) queda desactivada; los tests inyectan un proveedor falso.
+  const ai =
+    opts.ai !== undefined
+      ? opts.ai
+      : cfg.aiFake || cfg.demoMode
+        ? createCannedAi()
+        : cfg.geminiApiKey
+          ? createGemini({ apiKey: cfg.geminiApiKey, model: cfg.geminiModel, embedModel: cfg.geminiEmbedModel })
+          : null;
   const push = opts.push ?? createPushSender(db, { publicKey: cfg.vapidPublicKey, privateKey: cfg.vapidPrivateKey, subject: cfg.vapidSubject ?? "mailto:admin@example.com" });
 
   const app = Fastify({
@@ -156,7 +169,7 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender } = {})
   if (cfg.demoMode) {
     const BLOCKED: RegExp[] = [
       /^\/api\/v1\/media/, /^\/api\/v1\/me\/delete/, /^\/api\/v1\/clients\/[^/]+\/(delete|reset-link)/, /^\/api\/v1\/auth\/(password|setup|register)/,
-      /^\/api\/v1\/push\/subscriptions/, /^\/api\/v1\/studio\/join-code\/rotate/,
+      /^\/api\/v1\/push\/subscriptions/, /^\/api\/v1\/studio\/join-code\/rotate/, /^\/api\/v1\/ai\/documents/, /^\/api\/v1\/resources\/upload/,
     ];
     app.addHook("onRequest", async (req, reply) => {
       if (req.method !== "GET" && BLOCKED.some((r) => r.test(req.url))) {
@@ -197,6 +210,7 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender } = {})
       registerPacks(api, ctx);
       registerBooking(api, ctx, { push });
       registerLibrary(api, ctx);
+      registerAi(api, ctx, { ai });
       registerChat(api, ctx, { hub, push, mediaDir: join(cfg.dataDir, "media"), vapidPublicKey: cfg.vapidPublicKey });
     },
     { prefix: "/api/v1" },

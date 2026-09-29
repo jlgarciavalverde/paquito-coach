@@ -31,6 +31,7 @@ export default defineConfig({
       AUTH_RATE_LIMIT: "1000",
       GLOBAL_RATE_LIMIT: "5000",
       LOG_LEVEL: "warn",
+      AI_FAKE: "1",
     },
   },
 });

@@ -14,3 +14,4 @@ export * from "./programs";
 export * from "./packs";
 export * from "./booking";
 export * from "./library";
+export * from "./ai";

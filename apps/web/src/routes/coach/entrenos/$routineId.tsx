@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { createFileRoute, Link, useBlocker, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { takeDraft } from "../../../lib/drafts";
 import { ArrowDown, ArrowUp, CaretLeft, LinkSimple, LinkSimpleBreak, Plus, Trash } from "@phosphor-icons/react";
 import type { Exercise, RoutineBlock, RoutineBody, RoutineItem } from "@coach/shared";
 import { Button, IconButton } from "../../../components/ui/button";
@@ -25,14 +26,16 @@ const EMPTY: RoutineBody = { name: "", description: "", blocks: [{ id: "b-" + ne
 function RoutinePage() {
   const { routineId } = Route.useParams();
   const isNew = routineId === "nueva";
+  // Borrador que viene de la IA (se lee una sola vez).
+  const [draft] = useState(() => (isNew ? takeDraft("routine") : undefined));
   const q = useQuery({ ...routineQuery(routineId), enabled: !isNew });
   if (!isNew && q.isPending) return <Skeleton className="h-96" />;
   if (!isNew && q.isError) return <p className="text-plate-red">{errorMessage(q.error)}</p>;
-  return <Editor key={routineId} id={isNew ? undefined : routineId} initial={isNew ? EMPTY : { name: q.data!.name, description: q.data!.description, blocks: q.data!.blocks }} />;
+  return <Editor key={routineId} id={isNew ? undefined : routineId} initial={isNew ? (draft ?? EMPTY) : { name: q.data!.name, description: q.data!.description, blocks: q.data!.blocks }} fromDraft={Boolean(isNew && draft)} />;
 }
 
 /** Editor de rutina con forma de hoja de entrenamiento: bloques, y en cada uno las líneas A1, A2, B1… */
-function Editor({ id, initial }: { id?: string; initial: RoutineBody }) {
+function Editor({ id, initial, fromDraft = false }: { id?: string; initial: RoutineBody; fromDraft?: boolean }) {
   const navigate = useNavigate();
   const toast = useToast();
   const save = useSaveRoutine(id);
@@ -40,7 +43,8 @@ function Editor({ id, initial }: { id?: string; initial: RoutineBody }) {
   const ask = useConfirm();
   const undoToast = useUndoToast();
   const [doc, setDoc] = useState<RoutineBody>(initial);
-  const [saved, setSaved] = useState(JSON.stringify(initial));
+  // Un borrador de la IA cuenta como «sin guardar» desde el principio.
+  const [saved, setSaved] = useState(JSON.stringify(fromDraft ? EMPTY : initial));
   const [pickerFor, setPickerFor] = useState<string | null>(null);
   const [assignOpen, setAssignOpen] = useState(false);
   const dirty = JSON.stringify(doc) !== saved;

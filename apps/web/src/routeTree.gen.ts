@@ -32,6 +32,7 @@ import { Route as CoachAjustesRouteImport } from './routes/coach/ajustes'
 import { Route as CoachCalendarioRouteImport } from './routes/coach/calendario'
 import { Route as CoachChatRouteImport } from './routes/coach/chat'
 import { Route as CoachClientesRouteImport } from './routes/coach/clientes'
+import { Route as CoachIaRouteImport } from './routes/coach/ia'
 import { Route as CoachInformesRouteImport } from './routes/coach/informes'
 import { Route as AppCheckinAssignmentIdRouteImport } from './routes/app/checkin/$assignmentId'
 import { Route as AppEntrenoIndexRouteImport } from './routes/app/entreno/index'
@@ -161,6 +162,11 @@ const CoachClientesRoute = CoachClientesRouteImport.update({
   path: '/clientes',
   getParentRoute: () => CoachRoute,
 } as any)
+const CoachIaRoute = CoachIaRouteImport.update({
+  id: '/ia',
+  path: '/ia',
+  getParentRoute: () => CoachRoute,
+} as any)
 const CoachInformesRoute = CoachInformesRouteImport.update({
   id: '/informes',
   path: '/informes',
@@ -250,6 +256,7 @@ export interface FileRoutesByFullPath {
   '/coach/calendario': typeof CoachCalendarioRoute
   '/coach/chat': typeof CoachChatRoute
   '/coach/clientes': typeof CoachClientesRouteWithChildren
+  '/coach/ia': typeof CoachIaRoute
   '/coach/informes': typeof CoachInformesRoute
   '/app/': typeof AppIndexRoute
   '/coach/': typeof CoachIndexRoute
@@ -285,6 +292,7 @@ export interface FileRoutesByTo {
   '/coach/ajustes': typeof CoachAjustesRoute
   '/coach/calendario': typeof CoachCalendarioRoute
   '/coach/chat': typeof CoachChatRoute
+  '/coach/ia': typeof CoachIaRoute
   '/coach/informes': typeof CoachInformesRoute
   '/app': typeof AppIndexRoute
   '/coach': typeof CoachIndexRoute
@@ -324,6 +332,7 @@ export interface FileRoutesById {
   '/coach/calendario': typeof CoachCalendarioRoute
   '/coach/chat': typeof CoachChatRoute
   '/coach/clientes': typeof CoachClientesRouteWithChildren
+  '/coach/ia': typeof CoachIaRoute
   '/coach/informes': typeof CoachInformesRoute
   '/app/': typeof AppIndexRoute
   '/coach/': typeof CoachIndexRoute
@@ -364,6 +373,7 @@ export interface FileRouteTypes {
     | '/coach/calendario'
     | '/coach/chat'
     | '/coach/clientes'
+    | '/coach/ia'
     | '/coach/informes'
     | '/app/'
     | '/coach/'
@@ -399,6 +409,7 @@ export interface FileRouteTypes {
     | '/coach/ajustes'
     | '/coach/calendario'
     | '/coach/chat'
+    | '/coach/ia'
     | '/coach/informes'
     | '/app'
     | '/coach'
@@ -437,6 +448,7 @@ export interface FileRouteTypes {
     | '/coach/calendario'
     | '/coach/chat'
     | '/coach/clientes'
+    | '/coach/ia'
     | '/coach/informes'
     | '/app/'
     | '/coach/'
@@ -629,6 +641,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoachClientesRouteImport
       parentRoute: typeof CoachRoute
     }
+    '/coach/ia': {
+      id: '/coach/ia'
+      path: '/ia'
+      fullPath: '/coach/ia'
+      preLoaderRoute: typeof CoachIaRouteImport
+      parentRoute: typeof CoachRoute
+    }
     '/coach/informes': {
       id: '/coach/informes'
       path: '/informes'
@@ -774,6 +793,7 @@ interface CoachRouteChildren {
   CoachCalendarioRoute: typeof CoachCalendarioRoute
   CoachChatRoute: typeof CoachChatRoute
   CoachClientesRoute: typeof CoachClientesRouteWithChildren
+  CoachIaRoute: typeof CoachIaRoute
   CoachInformesRoute: typeof CoachInformesRoute
   CoachIndexRoute: typeof CoachIndexRoute
   CoachEntrenosRoutineIdRoute: typeof CoachEntrenosRoutineIdRoute
@@ -790,6 +810,7 @@ const CoachRouteChildren: CoachRouteChildren = {
   CoachCalendarioRoute: CoachCalendarioRoute,
   CoachChatRoute: CoachChatRoute,
   CoachClientesRoute: CoachClientesRouteWithChildren,
+  CoachIaRoute: CoachIaRoute,
   CoachInformesRoute: CoachInformesRoute,
   CoachIndexRoute: CoachIndexRoute,
   CoachEntrenosRoutineIdRoute: CoachEntrenosRoutineIdRoute,

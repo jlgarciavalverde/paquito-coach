@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Plus } from "@phosphor-icons/react";
+import { Plus, Sparkle } from "@phosphor-icons/react";
+import { useCoachActions } from "../../../components/coach-actions";
 import type { MealPlan } from "@coach/shared";
 import { Button } from "../../../components/ui/button";
 import { EmptyNote, PageTitle } from "../../../components/ui/layout";
@@ -21,10 +22,16 @@ function Templates() {
   const navigate = useNavigate();
   const [apply, setApply] = useState<MealPlan | null>(null);
   const newTemplate = () => create.mutate({ clientId: null }, { onSuccess: (p) => navigate({ to: "/coach/nutricion/$planId", params: { planId: p.id } }) });
+  const act = useCoachActions();
   const btn = (
-    <Button icon={<Plus size={16} weight="bold" />} loading={create.isPending} onClick={newTemplate}>
-      Nueva plantilla
-    </Button>
+    <div className="flex flex-wrap gap-2">
+      <Button variant="secondary" icon={<Sparkle size={16} />} onClick={() => act.generate("mealPlan")}>
+        Generar con IA
+      </Button>
+      <Button icon={<Plus size={16} weight="bold" />} loading={create.isPending} onClick={newTemplate}>
+        Nueva plantilla
+      </Button>
+    </div>
   );
   return (
     <>

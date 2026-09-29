@@ -6,6 +6,7 @@ import { AssignPanel } from "./training/assign-panel";
 import { AppointmentPanel, type AppointmentDraft } from "./agenda/appointment-panel";
 import { MetricPanel } from "./progress/client-progress";
 import { ProgramAssignPanel } from "./training/program-assign-panel";
+import { GeneratePanel, type GenerateKind } from "./ai/generate-panel";
 import { metricsQuery } from "../lib/progress";
 import { today } from "../lib/dates";
 
@@ -15,6 +16,7 @@ type Actions = {
   newAppointment: (clientId?: string) => void;
   measure: (clientId: string) => void;
   applyProgram: (clientId?: string) => void;
+  generate: (kind: GenerateKind, clientId?: string) => void;
   write: (clientId: string) => void;
 };
 const Ctx = createContext<Actions | null>(null);
@@ -30,6 +32,7 @@ export function CoachActionsProvider({ children }: { children: ReactNode }) {
   const [appt, setAppt] = useState<AppointmentDraft | null>(null);
   const [measure, setMeasure] = useState<string | null>(null);
   const [program, setProgram] = useState<{ clientId?: string; n: number } | null>(null);
+  const [gen, setGen] = useState<{ kind: GenerateKind; clientId?: string; n: number } | null>(null);
 
   const actions = useMemo<Actions>(
     () => ({
@@ -42,6 +45,7 @@ export function CoachActionsProvider({ children }: { children: ReactNode }) {
       },
       measure: (clientId) => setMeasure(clientId),
       applyProgram: (clientId) => setProgram({ clientId, n: Date.now() }),
+      generate: (kind, clientId) => setGen({ kind, clientId, n: Date.now() }),
       write: (clientId) => void navigate({ to: "/coach/chat", search: { cliente: clientId } }),
     }),
     [navigate],
@@ -53,6 +57,7 @@ export function CoachActionsProvider({ children }: { children: ReactNode }) {
       <NewClientPanel open={newClient} onOpenChange={setNewClient} />
       {assign && <AssignPanel key={assign.n} open onOpenChange={(o) => !o && setAssign(null)} clientId={assign.clientId} routineId={assign.routineId} />}
       <AppointmentPanel draft={appt} onClose={() => setAppt(null)} />
+      {gen && <GeneratePanel key={gen.n} kind={gen.kind} clientId={gen.clientId} onClose={() => setGen(null)} />}
       {program && <ProgramAssignPanel key={program.n} clientId={program.clientId} onClose={() => setProgram(null)} />}
       {measure && <Measure clientId={measure} onClose={() => setMeasure(null)} />}
     </Ctx.Provider>

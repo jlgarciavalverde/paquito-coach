@@ -34,7 +34,10 @@ function Privacy() {
         </ul>
 
         <H>Para qué</H>
-        <p>Solo para planificar y seguir tu entrenamiento y tu alimentación con tu entrenador. No se usan para publicidad, no se venden y no se comparten con terceros.</p>
+        <p>Solo para planificar y seguir tu entrenamiento y tu alimentación con tu entrenador. No se usan para publicidad y no se venden.</p>
+        <p>
+          Tu entrenador puede usar un asistente de inteligencia artificial (Gemini, de Google) para preparar propuestas de entrenamiento o de dieta que luego revisa él. En ese caso se envían <strong>sin tu nombre ni tus datos de contacto</strong>: tu edad aproximada, tu objetivo, tus cargas recientes y, solo si él lo marca, tus lesiones o limitaciones. En su plan gratuito, Google puede usar lo que recibe para mejorar sus servicios.
+        </p>
 
         <H>Dónde están</H>
         <p>En un servidor propio en España, cifrados en tránsito (HTTPS). Se hace una copia de seguridad diaria que se conserva 14 días.</p>

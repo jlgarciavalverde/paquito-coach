@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Barbell, CalendarBlank, ChatCircle, ForkKnife, ClipboardText, DotsThreeCircle, GearSix, MagnifyingGlass, SignOut, SunHorizon, UsersThree, type Icon } from "@phosphor-icons/react";
+import { Barbell, CalendarBlank, ChatCircle, ForkKnife, ClipboardText, DotsThreeCircle, Sparkle, GearSix, MagnifyingGlass, SignOut, SunHorizon, UsersThree, type Icon } from "@phosphor-icons/react";
 import { Brand } from "./brand";
 import { Monogram } from "./ui/layout";
 import { Menu, MenuItem } from "./ui/menu";
@@ -26,6 +26,7 @@ export const COACH_NAV: NavItem[] = [
   { to: "/coach/calendario", label: "Agenda", icon: CalendarBlank },
   { to: "/coach/chat", label: "Mensajes", icon: ChatCircle },
   { to: "/coach/seguimiento", label: "Seguimiento", icon: ClipboardText },
+  { to: "/coach/ia", label: "IA", icon: Sparkle },
 ];
 /** En el móvil: los cuatro de uso diario abajo; el resto en «Más». */
 const MOBILE_MAIN = ["/coach", "/coach/clientes", "/coach/calendario", "/coach/chat"];
@@ -49,7 +50,7 @@ export function CoachShell({ children }: { children: ReactNode }) {
   const act = useCoachActions();
   const createPlan = useCreatePlan();
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const GO: Record<string, string> = { h: "/coach", c: "/coach/clientes", e: "/coach/entrenos", n: "/coach/nutricion", a: "/coach/calendario", m: "/coach/chat", s: "/coach/seguimiento", i: "/coach/informes" };
+  const GO: Record<string, string> = { h: "/coach", c: "/coach/clientes", e: "/coach/entrenos", n: "/coach/nutricion", a: "/coach/calendario", m: "/coach/chat", s: "/coach/seguimiento", i: "/coach/informes", x: "/coach/ia" };
   useShortcuts({
     palette: () => setPalette(true),
     help: () => setHelp(true),

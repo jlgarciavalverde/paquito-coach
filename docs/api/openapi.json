@@ -14810,6 +14810,1116 @@
         }
       }
     },
+    "/api/v1/ai/status": {
+      "get": {
+        "tags": [
+          "ia"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "provider": {
+                      "type": "string"
+                    },
+                    "usedToday": {
+                      "type": "number"
+                    },
+                    "dailyLimit": {
+                      "type": "number"
+                    },
+                    "documents": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "enabled",
+                    "provider",
+                    "usedToday",
+                    "dailyLimit",
+                    "documents"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/documents": {
+      "get": {
+        "tags": [
+          "ia"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "pdf",
+                          "docx",
+                          "text"
+                        ]
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "ready",
+                          "error"
+                        ]
+                      },
+                      "error": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "chunks": {
+                        "type": "number"
+                      },
+                      "chars": {
+                        "type": "number"
+                      },
+                      "createdAt": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "title",
+                      "kind",
+                      "status",
+                      "error",
+                      "chunks",
+                      "chars",
+                      "createdAt"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ia"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "pdf",
+                        "docx",
+                        "text"
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ready",
+                        "error"
+                      ]
+                    },
+                    "error": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "chunks": {
+                      "type": "number"
+                    },
+                    "chars": {
+                      "type": "number"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "title",
+                    "kind",
+                    "status",
+                    "error",
+                    "chunks",
+                    "chars",
+                    "createdAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/documents/{id}": {
+      "delete": {
+        "tags": [
+          "ia"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/routine": {
+      "post": {
+        "tags": [
+          "ia"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "focus": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 300
+                  },
+                  "minutes": {
+                    "default": 60,
+                    "type": "integer",
+                    "minimum": 15,
+                    "maximum": 180
+                  },
+                  "equipment": {
+                    "default": [],
+                    "maxItems": 8,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "barbell",
+                        "dumbbell",
+                        "machine",
+                        "cable",
+                        "bodyweight",
+                        "kettlebell",
+                        "bands",
+                        "other"
+                      ]
+                    }
+                  },
+                  "clientId": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "includeHealth": {
+                    "default": false,
+                    "type": "boolean"
+                  },
+                  "notes": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "required": [
+                  "focus"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "routine": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100
+                        },
+                        "description": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 1000
+                        },
+                        "blocks": {
+                          "maxItems": 12,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40
+                              },
+                              "name": {
+                                "type": "string",
+                                "maxLength": 60
+                              },
+                              "items": {
+                                "maxItems": 30,
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 40
+                                    },
+                                    "exerciseId": {
+                                      "type": "string",
+                                      "format": "uuid",
+                                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                    },
+                                    "exerciseName": {
+                                      "type": "string",
+                                      "maxLength": 120
+                                    },
+                                    "sets": {
+                                      "type": "integer",
+                                      "minimum": 1,
+                                      "maximum": 20
+                                    },
+                                    "reps": {
+                                      "default": "",
+                                      "type": "string",
+                                      "maxLength": 20
+                                    },
+                                    "load": {
+                                      "default": "",
+                                      "type": "string",
+                                      "maxLength": 30
+                                    },
+                                    "effort": {
+                                      "default": "",
+                                      "type": "string",
+                                      "maxLength": 20
+                                    },
+                                    "tempo": {
+                                      "default": "",
+                                      "type": "string",
+                                      "maxLength": 12
+                                    },
+                                    "restSec": {
+                                      "default": null,
+                                      "nullable": true,
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 900
+                                    },
+                                    "notes": {
+                                      "default": "",
+                                      "type": "string",
+                                      "maxLength": 300
+                                    },
+                                    "group": {
+                                      "default": null,
+                                      "nullable": true,
+                                      "type": "string",
+                                      "maxLength": 4
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "exerciseId",
+                                    "exerciseName",
+                                    "sets",
+                                    "reps",
+                                    "load",
+                                    "effort",
+                                    "tempo",
+                                    "restSec",
+                                    "notes",
+                                    "group"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "items"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "description",
+                        "blocks"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "unmatched": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "sources": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "documentId": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "excerpt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "documentId",
+                          "title",
+                          "excerpt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "routine",
+                    "unmatched",
+                    "sources"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/program": {
+      "post": {
+        "tags": [
+          "ia"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "focus": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 300
+                  },
+                  "weeks": {
+                    "default": 4,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 16
+                  },
+                  "daysPerWeek": {
+                    "default": 3,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 6
+                  },
+                  "minutes": {
+                    "default": 60,
+                    "type": "integer",
+                    "minimum": 15,
+                    "maximum": 180
+                  },
+                  "equipment": {
+                    "default": [],
+                    "maxItems": 8,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "barbell",
+                        "dumbbell",
+                        "machine",
+                        "cable",
+                        "bodyweight",
+                        "kettlebell",
+                        "bands",
+                        "other"
+                      ]
+                    }
+                  },
+                  "clientId": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "includeHealth": {
+                    "default": false,
+                    "type": "boolean"
+                  },
+                  "notes": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "required": [
+                  "focus"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "weeks": {
+                      "type": "number"
+                    },
+                    "progression": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "kg",
+                            "pct"
+                          ]
+                        },
+                        "step": {
+                          "type": "number",
+                          "minimum": 0.5,
+                          "maximum": 20
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "step"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "routines": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "routine": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 100
+                              },
+                              "description": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 1000
+                              },
+                              "blocks": {
+                                "maxItems": 12,
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 40
+                                    },
+                                    "name": {
+                                      "type": "string",
+                                      "maxLength": 60
+                                    },
+                                    "items": {
+                                      "maxItems": 30,
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "id": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "maxLength": 40
+                                          },
+                                          "exerciseId": {
+                                            "type": "string",
+                                            "format": "uuid",
+                                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                          },
+                                          "exerciseName": {
+                                            "type": "string",
+                                            "maxLength": 120
+                                          },
+                                          "sets": {
+                                            "type": "integer",
+                                            "minimum": 1,
+                                            "maximum": 20
+                                          },
+                                          "reps": {
+                                            "default": "",
+                                            "type": "string",
+                                            "maxLength": 20
+                                          },
+                                          "load": {
+                                            "default": "",
+                                            "type": "string",
+                                            "maxLength": 30
+                                          },
+                                          "effort": {
+                                            "default": "",
+                                            "type": "string",
+                                            "maxLength": 20
+                                          },
+                                          "tempo": {
+                                            "default": "",
+                                            "type": "string",
+                                            "maxLength": 12
+                                          },
+                                          "restSec": {
+                                            "default": null,
+                                            "nullable": true,
+                                            "type": "integer",
+                                            "minimum": 0,
+                                            "maximum": 900
+                                          },
+                                          "notes": {
+                                            "default": "",
+                                            "type": "string",
+                                            "maxLength": 300
+                                          },
+                                          "group": {
+                                            "default": null,
+                                            "nullable": true,
+                                            "type": "string",
+                                            "maxLength": 4
+                                          }
+                                        },
+                                        "required": [
+                                          "id",
+                                          "exerciseId",
+                                          "exerciseName",
+                                          "sets",
+                                          "reps",
+                                          "load",
+                                          "effort",
+                                          "tempo",
+                                          "restSec",
+                                          "notes",
+                                          "group"
+                                        ],
+                                        "additionalProperties": false
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "name",
+                                    "items"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "description",
+                              "blocks"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "weekdays": {
+                            "type": "array",
+                            "items": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 7
+                            }
+                          }
+                        },
+                        "required": [
+                          "routine",
+                          "weekdays"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "unmatched": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "sources": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "documentId": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "excerpt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "documentId",
+                          "title",
+                          "excerpt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "description",
+                    "weeks",
+                    "progression",
+                    "routines",
+                    "unmatched",
+                    "sources"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/meal-plan": {
+      "post": {
+        "tags": [
+          "ia"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "goal": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 300
+                  },
+                  "kcal": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "integer",
+                    "minimum": 800,
+                    "maximum": 6000
+                  },
+                  "mealsPerDay": {
+                    "default": 4,
+                    "type": "integer",
+                    "minimum": 2,
+                    "maximum": 7
+                  },
+                  "restrictions": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 300
+                  },
+                  "clientId": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "includeHealth": {
+                    "default": false,
+                    "type": "boolean"
+                  },
+                  "notes": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                },
+                "required": [
+                  "goal"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "plan": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100
+                        },
+                        "notes": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 2000
+                        },
+                        "targets": {
+                          "type": "object",
+                          "properties": {
+                            "kcal": {
+                              "default": null,
+                              "nullable": true,
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 10000
+                            },
+                            "protein": {
+                              "default": null,
+                              "nullable": true,
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 1000
+                            },
+                            "carbs": {
+                              "default": null,
+                              "nullable": true,
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 2000
+                            },
+                            "fat": {
+                              "default": null,
+                              "nullable": true,
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 1000
+                            }
+                          },
+                          "required": [
+                            "kcal",
+                            "protein",
+                            "carbs",
+                            "fat"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "same",
+                            "weekly"
+                          ]
+                        },
+                        "days": {
+                          "minItems": 1,
+                          "maxItems": 7,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "weekday": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 7
+                              },
+                              "meals": {
+                                "maxItems": 10,
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 40
+                                    },
+                                    "name": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 60
+                                    },
+                                    "time": {
+                                      "default": null,
+                                      "nullable": true,
+                                      "type": "string",
+                                      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                                    },
+                                    "items": {
+                                      "maxItems": 30,
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "id": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "maxLength": 40
+                                          },
+                                          "food": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "maxLength": 120
+                                          },
+                                          "qty": {
+                                            "default": "",
+                                            "type": "string",
+                                            "maxLength": 40
+                                          }
+                                        },
+                                        "required": [
+                                          "id",
+                                          "food",
+                                          "qty"
+                                        ],
+                                        "additionalProperties": false
+                                      }
+                                    },
+                                    "alternatives": {
+                                      "default": "",
+                                      "type": "string",
+                                      "maxLength": 1000
+                                    },
+                                    "notes": {
+                                      "default": "",
+                                      "type": "string",
+                                      "maxLength": 500
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "name",
+                                    "time",
+                                    "items",
+                                    "alternatives",
+                                    "notes"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              }
+                            },
+                            "required": [
+                              "weekday",
+                              "meals"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "notes",
+                        "targets",
+                        "mode",
+                        "days"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "sources": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "documentId": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "excerpt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "documentId",
+                          "title",
+                          "excerpt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "plan",
+                    "sources"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/ask": {
+      "post": {
+        "tags": [
+          "ia"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "question": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "question"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "answer": {
+                      "type": "string"
+                    },
+                    "sources": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "documentId": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "excerpt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "documentId",
+                          "title",
+                          "excerpt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "answer",
+                    "sources"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/conversations": {
       "get": {
         "tags": [

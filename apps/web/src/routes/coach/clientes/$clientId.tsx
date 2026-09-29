@@ -2,7 +2,7 @@ import { useEffect, useId, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Barbell, CalendarPlus, CaretLeft, ChatCircle, DotsThree, Ruler } from "@phosphor-icons/react";
+import { Barbell, CalendarPlus, CaretLeft, ChatCircle, DotsThree, Ruler, Sparkle } from "@phosphor-icons/react";
 import type { Client, InviteLink } from "@coach/shared";
 import { Button, IconButton } from "../../../components/ui/button";
 import { Menu, MenuItem } from "../../../components/ui/menu";
@@ -199,6 +199,9 @@ function ClientHeader({ client: c }: { client: Client }) {
               )}
               <Button variant="secondary" size="sm" icon={<Ruler size={16} />} onClick={() => actions.measure(c.id)}>
                 Anotar medidas
+              </Button>
+              <Button variant="secondary" size="sm" icon={<Sparkle size={16} />} onClick={() => actions.generate("routine", c.id)}>
+                Generar con IA
               </Button>
             </>
           )
