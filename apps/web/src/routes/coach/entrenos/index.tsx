@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { MagnifyingGlass, Plus } from "@phosphor-icons/react";
 import { z } from "zod";
-import { MUSCLE_LABEL, MUSCLES, type Exercise, type Muscle, type Routine } from "@coach/shared";
+import { MUSCLE_LABEL, MUSCLES, type Exercise, type Muscle, type Program, type Routine } from "@coach/shared";
 import { Button, buttonClass } from "../../../components/ui/button";
 import { controlClass } from "../../../components/ui/field";
 import { EmptyNote, PageTitle } from "../../../components/ui/layout";
@@ -11,13 +11,15 @@ import { Skeleton } from "../../../components/ui/spinner";
 import { TabPanel, Tabs } from "../../../components/ui/tabs";
 import { useToast } from "../../../components/ui/toast";
 import { AssignPanel } from "../../../components/training/assign-panel";
+import { ProgramAssignPanel } from "../../../components/training/program-assign-panel";
+import { programsQuery } from "../../../lib/programs";
 import { ExercisePanel } from "../../../components/training/exercise-panel";
 import { exercisesQuery, routinesQuery, useRoutineAction } from "../../../lib/training";
 import { relativeTime } from "../../../lib/format";
 import { cn } from "../../../lib/cn";
 
 export const Route = createFileRoute("/coach/entrenos/")({
-  validateSearch: z.object({ vista: z.enum(["rutinas", "ejercicios"]).optional() }),
+  validateSearch: z.object({ vista: z.enum(["rutinas", "programas", "ejercicios"]).optional() }),
   component: Library,
 });
 
@@ -26,17 +28,21 @@ function Library() {
   const navigate = useNavigate();
   return (
     <>
-      <PageTitle title="Entrenos" lead="Tu biblioteca de rutinas y ejercicios. Las rutinas se asignan a los clientes en los días que entrenan." />
+      <PageTitle title="Entrenos" lead="Tu biblioteca de rutinas, programas de varias semanas y ejercicios." />
       <Tabs
         value={vista}
-        onValueChange={(v) => navigate({ to: "/coach/entrenos", search: { vista: v as "rutinas" | "ejercicios" }, replace: true })}
+        onValueChange={(v) => navigate({ to: "/coach/entrenos", search: { vista: v as "rutinas" | "programas" | "ejercicios" }, replace: true })}
         items={[
           { value: "rutinas", label: "Rutinas" },
+          { value: "programas", label: "Programas" },
           { value: "ejercicios", label: "Ejercicios" },
         ]}
       >
         <TabPanel value="rutinas">
           <Routines />
+        </TabPanel>
+        <TabPanel value="programas">
+          <Programs />
         </TabPanel>
         <TabPanel value="ejercicios">
           <Exercises />
@@ -88,6 +94,46 @@ function Routines() {
         ))}
       </ul>
       {assign && <AssignPanel key={assign.id} open onOpenChange={(o) => !o && setAssign(null)} routine={assign} />}
+    </>
+  );
+}
+
+function Programs() {
+  const q = useQuery(programsQuery);
+  const [assign, setAssign] = useState<Program | null>(null);
+  const newBtn = (
+    <Link to="/coach/entrenos/programa/$programId" params={{ programId: "nuevo" }} className={buttonClass()}>
+      <Plus size={16} weight="bold" /> Nuevo programa
+    </Link>
+  );
+  if (q.isPending) return <Skeleton className="h-48" />;
+  if ((q.data ?? []).length === 0)
+    return (
+      <EmptyNote action={newBtn}>
+        Un programa encadena tus rutinas durante varias semanas (por ejemplo, «Readaptación LCA, fase 2»: 6 semanas, lunes y jueves) y sube la carga cada semana. Se aplica a un cliente de una vez.
+      </EmptyNote>
+    );
+  return (
+    <>
+      <div className="mb-3 flex justify-end">{newBtn}</div>
+      <ul className="divide-y divide-rule border-y border-rule">
+        {q.data!.map((p) => (
+          <li key={p.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 py-3.5">
+            <Link to="/coach/entrenos/programa/$programId" params={{ programId: p.id }} className="min-w-0 flex-1 basis-[280px] hover:text-primary">
+              <span className="block font-medium text-ink">{p.name}</span>
+              <span className="block text-[13px] text-ink-2">
+                {p.weeks} {p.weeks === 1 ? "semana" : "semanas"}, {p.slots.length} entrenos
+                {p.progression ? `, +${String(p.progression.step).replace(".", ",")} ${p.progression.kind === "kg" ? "kg" : "%"} por semana` : ""}.{" "}
+                {p.activeRuns > 0 ? `En curso con ${p.activeRuns} ${p.activeRuns === 1 ? "cliente" : "clientes"}.` : ""}
+              </span>
+            </Link>
+            <Button size="sm" variant="secondary" onClick={() => setAssign(p)} disabled={p.slots.length === 0}>
+              Aplicar
+            </Button>
+          </li>
+        ))}
+      </ul>
+      {assign && <ProgramAssignPanel program={assign} onClose={() => setAssign(null)} />}
     </>
   );
 }

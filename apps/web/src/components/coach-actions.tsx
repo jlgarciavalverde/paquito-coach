@@ -5,6 +5,7 @@ import { NewClientPanel } from "./clients/new-client-panel";
 import { AssignPanel } from "./training/assign-panel";
 import { AppointmentPanel, type AppointmentDraft } from "./agenda/appointment-panel";
 import { MetricPanel } from "./progress/client-progress";
+import { ProgramAssignPanel } from "./training/program-assign-panel";
 import { metricsQuery } from "../lib/progress";
 import { today } from "../lib/dates";
 
@@ -13,6 +14,7 @@ type Actions = {
   assign: (o?: { clientId?: string; routineId?: string }) => void;
   newAppointment: (clientId?: string) => void;
   measure: (clientId: string) => void;
+  applyProgram: (clientId?: string) => void;
   write: (clientId: string) => void;
 };
 const Ctx = createContext<Actions | null>(null);
@@ -27,6 +29,7 @@ export function CoachActionsProvider({ children }: { children: ReactNode }) {
   const [assign, setAssign] = useState<{ clientId?: string; routineId?: string; n: number } | null>(null);
   const [appt, setAppt] = useState<AppointmentDraft | null>(null);
   const [measure, setMeasure] = useState<string | null>(null);
+  const [program, setProgram] = useState<{ clientId?: string; n: number } | null>(null);
 
   const actions = useMemo<Actions>(
     () => ({
@@ -38,6 +41,7 @@ export function CoachActionsProvider({ children }: { children: ReactNode }) {
         setAppt({ date: today(), minutes: next, clientId: clientId ?? null });
       },
       measure: (clientId) => setMeasure(clientId),
+      applyProgram: (clientId) => setProgram({ clientId, n: Date.now() }),
       write: (clientId) => void navigate({ to: "/coach/chat", search: { cliente: clientId } }),
     }),
     [navigate],
@@ -49,6 +53,7 @@ export function CoachActionsProvider({ children }: { children: ReactNode }) {
       <NewClientPanel open={newClient} onOpenChange={setNewClient} />
       {assign && <AssignPanel key={assign.n} open onOpenChange={(o) => !o && setAssign(null)} clientId={assign.clientId} routineId={assign.routineId} />}
       <AppointmentPanel draft={appt} onClose={() => setAppt(null)} />
+      {program && <ProgramAssignPanel key={program.n} clientId={program.clientId} onClose={() => setProgram(null)} />}
       {measure && <Measure clientId={measure} onClose={() => setMeasure(null)} />}
     </Ctx.Provider>
   );

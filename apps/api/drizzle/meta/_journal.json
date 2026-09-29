@@ -71,6 +71,13 @@
       "when": 1790708400901,
       "tag": "0009_seguimiento",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790709428766,
+      "tag": "0010_programas",
+      "breakpoints": true
     }
   ]
 }

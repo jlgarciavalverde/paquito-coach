@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
-import { bigserial, boolean, date, index, integer, jsonb, pgEnum, pgTable, primaryKey, real, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import type { CheckinAnswers, CheckinQuestion, MealDay, RoutineBlock, Targets, WorkoutLog } from "@coach/shared";
+import { type AnyPgColumn, bigserial, boolean, date, index, integer, jsonb, pgEnum, pgTable, primaryKey, real, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import type { CheckinAnswers, CheckinQuestion, MealDay, Progression, ProgramSlot, RoutineBlock, Targets, WorkoutLog } from "@coach/shared";
 
 /**
  * Esquema de la base de datos. Regla de oro: toda tabla con datos de un estudio lleva `studio_id`
@@ -179,6 +179,8 @@ export const workouts = pgTable(
     clientComment: text("client_comment"),
     completedAt: ts("completed_at"),
     seenByCoach: boolean("seen_by_coach").notNull().default(false),
+    /** Si viene de un programa de varias semanas (H2). */
+    programRunId: uuid("program_run_id").references((): AnyPgColumn => programRuns.id, { onDelete: "set null" }),
     createdAt: createdAt(),
     updatedAt: ts("updated_at").notNull().defaultNow(),
   },
@@ -435,4 +437,34 @@ export const checkinResponses = pgTable(
     seenAt: ts("seen_at"),
   },
   (t) => [index("checkin_responses_client_idx").on(t.clientId, t.submittedAt)],
+);
+
+// ── H2: programas de varias semanas ────────────────────────────────────────────
+
+export const programs = pgTable("programs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description").notNull().default(""),
+  weeks: integer("weeks").notNull(),
+  slots: jsonb("slots").$type<ProgramSlot[]>().notNull(),
+  progression: jsonb("progression").$type<Progression | null>(),
+  updatedAt: ts("updated_at").notNull().defaultNow(),
+});
+
+/** Un programa aplicado a un cliente desde una fecha. Sus entrenos llevan `program_run_id`. */
+export const programRuns = pgTable(
+  "program_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id").notNull().references(() => clientProfiles.id, { onDelete: "cascade" }),
+    programId: uuid("program_id").references(() => programs.id, { onDelete: "set null" }),
+    name: text("name").notNull(),
+    start: date("start", { mode: "string" }).notNull(),
+    weeks: integer("weeks").notNull(),
+    endedAt: ts("ended_at"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("program_runs_client_idx").on(t.clientId)],
 );

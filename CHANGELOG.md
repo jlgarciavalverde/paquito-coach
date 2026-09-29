@@ -1,6 +1,11 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [1.4.0] — 2026-09-29 · Programas de varias semanas
+### Añadido
+- **Programas** (Entrenos → Programas): rejilla de semanas × días con una rutina en cada día, «Copiar la semana 1 a todas» y subida de carga semanal (kg o %). Se aplican a uno o varios clientes desde una fecha y crean todos los entrenos de una vez («Pierna A, semana 2 de 6»), con la carga de cada semana ya puesta.
+- En la ficha, el programa en curso con su semana, entrenos hechos y «Terminar ya» (quita solo lo que queda sin empezar). «Aplicar programa» también en la ficha y en ⌘K.
+
 ## [1.3.0] — 2026-09-29 · Seguimiento (paridad con Harbiz)
 ### Añadido
 - **Check-ins periódicos**: formularios propios (escala 1–10, sí/no, número, texto, foto), con uno semanal ya preparado; se piden a uno o varios clientes cada 1, 2 o 4 semanas. El cliente lo ve en Hoy el día que toca (y le llega un aviso); las respuestas salen en la nueva pestaña «Check-ins» de la ficha, con la diferencia respecto a la vez anterior y una marca si ha tenido dolor.

@@ -10,3 +10,4 @@ export * from "./progress";
 export * from "./questionnaire";
 export * from "./progression";
 export * from "./followup";
+export * from "./programs";

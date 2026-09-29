@@ -81,4 +81,7 @@
 | GET · POST · PUT · DELETE | `/checkin-forms[/:id]` · `POST /checkin-forms/:id/assign` | entrenador | formularios de check-in y a quién se piden |
 | GET · POST | `/clients/:id/checkins` · `/clients/:id/checkins/seen` · `DELETE /checkin-assignments/:id` | entrenador | programados y respuestas de un cliente |
 | GET · POST | `/me/checkins` · `/me/checkins/:assignmentId` | cliente activo | los que le tocan hoy · contestar |
+| GET · POST · PUT · DELETE | `/programs[/:id]` | entrenador | programas de varias semanas (`slots`: semana, día, rutina; `progression`) |
+| POST | `/programs/:id/assign` | entrenador | aplica a clientes desde `start`: crea los entrenos (`program_run_id`) |
+| GET · POST | `/clients/:id/program-runs` · `/program-runs/:id/end` | entrenador | programas aplicados con su progreso · terminar (borra lo pendiente sin empezar) |
 | GET | `/health` | público | versión, uptime, BD |

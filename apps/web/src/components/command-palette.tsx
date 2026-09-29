@@ -54,6 +54,8 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
         run: close(() => createPlan.mutate({ clientId: null }, { onSuccess: (p) => void navigate({ to: "/coach/nutricion/$planId", params: { planId: p.id } }) })),
       },
       { id: "a-assign", group: "Crear", label: "Asignar una rutina", keywords: "entreno planificar", run: close(() => act.assign()) },
+      { id: "a-program", group: "Crear", label: "Nuevo programa de varias semanas", keywords: "mesociclo bloque periodizacion", run: go("/coach/entrenos/programa/nuevo") },
+      { id: "a-apply", group: "Crear", label: "Aplicar un programa", keywords: "mesociclo bloque periodizacion", run: close(() => act.applyProgram()) },
       { id: "n-hoy", group: "Ir a", label: "Hoy", keywords: "inicio", run: go("/coach") },
       { id: "n-cli", group: "Ir a", label: "Clientes", run: go("/coach/clientes") },
       { id: "n-ent", group: "Ir a", label: "Entrenos", keywords: "rutinas", run: go("/coach/entrenos") },
@@ -99,6 +101,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
           return [
             { id: `q-w-${id}`, group: `Con ${ci.label}`, label: `Escribir a ${first}`, run: close(() => act.write(id)) },
             { id: `q-a-${id}`, group: `Con ${ci.label}`, label: `Asignar rutina a ${first}`, run: close(() => act.assign({ clientId: id })) },
+            { id: `q-p-${id}`, group: `Con ${ci.label}`, label: `Aplicar programa a ${first}`, run: close(() => act.applyProgram(id)) },
             { id: `q-c-${id}`, group: `Con ${ci.label}`, label: `Nueva cita con ${first}`, run: close(() => act.newAppointment(id)) },
             { id: `q-m-${id}`, group: `Con ${ci.label}`, label: `Anotar medidas de ${first}`, run: close(() => act.measure(id)) },
           ];

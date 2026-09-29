@@ -41,6 +41,7 @@ import { Route as CoachNutricionIndexRouteImport } from './routes/coach/nutricio
 import { Route as CoachNutricionPlanIdRouteImport } from './routes/coach/nutricion/$planId'
 import { Route as CoachSeguimientoIndexRouteImport } from './routes/coach/seguimiento/index'
 import { Route as CoachSeguimientoFormIdRouteImport } from './routes/coach/seguimiento/$formId'
+import { Route as CoachEntrenosProgramaProgramIdRouteImport } from './routes/coach/entrenos/programa.$programId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -202,6 +203,12 @@ const CoachSeguimientoFormIdRoute = CoachSeguimientoFormIdRouteImport.update({
   path: '/seguimiento/$formId',
   getParentRoute: () => CoachRoute,
 } as any)
+const CoachEntrenosProgramaProgramIdRoute =
+  CoachEntrenosProgramaProgramIdRouteImport.update({
+    id: '/entrenos/programa/$programId',
+    path: '/entrenos/programa/$programId',
+    getParentRoute: () => CoachRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -236,6 +243,7 @@ export interface FileRoutesByFullPath {
   '/coach/entrenos/': typeof CoachEntrenosIndexRoute
   '/coach/nutricion/': typeof CoachNutricionIndexRoute
   '/coach/seguimiento/': typeof CoachSeguimientoIndexRoute
+  '/coach/entrenos/programa/$programId': typeof CoachEntrenosProgramaProgramIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -267,6 +275,7 @@ export interface FileRoutesByTo {
   '/coach/entrenos': typeof CoachEntrenosIndexRoute
   '/coach/nutricion': typeof CoachNutricionIndexRoute
   '/coach/seguimiento': typeof CoachSeguimientoIndexRoute
+  '/coach/entrenos/programa/$programId': typeof CoachEntrenosProgramaProgramIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -302,6 +311,7 @@ export interface FileRoutesById {
   '/coach/entrenos/': typeof CoachEntrenosIndexRoute
   '/coach/nutricion/': typeof CoachNutricionIndexRoute
   '/coach/seguimiento/': typeof CoachSeguimientoIndexRoute
+  '/coach/entrenos/programa/$programId': typeof CoachEntrenosProgramaProgramIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -338,6 +348,7 @@ export interface FileRouteTypes {
     | '/coach/entrenos/'
     | '/coach/nutricion/'
     | '/coach/seguimiento/'
+    | '/coach/entrenos/programa/$programId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -369,6 +380,7 @@ export interface FileRouteTypes {
     | '/coach/entrenos'
     | '/coach/nutricion'
     | '/coach/seguimiento'
+    | '/coach/entrenos/programa/$programId'
   id:
     | '__root__'
     | '/'
@@ -403,6 +415,7 @@ export interface FileRouteTypes {
     | '/coach/entrenos/'
     | '/coach/nutricion/'
     | '/coach/seguimiento/'
+    | '/coach/entrenos/programa/$programId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -643,6 +656,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoachSeguimientoFormIdRouteImport
       parentRoute: typeof CoachRoute
     }
+    '/coach/entrenos/programa/$programId': {
+      id: '/coach/entrenos/programa/$programId'
+      path: '/entrenos/programa/$programId'
+      fullPath: '/coach/entrenos/programa/$programId'
+      preLoaderRoute: typeof CoachEntrenosProgramaProgramIdRouteImport
+      parentRoute: typeof CoachRoute
+    }
   }
 }
 
@@ -700,6 +720,7 @@ interface CoachRouteChildren {
   CoachEntrenosIndexRoute: typeof CoachEntrenosIndexRoute
   CoachNutricionIndexRoute: typeof CoachNutricionIndexRoute
   CoachSeguimientoIndexRoute: typeof CoachSeguimientoIndexRoute
+  CoachEntrenosProgramaProgramIdRoute: typeof CoachEntrenosProgramaProgramIdRoute
 }
 
 const CoachRouteChildren: CoachRouteChildren = {
@@ -714,6 +735,7 @@ const CoachRouteChildren: CoachRouteChildren = {
   CoachEntrenosIndexRoute: CoachEntrenosIndexRoute,
   CoachNutricionIndexRoute: CoachNutricionIndexRoute,
   CoachSeguimientoIndexRoute: CoachSeguimientoIndexRoute,
+  CoachEntrenosProgramaProgramIdRoute: CoachEntrenosProgramaProgramIdRoute,
 }
 
 const CoachRouteWithChildren = CoachRoute._addFileChildren(CoachRouteChildren)
