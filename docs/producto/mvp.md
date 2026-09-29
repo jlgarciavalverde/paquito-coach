@@ -3,7 +3,7 @@
 Todo lo que ahora llevas en WhatsApp, Excel, PDFs y el calendario, en una sola app. Tiene dos caras: la tuya (en el
 ordenador o el móvil) y la de tus clientes (en el móvil, se instala como una app desde el navegador).
 
-## Lo que ya puedes hacer (versión 0.6, MVP completo)
+## Lo que ya puedes hacer (versión 1.0)
 
 **Clientes**
 - Darlos de alta de tres formas: con una invitación que les mandas por WhatsApp, con tu código de estudio (se apuntan
@@ -31,6 +31,18 @@ ordenador o el móvil) y la de tus clientes (en el móvil, se instala como una a
 - Un chat privado con cada cliente, en tiempo real, con fotos. Sin dar tu número de teléfono.
 - Avisos en el móvil o el ordenador cuando te escriben (se activan en Ajustes).
 
+**Progreso**
+- Peso y medidas con gráficas (los anota el cliente o tú) y cómo suben las cargas de cada ejercicio, con el 1RM estimado. En «Hoy» te marca los récords.
+
+**Salud**
+- Cuestionario inicial (PAR-Q+ y anamnesis) que el cliente rellena al registrarse. Si marca algo de riesgo, te sale en rojo hasta que lo revises. Puedes pedirle que lo repita.
+
+**Recordatorios**
+- A tus clientes, el entreno del día por la mañana y un aviso por la noche si no lo han anotado. A ti, el resumen del día a las 8:00.
+
+**Demo**
+- Una copia de la app con datos inventados para enseñarla o probar sin miedo: `demo-paquito.redgarverde.com` (cuando esté la ruta). Se reinicia cada noche.
+
 **Datos y privacidad**
 - Tus clientes pueden descargar sus datos o borrar su cuenta desde su perfil. Hay un aviso de privacidad en `/privacidad`
   (revísalo: tú eres el responsable de los datos).
@@ -41,6 +53,6 @@ ordenador o el móvil) y la de tus clientes (en el móvil, se instala como una a
 
 ## Necesitamos que decidas
 1. **Nombre** de la app y subdominio (ahora «Paquito Coach», provisional).
-2. ¿Quieres un **cuestionario inicial** (anamnesis/PAR-Q)? Encaja mucho con la readaptación.
+2. Revisa las **preguntas del cuestionario de salud** por si quieres cambiar o añadir alguna.
 3. **Vídeos**: ¿grabas los tuyos o seguimos con enlaces de YouTube?
 4. Lo siguiente que más echarías en falta después de usarla unos días (lista de ideas en `docs/ESTADO.md`).

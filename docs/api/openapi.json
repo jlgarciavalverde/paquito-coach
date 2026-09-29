@@ -152,6 +152,9 @@
                         "archived",
                         "no_account"
                       ]
+                    },
+                    "reminders": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -160,7 +163,8 @@
                     "email",
                     "role",
                     "studio",
-                    "clientStatus"
+                    "clientStatus",
+                    "reminders"
                   ],
                   "additionalProperties": false
                 }
@@ -256,6 +260,9 @@
                         "archived",
                         "no_account"
                       ]
+                    },
+                    "reminders": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -264,7 +271,8 @@
                     "email",
                     "role",
                     "studio",
-                    "clientStatus"
+                    "clientStatus",
+                    "reminders"
                   ],
                   "additionalProperties": false
                 }
@@ -498,6 +506,9 @@
                         "archived",
                         "no_account"
                       ]
+                    },
+                    "reminders": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -506,7 +517,8 @@
                     "email",
                     "role",
                     "studio",
-                    "clientStatus"
+                    "clientStatus",
+                    "reminders"
                   ],
                   "additionalProperties": false
                 }
@@ -625,6 +637,9 @@
                         "archived",
                         "no_account"
                       ]
+                    },
+                    "reminders": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -633,7 +648,8 @@
                     "email",
                     "role",
                     "studio",
-                    "clientStatus"
+                    "clientStatus",
+                    "reminders"
                   ],
                   "additionalProperties": false
                 }
@@ -702,6 +718,9 @@
                         "archived",
                         "no_account"
                       ]
+                    },
+                    "reminders": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -710,7 +729,107 @@
                     "email",
                     "role",
                     "studio",
-                    "clientStatus"
+                    "clientStatus",
+                    "reminders"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/preferences": {
+      "patch": {
+        "tags": [
+          "cuenta"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reminders": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "reminders"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "type": "string",
+                      "enum": [
+                        "coach",
+                        "client"
+                      ]
+                    },
+                    "studio": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "coachName": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "coachName"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "clientStatus": {
+                      "nullable": true,
+                      "type": "string",
+                      "enum": [
+                        "invited",
+                        "pending",
+                        "active",
+                        "archived",
+                        "no_account"
+                      ]
+                    },
+                    "reminders": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "role",
+                    "studio",
+                    "clientStatus",
+                    "reminders"
                   ],
                   "additionalProperties": false
                 }

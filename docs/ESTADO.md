@@ -4,9 +4,9 @@
 > Formato: fecha · quién (modelo/herramienta) · qué. Lo más reciente arriba.
 
 ## Ahora mismo
-- **Versión**: 0.9.0 (F9 Demo) **desplegada en joseluis-vps**. MVP (F0–F6) completo; tanda post-MVP F7–F10 en curso (plan en `~/.claude/plans/mighty-splashing-widget.md`).
+- **Versión**: **1.0.0** — MVP + tanda post-MVP (F0–F10) **desplegada en joseluis-vps** (producción + demo). Plan de la tanda en `~/.claude/plans/mighty-splashing-widget.md`.
 - **Aún no es pública**: falta la ruta en Cloudflare (bloqueo 3). Después, alta inicial en `/instalar` con el `SETUP_CODE` del `.env` del VPS.
-- **Siguiente tarea**: que Paquito lo use (bloqueos 3–5). Después, lo que pida tras probarlo (ideas en «Después del MVP»).
+- **Siguiente tarea**: que Paquito lo use (bloqueos). Después, lo que pida tras probarlo (ideas en «Después del MVP»).
 - **Plan aprobado**: `~/.claude/plans/mighty-splashing-widget.md` (resumen en `docs/producto/mvp.md`).
 
 ## Fases
@@ -22,7 +22,7 @@
 | F7 | Progreso: peso y medidas (gráficas), cargas por ejercicio con 1RM estimado (Epley) calculadas de los registros, récords en «Hoy» | ✅ hecho |
 | F8 | Cuestionario de salud: PAR-Q+ (7 sí/no) + anamnesis; tras registrarse y en «Hoy» mientras esté pendiente; alertas (sí o dolor ≥ 5) en la ficha y en «Hoy» hasta revisarlas; pedir que lo repita; en la copia RGPD | ✅ hecho |
 | F9 | Demo pública: instancia y BD propias, entrada con un clic, banda de aviso, re-siembra nocturna, operaciones peligrosas bloqueadas (ADR 0009) | ✅ hecho |
-| F10 | Copias fuera del VPS + simulacro de restauración, monitor, recordatorios push → v1.0.0 | ⏳ siguiente |
+| F10 | Recordatorios push (8:00 y 20:00, idempotentes, preferencia por usuario), copias al Mac con simulacro real de restauración, vigilante con notificación (ADR 0010) | ✅ hecho |
 | F6 | RGPD (exportar/borrar, aviso de privacidad), revisión de seguridad, recuperación de la cuenta del entrenador, primeros pasos, títulos, guardarraíl de diseño | ✅ hecho |
 
 ## Bloqueos (necesitan al humano)
@@ -30,11 +30,12 @@
 2. ~~Primera instalación~~ (hecha el 2026-09-29).
 3. **Cloudflare**: añadir en el panel del túnel los hostnames públicos `paquito.redgarverde.com` → `http://coach:3000` y `demo-paquito.redgarverde.com` → `http://coach-demo:3000` (si cambias el de la demo, actualiza `DEMO_PUBLIC_URL` en el `.env` del VPS).
 4. **Paquito revisa** el texto del PAR-Q+ y la anamnesis (`packages/shared/src/questionnaire.ts`) y el de `/privacidad`.
-5. **Alta inicial**: `ssh joseluis@192.168.18.7 'grep SETUP_CODE ~/servicios/coach/.env'` y usarlo en `https://<subdominio>/instalar` (una sola vez; lo hace Paquito con su correo o tú y luego le cambias los datos).
+5. **Instalar las tareas del Mac** (copias + simulacro + vigilante): `tools/install-launchd.sh` (una vez).
+6. **Alta inicial**: `ssh joseluis@192.168.18.7 'grep SETUP_CODE ~/servicios/coach/.env'` y usarlo en `https://<subdominio>/instalar` (una sola vez; lo hace Paquito con su correo o tú y luego le cambias los datos).
 5. **Paquito decide**: nombre de la app (hoy «Paquito Coach», se cambia en `packages/shared/src/brand.ts` + `apps/web/index.html`), subdominio, si quiere anamnesis/PAR-Q en el MVP, y vídeos propios o YouTube.
 
 ## Después del MVP (ideas, sin priorizar con Paquito)
-Anamnesis/PAR-Q inicial · fotos y medidas de progreso con gráficas · histórico de cargas por ejercicio · programas de varias semanas (periodización) · cobros con Stripe · reservas autoservicio · vídeos propios subidos (hoy: YouTube/Vimeo) · recordatorios push de entreno/comidas · nombre y marca definitivos.
+Fotos de progreso · programas de varias semanas (periodización) · cobros con Stripe · reservas autoservicio · vídeos propios subidos (hoy: YouTube/Vimeo) · recordatorios de comidas · nombre y marca definitivos.
 
 ## Herramientas de agente recomendadas (instalar una vez, las ejecuta el humano)
 ```
@@ -53,6 +54,7 @@ claude mcp add shadcn -- npx -y shadcn@latest mcp
 - Imagen de producción probada en local: `/health` ok, CSP/HSTS, `/api/docs` 404, POST sin Origin → 403, backup diario escrito.
 
 ## Historial
+- **2026-09-29 · Claude (Opus 5.5)** · F10 → **1.0.0**: `lib/scheduler.ts` + `reminder_log` + `users.reminders` + `PATCH /me/preferences`; `tools/{pull-backups,restore-drill,monitor,install-launchd}.sh` y plantillas `deploy/launchd/`. El primer simulacro real cazó que la copia diaria podía ser anterior al esquema (se elige la más reciente, sin presuponer tablas). Revisión de autorización de las rutas nuevas y `pnpm audit --prod` limpio. API 83 tests, e2e 28 + demo 1.
 - **2026-09-29 · Claude (Opus 5.5)** · F9 Demo: `demo/seed.ts` (estudio realista: 5 clientes + 1 solicitud, rutinas, 4 semanas de entrenos con cargas que suben, plan de comidas, citas, chat, peso, PAR-Q con alerta), `DEMO_MODE`, `POST /auth/demo`, bloqueos, banda, servicios `demo`/`demo-db` en compose, `pnpm e2e:demo`. Monograma ignora símbolos. API 79 tests.
 - **2026-09-29 · Claude (Opus 5.5)** · F8 Salud: `packages/shared/src/questionnaire.ts` (PAR-Q+ en tuteo, anamnesis, `questionnaireAlerts`), `routes/questionnaire.ts`, tabla `questionnaires` + `client_profiles.questionnaire_requested_at`, `/app/salud`, alertas en ficha y «Hoy». Corregido: zonas con scroll de diálogos/hojas enfocables (axe `scrollable-region-focusable`). API 74 tests, e2e 28/28.
 - **2026-09-29 · Claude (Opus 5.5)** · F7 Progreso: `lib/progress.ts` (carga desde texto libre, Epley, series por ejercicio, sin tabla nueva), `routes/progress.ts`, tabla `body_metrics`, gráfica SVG propia `components/progress/line-chart.tsx` (paleta validada con la skill dataviz: tokens `--chart-1/2/grid`, un eje, marcador círculo/cuadrado como segunda codificación, tabla alternativa), pestaña «Progreso» y `/app/progreso`, récords en la actividad. API 70 tests, e2e 27/27.

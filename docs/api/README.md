@@ -16,7 +16,7 @@
 | 410 `invite_used`, `invite_invalid`, `reset_invalid` | enlace caducado o usado |
 | 429 `rate_limited`, `locked` | límite por IP o bloqueo por cuenta |
 
-## Endpoints (v0.9)
+## Endpoints (v1.0)
 | Método | Ruta | Quién | Qué |
 |---|---|---|---|
 | GET | `/auth/setup-status` | público | ¿falta el alta inicial? |
@@ -29,6 +29,7 @@
 | POST | `/auth/password/change` | con sesión | cambiar contraseña (cierra las demás sesiones) |
 | GET | `/me` · `/me/sessions` | con sesión | yo · mis sesiones |
 | DELETE | `/me/sessions/:id` | con sesión | cerrar una sesión |
+| PATCH | `/me/preferences` (`reminders`) | con sesión | activar/desactivar recordatorios |
 | GET/POST | `/clients` | entrenador | listar (filtros `status`, `q`) · crear (con o sin invitación) |
 | GET/PATCH | `/clients/:id` | entrenador | ficha (queda en auditoría) · editar |
 | POST | `/clients/:id/invite` · `reset-link` · `accept` · `reject` · `archive` · `unarchive` | entrenador | acciones |

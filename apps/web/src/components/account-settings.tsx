@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { Me } from "@coach/shared";
+import { meQuery, useMe } from "../lib/auth";
+import { Checkbox } from "./ui/field";
 import type { SessionInfo } from "@coach/shared";
 import { Button } from "./ui/button";
 import { TextField } from "./ui/field";
@@ -136,11 +139,31 @@ export function PushSetting() {
     <section>
       <BlockTitle>Avisos</BlockTitle>
       <p className="max-w-[56ch] text-sm text-ink-2">{state ? text[state] : "Comprobando…"}</p>
+      <RemindersToggle />
       {(state === "off" || state === "on") && (
         <Button variant={state === "on" ? "quiet" : "secondary"} className="mt-3" loading={busy} onClick={() => run(state === "on" ? disablePush : enablePush)}>
           {state === "on" ? "Desactivar avisos aquí" : "Activar avisos"}
         </Button>
       )}
     </section>
+  );
+}
+
+function RemindersToggle() {
+  const me = useMe()!;
+  const qc = useQueryClient();
+  const set = useMutation({
+    mutationFn: (reminders: boolean) => api<Me>("/me/preferences", { method: "PATCH", body: { reminders } }),
+    onSuccess: (m) => qc.setQueryData(meQuery.queryKey, m),
+  });
+  return (
+    <Checkbox
+      className="mt-3"
+      checked={me.reminders}
+      disabled={set.isPending}
+      onChange={(e) => set.mutate(e.target.checked)}
+      label={me.role === "coach" ? "Resumen del día a las 8:00" : "Recordatorio del entreno del día"}
+      description={me.role === "coach" ? "Cuántas citas y entrenos de tus clientes hay hoy." : "A las 8:00 si hoy te toca, y a las 20:00 si aún no lo has anotado."}
+    />
   );
 }

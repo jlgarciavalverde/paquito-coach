@@ -26,7 +26,10 @@ Si no responde, **vuelve sola a la versión anterior**. Las migraciones se aplic
 ## Copias de seguridad
 - Automática: servicio `coach-backup`, un `pg_dump` al día en `~/servicios/coach/backups/` (14 días).
 - Antes de cada despliegue: `backups/pre-<versión>-<epoch>.sql.gz`.
-- Al Mac: `tools/pull-backups.sh` (pendiente programarlo con launchd).
+- Al Mac: `tools/pull-backups.sh` trae todo a `~/Backups/paquito-coach` (60 días) y, si hay copia nueva, lanza el
+  **simulacro de restauración** (`tools/restore-drill.sh` → `~/Backups/paquito-coach/simulacro.txt`).
+- Programado con `tools/install-launchd.sh` (una vez; `--quitar` para desinstalar): copias a las 13:00 y al iniciar sesión,
+  vigilante cada 10 min (`tools/monitor.sh`, notificación de macOS si la app se cae). Registros en `~/Backups/paquito-coach/*.log`.
 - **Restaurar**: `gunzip -c backups/coach-AAAA-MM-DD.sql.gz | docker exec -i coach-db psql -U coach -d coach` (sobre una BD vacía: `docker compose down; docker volume rm coach_coach-db; docker compose up -d db`).
 
 ## Volver atrás a mano

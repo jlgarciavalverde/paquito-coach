@@ -35,6 +35,7 @@ export async function meOf(db: DB, userId: string): Promise<Me> {
     role: row.u.role,
     studio: { id: row.st.id, name: row.st.name, coachName: row.u.role === "coach" ? row.u.name : await firstCoachName(db, row.st.id) },
     clientStatus: row.u.role === "client" ? (row.c?.status ?? null) : null,
+    reminders: row.u.reminders,
   };
 }
 
@@ -44,6 +45,12 @@ export function registerMe(app: FastifyInstance, { db }: Ctx) {
   api.get("/me", { schema: { tags: ["cuenta"], response: { 200: Me } } }, async (req, reply) => {
     reply.header("Cache-Control", "no-store");
     return meOf(db, requireUser(req).id);
+  });
+
+  api.patch("/me/preferences", { schema: { tags: ["cuenta"], body: z.object({ reminders: z.boolean() }), response: { 200: Me } } }, async (req) => {
+    const u = requireUser(req);
+    await db.update(users).set({ reminders: req.body.reminders }).where(eq(users.id, u.id));
+    return meOf(db, u.id);
   });
 
   api.get("/me/sessions", { schema: { tags: ["cuenta"], response: { 200: z.array(SessionInfo) } } }, async (req) => {

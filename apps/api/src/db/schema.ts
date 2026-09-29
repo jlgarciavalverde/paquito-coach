@@ -31,6 +31,8 @@ export const users = pgTable(
     email: text("email").notNull(),
     passwordHash: text("password_hash").notNull(),
     healthConsentAt: ts("health_consent_at"),
+    /** Recibir recordatorios push (entreno del día, resumen del entrenador). */
+    reminders: boolean("reminders").notNull().default(true),
     createdAt: createdAt(),
     deletedAt: ts("deleted_at"),
   },
@@ -333,4 +335,18 @@ export const questionnaires = pgTable(
     reviewedBy: uuid("reviewed_by").references(() => users.id, { onDelete: "set null" }),
   },
   (t) => [index("questionnaires_client_idx").on(t.clientId, t.submittedAt)],
+);
+
+// ── F10: recordatorios ─────────────────────────────────────────────────────────
+
+/** Qué recordatorio se ha mandado a quién y qué día: evita repetirlos si el servidor se reinicia. */
+export const reminderLog = pgTable(
+  "reminder_log",
+  {
+    kind: text("kind").notNull(),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    date: date("date", { mode: "string" }).notNull(),
+    sentAt: ts("sent_at").notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.kind, t.userId, t.date] })],
 );

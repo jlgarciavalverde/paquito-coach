@@ -1,6 +1,11 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [1.0.0] — 2026-09-29
+### Añadido
+- **Recordatorios**: a las 8:00, el entreno del día a cada cliente y el resumen del día al entrenador; a las 20:00, a quien aún no ha anotado su entreno. Se pueden desactivar en Ajustes o Perfil.
+- **Operaciones**: copias diarias al Mac con simulacro real de restauración y aviso si falla; vigilante que avisa si la app se cae (`tools/install-launchd.sh`).
+
 ## [0.9.0] — 2026-09-29
 ### Añadido
 - **Demo pública** (instancia y base de datos propias): entrar con un clic como entrenador o como clienta, datos de ejemplo realistas que vuelven a su estado cada noche, banda de aviso, y sin poder subir fotos, borrar, cambiar contraseñas ni registrarse.

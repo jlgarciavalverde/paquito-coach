@@ -40,7 +40,7 @@ import { createPushSender, type PushSender } from "./lib/push";
 import { seedExercises } from "./db/seed";
 import type { Ctx } from "./routes/ctx";
 
-export type App = FastifyInstance & { db: DB };
+export type App = FastifyInstance & { db: DB; push: PushSender };
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
@@ -230,5 +230,5 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender } = {})
     await pg.end({ timeout: 5 });
   });
 
-  return Object.assign(app, { db }) as App;
+  return Object.assign(app, { db, push }) as App;
 }

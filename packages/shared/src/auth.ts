@@ -52,6 +52,8 @@ export const Me = z.object({
   studio: z.object({ id: z.string(), name: z.string(), coachName: z.string() }),
   /** Solo clientes: estado de su vínculo con el entrenador. */
   clientStatus: z.enum(["invited", "pending", "active", "archived", "no_account"]).nullable(),
+  /** Recibir recordatorios push. */
+  reminders: z.boolean(),
 });
 export type Me = z.infer<typeof Me>;
 
