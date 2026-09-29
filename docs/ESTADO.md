@@ -30,7 +30,7 @@
 2. ~~Primera instalación~~ (hecha el 2026-09-29).
 3. **Cloudflare**: añadir en el panel del túnel los hostnames públicos `paquito.redgarverde.com` → `http://coach:3000` y `demo-paquito.redgarverde.com` → `http://coach-demo:3000` (si cambias el de la demo, actualiza `DEMO_PUBLIC_URL` en el `.env` del VPS).
 4. **Paquito revisa** el texto del PAR-Q+ y la anamnesis (`packages/shared/src/questionnaire.ts`) y el de `/privacidad`.
-5. **Instalar las tareas del Mac** (copias + simulacro + vigilante): `tools/install-launchd.sh` (una vez).
+5. ~~Instalar las tareas del Mac~~ (instaladas el 2026-09-29: `com.redgarverde.coach-backups` y `coach-monitor`; registros en `~/Backups/paquito-coach/`).
 6. **Alta inicial**: `ssh joseluis@192.168.18.7 'grep SETUP_CODE ~/servicios/coach/.env'` y usarlo en `https://<subdominio>/instalar` (una sola vez; lo hace Paquito con su correo o tú y luego le cambias los datos).
 5. **Paquito decide**: nombre de la app (hoy «Paquito Coach», se cambia en `packages/shared/src/brand.ts` + `apps/web/index.html`), subdominio, si quiere anamnesis/PAR-Q en el MVP, y vídeos propios o YouTube.
 
