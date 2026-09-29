@@ -55,7 +55,8 @@ export const Me = z.object({
 });
 export type Me = z.infer<typeof Me>;
 
-export const SetupStatus = z.object({ needsSetup: z.boolean() });
+/** `demo`: esta instancia es la demostración pública (datos de ejemplo que se borran cada noche). */
+export const SetupStatus = z.object({ needsSetup: z.boolean(), demo: z.boolean() });
 
 export const InvitePreview = z.object({
   studioName: z.string(),

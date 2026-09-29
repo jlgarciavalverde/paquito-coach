@@ -1,7 +1,21 @@
 import { buildApp } from "./app";
 import { configFromEnv } from "./config";
 
-const app = await buildApp(configFromEnv());
+const cfg = configFromEnv();
+const app = await buildApp(cfg);
+
+// Demo: se re-siembra al arrancar y cada noche a las 4:00 (hora de Madrid). Nunca en producción (ADR 0009).
+if (cfg.demoMode) {
+  const { resetDemo, msUntilNextReset } = await import("./demo/seed");
+  const reset = () =>
+    resetDemo(app.db).then(
+      () => app.log.info("demo re-sembrada"),
+      (err) => app.log.error(err, "demo: fallo al re-sembrar"),
+    );
+  await reset();
+  const schedule = () => setTimeout(() => void reset().finally(schedule), msUntilNextReset()).unref();
+  schedule();
+}
 
 for (const sig of ["SIGINT", "SIGTERM"] as const) {
   process.on(sig, () => void app.close().then(() => process.exit(0)));

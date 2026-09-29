@@ -104,7 +104,12 @@ export function HealthAlert({ children, title = "Lesiones y limitaciones" }: { c
 
 /** Monograma de persona: cuadrado con iniciales sobre bandeja. */
 export function Monogram({ name, size = 36, className }: { name: string; size?: number; className?: string }) {
-  const parts = name.trim().split(/\s+/);
+  // Solo palabras con letras (fuera paréntesis y símbolos: «Paquito (demo)» → «PD»).
+  const parts = name
+    .replace(/[^\p{L}\s]/gu, "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
   const ini = ((parts[0]?.[0] ?? "") + (parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? "") : "")).toUpperCase();
   return (
     <span

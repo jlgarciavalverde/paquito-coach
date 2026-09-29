@@ -16,7 +16,7 @@
 | 410 `invite_used`, `invite_invalid`, `reset_invalid` | enlace caducado o usado |
 | 429 `rate_limited`, `locked` | límite por IP o bloqueo por cuenta |
 
-## Endpoints (v0.8)
+## Endpoints (v0.9)
 | Método | Ruta | Quién | Qué |
 |---|---|---|---|
 | GET | `/auth/setup-status` | público | ¿falta el alta inicial? |
@@ -24,6 +24,7 @@
 | POST | `/auth/login` · `/auth/logout` | público | sesión |
 | GET | `/auth/invites/:token` · `/auth/join/:code` | público | datos para la pantalla de registro |
 | POST | `/auth/register` | público | alta de cliente con invitación o código |
+| POST | `/auth/demo` (`as`: coach/client) | público, **solo demo** | entrar con un clic |
 | POST | `/auth/password/reset` | público + token | contraseña nueva con enlace del entrenador |
 | POST | `/auth/password/change` | con sesión | cambiar contraseña (cierra las demás sesiones) |
 | GET | `/me` · `/me/sessions` | con sesión | yo · mis sesiones |

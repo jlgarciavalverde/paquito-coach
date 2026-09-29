@@ -38,6 +38,12 @@ if (!hasEnv) {
   throw new Error(`Falta ${DIR}/.env en el VPS. Créalo a partir de .env.example (ver docs/OPERACIONES.md → «Primera instalación») y vuelve a lanzar.`);
 }
 
+// Demo: contraseña de su base de datos (propia) y URL pública, si faltan.
+sh("ssh", [
+  HOST,
+  `cd ${DIR} && { grep -q '^DEMO_POSTGRES_PASSWORD=.' .env || { sed -i '/^DEMO_POSTGRES_PASSWORD=/d' .env; echo "DEMO_POSTGRES_PASSWORD=$(openssl rand -hex 24)" >> .env; }; grep -q '^DEMO_PUBLIC_URL=.' .env || { sed -i '/^DEMO_PUBLIC_URL=/d' .env; echo "DEMO_PUBLIC_URL=https://demo-paquito.redgarverde.com" >> .env; }; }`,
+]);
+
 // Carpeta de datos (fotos del chat) y claves de avisos push: se crean en el VPS la primera vez, sin salir de él.
 sh("ssh", [HOST, `mkdir -p ${DIR}/data/media`]);
 sh("ssh", [
@@ -77,5 +83,16 @@ if (!healthy) {
   }
   throw new Error(`Despliegue de ${version} fallido.`);
 }
+// La demo tarda algo más (re-siembra al arrancar); si no responde no se vuelve atrás: no afecta a producción.
+let demoOk = false;
+for (let i = 0; i < 20 && !demoOk; i++) {
+  try {
+    const body = out("ssh", [HOST, `sleep 3; docker exec coach-demo node -e "fetch('http://127.0.0.1:3000/health').then(r=>r.text()).then(console.log)"`]);
+    demoOk = JSON.parse(body).version === version;
+  } catch {
+    // arrancando
+  }
+}
+if (!demoOk) console.warn("  ⚠ La demo no responde todavía (producción sí). Mira `docker logs coach-demo`.");
 sh("ssh", [HOST, "docker ps --filter name=coach --format 'table {{.Names}}\\t{{.Status}}'"]);
 console.log(`\n✓ ${IMAGE}:${version} desplegada.`);

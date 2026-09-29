@@ -24,6 +24,8 @@ export interface AppConfig {
   vapidPublicKey?: string;
   vapidPrivateKey?: string;
   vapidSubject?: string;
+  /** Instancia de demostración pública (base de datos propia, se re-siembra cada noche). */
+  demoMode?: boolean;
 }
 
 export function configFromEnv(env = process.env): AppConfig {
@@ -47,5 +49,6 @@ export function configFromEnv(env = process.env): AppConfig {
     vapidPublicKey: env.VAPID_PUBLIC_KEY || undefined,
     vapidPrivateKey: env.VAPID_PRIVATE_KEY || undefined,
     vapidSubject: env.VAPID_SUBJECT || "mailto:admin@redgarverde.com",
+    demoMode: env.DEMO_MODE === "1",
   };
 }

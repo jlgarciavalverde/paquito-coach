@@ -15,7 +15,7 @@ export function greeting(d = new Date()) {
 export const firstName = (name: string) => name.trim().split(/\s+/)[0] ?? name;
 
 export function initials(name: string) {
-  const parts = name.trim().split(/\s+/);
+  const parts = name.replace(/[^\p{L}\s]/gu, "").trim().split(/\s+/).filter(Boolean);
   return ((parts[0]?.[0] ?? "") + (parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? "") : "")).toUpperCase();
 }
 

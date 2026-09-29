@@ -146,6 +146,19 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender } = {})
     }
   });
 
+  // Demo pública: nada que suba archivos, cambie credenciales, cree cuentas reales o borre la demo para los demás.
+  if (cfg.demoMode) {
+    const BLOCKED: RegExp[] = [
+      /^\/api\/v1\/media/, /^\/api\/v1\/me\/delete/, /^\/api\/v1\/clients\/[^/]+\/(delete|reset-link)/, /^\/api\/v1\/auth\/(password|setup|register)/,
+      /^\/api\/v1\/push\/subscriptions/, /^\/api\/v1\/studio\/join-code\/rotate/,
+    ];
+    app.addHook("onRequest", async (req, reply) => {
+      if (req.method !== "GET" && BLOCKED.some((r) => r.test(req.url))) {
+        return reply.code(403).send({ error: "demo", message: "Esto no está disponible en la demo." });
+      }
+    });
+  }
+
   app.setErrorHandler((err: unknown, req, reply) => {
     if (hasZodFastifySchemaValidationErrors(err)) {
       const first = err.validation[0];

@@ -66,11 +66,60 @@ services:
       db: { condition: service_healthy }
     networks: [internal]
 
+  # ── Demo pública (ADR 0009): misma imagen, base de datos PROPIA, se re-siembra cada noche. ──
+  demo:
+    image: paquito-coach:0.8.0
+    container_name: coach-demo
+    restart: unless-stopped
+    user: "0:0"
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    read_only: true
+    environment:
+      NODE_ENV: production
+      DEMO_MODE: "1"
+      APP_VERSION: ${APP_VERSION}
+      DATABASE_URL: postgres://coach:${DEMO_POSTGRES_PASSWORD}@demo-db:5432/coach
+      PUBLIC_URL: ${DEMO_PUBLIC_URL}
+      ALLOWED_ORIGINS: ${DEMO_PUBLIC_URL}
+      DATA_DIR: /tmp
+      LOG_LEVEL: warn
+    tmpfs: [/tmp]
+    depends_on:
+      demo-db: { condition: service_healthy }
+    mem_limit: 384m
+    cpus: 0.5
+    logging: { driver: json-file, options: { max-size: "5m", max-file: "2" } }
+    networks: [proxy, demo-internal]
+
+  demo-db:
+    image: postgres:17-alpine
+    container_name: coach-demo-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: coach
+      POSTGRES_PASSWORD: ${DEMO_POSTGRES_PASSWORD}
+      POSTGRES_DB: coach
+    volumes: [coach-demo-db:/var/lib/postgresql/data]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coach"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    mem_limit: 256m
+    logging: { driver: json-file, options: { max-size: "5m", max-file: "2" } }
+    networks: [demo-internal]
+
 volumes:
   coach-db:
+  coach-demo-db:
 
 networks:
   proxy:
     external: true
   internal:
+    internal: true
+  # La demo no ve la base de datos de producción (redes internas separadas).
+  demo-internal:
     internal: true

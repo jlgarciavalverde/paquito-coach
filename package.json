@@ -1,7 +1,7 @@
 {
   "name": "paquito-coach",
   "private": true,
-  "version": "0.8.0",
+  "version": "0.9.0",
   "type": "module",
   "packageManager": "pnpm@12.4.2",
   "engines": {
@@ -16,7 +16,8 @@
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
     "openapi": "pnpm --filter @coach/api openapi",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "e2e:demo": "playwright test -c playwright.demo.config.ts"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",

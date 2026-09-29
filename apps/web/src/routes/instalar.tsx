@@ -13,7 +13,7 @@ import { useSubmit } from "../lib/use-form";
 /** Alta inicial (una sola vez): el estudio y la cuenta del entrenador. Pide el código de instalación del servidor. */
 export const Route = createFileRoute("/instalar")({
   beforeLoad: async () => {
-    const s = await api<{ needsSetup: boolean }>("/auth/setup-status");
+    const s = await api<{ needsSetup: boolean; demo: boolean }>("/auth/setup-status");
     if (!s.needsSetup) throw redirect({ to: "/acceso" });
   },
   component: Setup,

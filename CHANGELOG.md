@@ -1,6 +1,12 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [0.9.0] — 2026-09-29
+### Añadido
+- **Demo pública** (instancia y base de datos propias): entrar con un clic como entrenador o como clienta, datos de ejemplo realistas que vuelven a su estado cada noche, banda de aviso, y sin poder subir fotos, borrar, cambiar contraseñas ni registrarse.
+### Corregido
+- Los monogramas ignoran paréntesis y símbolos del nombre.
+
 ## [0.8.0] — 2026-09-29
 ### Añadido
 - **Cuestionario de salud**: PAR-Q+ (siete preguntas) y anamnesis (lesiones, operaciones, medicación, dolor 0–10, actividad, objetivo). Aparece al terminar el registro y en «Hoy» mientras esté pendiente; se puede posponer.

@@ -11,6 +11,7 @@ import { hashToken, newJoinCode } from "../lib/tokens";
 import { clearSessionCookie, cookieName, createSession } from "../lib/session";
 import { safeEqual } from "../lib/compare";
 import { meOf } from "./me";
+import { DEMO_CLIENT, DEMO_COACH } from "../demo/seed";
 import { typed, type Ctx } from "./ctx";
 
 const INVALID_LOGIN = new HttpError(401, "invalid_credentials", "Correo o contraseña incorrectos");
@@ -33,7 +34,7 @@ export function registerAuth(app: FastifyInstance, ctx: Ctx) {
 
   api.get("/auth/setup-status", { schema: { tags: ["auth"], response: { 200: SetupStatus } } }, async () => {
     const [row] = await db.select({ n: count() }).from(studios);
-    return { needsSetup: (row?.n ?? 0) === 0 };
+    return { needsSetup: !cfg.demoMode && (row?.n ?? 0) === 0, demo: Boolean(cfg.demoMode) };
   });
 
   /** Alta inicial: crea el estudio y la cuenta del entrenador. Solo una vez y con SETUP_CODE. */
@@ -76,6 +77,21 @@ export function registerAuth(app: FastifyInstance, ctx: Ctx) {
     await createSession(db, cfg, reply, user.id, req.headers["user-agent"]);
     return meOf(db, user.id);
   });
+
+  /** Solo en la demo: entrar con un clic como el entrenador o como la clienta de ejemplo. */
+  if (cfg.demoMode) {
+    api.post(
+      "/auth/demo",
+      { schema: { tags: ["auth"], body: z.object({ as: z.enum(["coach", "client"]) }), response: { 200: Me } }, config: strict },
+      async (req, reply) => {
+        const email = req.body.as === "coach" ? DEMO_COACH.email : DEMO_CLIENT.email;
+        const [u] = await db.select({ id: users.id }).from(users).where(eq(users.email, email));
+        if (!u) throw new HttpError(503, "demo_resetting", "La demo se está reiniciando. Prueba en un minuto.");
+        await createSession(db, cfg, reply, u.id, req.headers["user-agent"]);
+        return meOf(db, u.id);
+      },
+    );
+  }
 
   api.post("/auth/logout", { schema: { tags: ["auth"], response: { 200: Ok } } }, async (req, reply) => {
     const token = req.cookies[cookieName(cfg)];

@@ -5,6 +5,7 @@ describe("format", () => {
   it("iniciales de nombre y apellido", () => {
     expect(initials("Lucía Martínez Gil")).toBe("LG");
     expect(initials("Pepe")).toBe("P");
+    expect(initials("Paquito (demo)")).toBe("PD");
   });
   it("primer nombre", () => expect(firstName("  Paquito  Pérez")).toBe("Paquito"));
   it("saludo según la hora", () => {

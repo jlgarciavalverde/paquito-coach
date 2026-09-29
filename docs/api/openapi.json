@@ -31,10 +31,14 @@
                   "properties": {
                     "needsSetup": {
                       "type": "boolean"
+                    },
+                    "demo": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
-                    "needsSetup"
+                    "needsSetup",
+                    "demo"
                   ],
                   "additionalProperties": false
                 }

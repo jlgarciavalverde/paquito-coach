@@ -48,5 +48,9 @@ Viven en `~/servicios/coach/data/media/` (volumen `./data`). El servicio `coach-
 Las claves VAPID las genera `tools/deploy.mjs` en el `.env` del VPS la primera vez. **No cambiarlas**: invalidarían
 las suscripciones de todos los dispositivos (habría que volver a activar los avisos en cada uno).
 
+## Demo pública
+Servicios `coach-demo` y `coach-demo-db` (ADR 0009). Se re-siembra sola al arrancar y cada noche a las 4:00. Para
+re-sembrarla a mano: `docker restart coach-demo`. No tiene copias de seguridad (no hay nada que conservar).
+
 ## Salud y logs
 `docker ps --filter name=coach` · `docker logs coach --tail 100` · `curl -s https://paquito.redgarverde.com/health`

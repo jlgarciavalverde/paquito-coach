@@ -2,9 +2,15 @@ import { createRootRouteWithContext, Link, Outlet } from "@tanstack/react-router
 import type { QueryClient } from "@tanstack/react-query";
 import { Button } from "../components/ui/button";
 import { Brand } from "../components/brand";
+import { DemoBanner } from "../components/demo-banner";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  component: () => <Outlet />,
+  component: () => (
+    <>
+      <DemoBanner />
+      <Outlet />
+    </>
+  ),
   notFoundComponent: NotFound,
   errorComponent: ({ error, reset }) => (
     <CenteredMessage title="Algo no ha ido bien" text={error instanceof Error && error.message ? error.message : "Error inesperado."} action={<Button onClick={reset}>Reintentar</Button>} />
