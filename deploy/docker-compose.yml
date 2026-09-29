@@ -1,0 +1,71 @@
+# Se copia a ~/servicios/coach/ en el VPS (tools/deploy.mjs). Sin `ports:` a propósito:
+# la app solo se alcanza por el túnel de Cloudflare (red `proxy`) y Postgres solo desde la red interna.
+services:
+  app:
+    image: paquito-coach:0.1.0
+    container_name: coach
+    restart: unless-stopped
+    # Docker del VPS es rootless: el root del contenedor es el usuario del host, sin privilegios reales.
+    user: "0:0"
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    read_only: true
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://coach:${POSTGRES_PASSWORD}@db:5432/coach
+    depends_on:
+      db: { condition: service_healthy }
+    mem_limit: 512m
+    cpus: 1.0
+    logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }
+    networks: [proxy, internal]
+
+  db:
+    image: postgres:17-alpine
+    container_name: coach-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: coach
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: coach
+    volumes: [coach-db:/var/lib/postgresql/data]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coach"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    mem_limit: 512m
+    logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }
+    networks: [internal]
+
+  # Copia diaria con pg_dump (14 días) en ./backups; tools/pull-backups.sh la trae al Mac.
+  backup:
+    image: postgres:17-alpine
+    container_name: coach-backup
+    restart: unless-stopped
+    user: "0:0"
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    volumes: [./backups:/backups]
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        while true; do
+          f=/backups/coach-$$(date +%F).sql.gz
+          pg_dump -h db -U coach -d coach --no-owner | gzip > $$f.tmp && mv $$f.tmp $$f && echo "backup ok $$f"
+          find /backups -name 'coach-*.sql.gz' -mtime +14 -delete
+          sleep 86400
+        done
+    depends_on:
+      db: { condition: service_healthy }
+    networks: [internal]
+
+volumes:
+  coach-db:
+
+networks:
+  proxy:
+    external: true
+  internal:
+    internal: true

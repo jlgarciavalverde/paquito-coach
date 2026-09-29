@@ -1,0 +1,27 @@
+{
+  "name": "paquito-coach",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@12.4.2",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "db:up": "docker compose -f docker-compose.dev.yml up -d",
+    "db:down": "docker compose -f docker-compose.dev.yml down",
+    "dev:api": "pnpm --filter @coach/api dev",
+    "dev:web": "pnpm --filter @coach/web dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "openapi": "pnpm --filter @coach/api openapi",
+    "e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
+    "postgres": "^3.4.9",
+    "tsx": "^4.23.15"
+  }
+}

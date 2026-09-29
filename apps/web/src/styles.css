@@ -1,0 +1,193 @@
+@import "tailwindcss";
+@import "@fontsource/instrument-serif/latin-400.css";
+@import "@fontsource/instrument-serif/latin-400-italic.css";
+@import "@fontsource-variable/instrument-sans/index.css";
+
+/*
+ * Sistema de diseño — «clínico premium claro».
+ * Papel cálido, tinta verde-negra, un acento verde clínico profundo y un segundo acento arcilla.
+ * NUNCA usar colores sueltos en componentes: siempre estos tokens (ver docs/diseno.md).
+ * Todos los pares texto/fondo cumplen WCAG AA (≥ 4,5:1).
+ */
+:root {
+  --paper: #f6f2ec;
+  --surface: #fffdf9;
+  --surface-2: #efe9e0;
+  --surface-3: #e6ded2;
+  --ink: #1a1f1c;
+  --ink-2: #4c534e;
+  --ink-3: #5f6661;
+  --line: #e1d9cc;
+  --line-strong: #cfc4b4;
+
+  --accent: #1f5a51;
+  --accent-hover: #184a43;
+  --accent-ink: #ffffff;
+  --accent-soft: #dde9e4;
+  --accent-soft-ink: #1a4b44;
+
+  --clay: #9c4f27;
+  --clay-soft: #f3e2d5;
+
+  --success: #2d6a3e;
+  --success-soft: #dfeee2;
+  --warning: #7f5500;
+  --warning-soft: #f6ead0;
+  --danger: #a3372a;
+  --danger-soft: #f7e0db;
+
+  --focus: #1f5a51;
+  /* Marca: igual en claro y oscuro (logo). */
+  --brand: #1f5a51;
+  --brand-ink: #f6f2ec;
+  --shadow-color: 30 25 15;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #131614;
+    --surface: #1a1e1b;
+    --surface-2: #222723;
+    --surface-3: #2b312d;
+    --ink: #ede8df;
+    --ink-2: #b0b6b1;
+    --ink-3: #959c97;
+    --line: #2e3430;
+    --line-strong: #3d4540;
+    --accent: #86c3b5;
+    --accent-hover: #9fd3c7;
+    --accent-ink: #0d1a17;
+    --accent-soft: #1d3530;
+    --accent-soft-ink: #a9dccf;
+    --clay: #e2a57f;
+    --clay-soft: #3a261b;
+    --success: #8fcf9f;
+    --success-soft: #1c3223;
+    --warning: #e6c07a;
+    --warning-soft: #372c14;
+    --danger: #f0a092;
+    --danger-soft: #3d201b;
+    --focus: #86c3b5;
+    --shadow-color: 0 0 0;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #131614;
+  --surface: #1a1e1b;
+  --surface-2: #222723;
+  --surface-3: #2b312d;
+  --ink: #ede8df;
+  --ink-2: #b0b6b1;
+  --ink-3: #959c97;
+  --line: #2e3430;
+  --line-strong: #3d4540;
+  --accent: #86c3b5;
+  --accent-hover: #9fd3c7;
+  --accent-ink: #0d1a17;
+  --accent-soft: #1d3530;
+  --accent-soft-ink: #a9dccf;
+  --clay: #e2a57f;
+  --clay-soft: #3a261b;
+  --success: #8fcf9f;
+  --success-soft: #1c3223;
+  --warning: #e6c07a;
+  --warning-soft: #372c14;
+  --danger: #f0a092;
+  --danger-soft: #3d201b;
+  --focus: #86c3b5;
+  --shadow-color: 0 0 0;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-soft-ink: var(--accent-soft-ink);
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --color-clay: var(--clay);
+  --color-clay-soft: var(--clay-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+
+  --font-display: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-sans: "Instrument Sans Variable", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 26px;
+
+  --shadow-soft: 0 1px 2px rgb(var(--shadow-color) / 0.05), 0 8px 24px -12px rgb(var(--shadow-color) / 0.12);
+  --shadow-lift: 0 2px 4px rgb(var(--shadow-color) / 0.06), 0 24px 48px -20px rgb(var(--shadow-color) / 0.22);
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.5;
+    font-feature-settings: "ss01", "cv11";
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  ::selection {
+    background: var(--accent-soft);
+    color: var(--accent-soft-ink);
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+/* Grano de papel muy sutil en el fondo: evita el plano «plantilla». */
+@utility paper-grain {
+  background-image:
+    radial-gradient(circle at 20% 0%, rgb(from var(--accent) r g b / 0.06), transparent 45%),
+    radial-gradient(circle at 100% 100%, rgb(from var(--clay) r g b / 0.06), transparent 40%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes dialog-in {
+  /* Tailwind v4 centra con la propiedad `translate`; aquí solo se anima `transform`, así que se combinan. */
+  from { opacity: 0; transform: translateY(12px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
