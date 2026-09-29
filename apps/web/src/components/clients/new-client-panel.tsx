@@ -6,6 +6,7 @@ import { Button } from "../ui/button";
 import { TextArea, TextField } from "../ui/field";
 import { FormError } from "../form-error";
 import { ShareInvite } from "./share-invite";
+import { useCoachActions } from "../coach-actions";
 import { useCreateClient } from "../../lib/queries";
 import { errorMessage } from "../../lib/api";
 import { useMe } from "../../lib/auth";
@@ -17,7 +18,8 @@ export function NewClientPanel({ open, onOpenChange }: { open: boolean; onOpenCh
   const create = useCreateClient();
   const [f, setF] = useState({ name: "", email: "", phone: "", goal: "", healthNotes: "" });
   const [invite, setInvite] = useState(true);
-  const [done, setDone] = useState<{ client: Client; invite: InviteLink } | null>(null);
+  const [done, setDone] = useState<{ client: Client; invite: InviteLink | null } | null>(null);
+  const actions = useCoachActions();
 
   const close = (o: boolean) => {
     onOpenChange(o);
@@ -29,35 +31,64 @@ export function NewClientPanel({ open, onOpenChange }: { open: boolean; onOpenCh
         create.reset();
       }, 250);
   };
-  const openRecord = (id: string) => {
-    close(false);
-    void navigate({ to: "/coach/clientes/$clientId", params: { clientId: id } });
-  };
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     create.mutate(
       { name: f.name, email: f.email || null, phone: f.phone || null, goal: f.goal || null, healthNotes: f.healthNotes || null, invite },
-      { onSuccess: (r) => (r.invite ? setDone({ client: r.client, invite: r.invite }) : openRecord(r.client.id)) },
+      {
+        onSuccess: (r) => {
+          // La ficha se abre detrás; la hoja se queda con la invitación y los siguientes pasos.
+          void navigate({ to: "/coach/clientes/$clientId", params: { clientId: r.client.id } });
+          setDone({ client: r.client, invite: r.invite ?? null });
+        },
+      },
     );
   };
 
   if (done) {
+    const first = done.client.name.split(" ")[0];
+    const then = (fn: () => void) => () => (close(false), setTimeout(fn, 60));
+    const steps = [
+      { label: "Asignar su primera rutina", hint: "Elige rutina y días; puedes repetirla varias semanas.", run: then(() => actions.assign({ clientId: done.client.id })) },
+      { label: "Programar la primera cita", hint: "Valoración inicial o primera sesión.", run: then(() => actions.newAppointment(done.client.id)) },
+      { label: "Preparar su plan de comidas", hint: "Desde cero o a partir de una plantilla.", run: then(() => void navigate({ to: "/coach/clientes/$clientId", params: { clientId: done.client.id }, search: { pestana: "nutricion" } })) },
+      { label: "Anotar peso y medidas de partida", hint: "Para ver su evolución desde el primer día.", run: then(() => actions.measure(done.client.id)) },
+    ];
     return (
       <SidePanel
         open={open}
         onOpenChange={close}
         title={`Ficha de ${done.client.name} creada`}
-        description="Mándale este enlace para que cree su cuenta. Mientras no lo use, aparecerá como invitado."
+        description={done.invite ? "Mándale este enlace para que cree su cuenta. Mientras no lo use, aparecerá como invitado." : "Cliente sin cuenta: lo planificas y registras tú. Puedes invitarle cuando quieras."}
         footer={
-          <>
-            <Button variant="quiet" onClick={() => close(false)}>
-              Cerrar
-            </Button>
-            <Button onClick={() => openRecord(done.client.id)}>Abrir su ficha</Button>
-          </>
+          <Button variant="quiet" onClick={() => close(false)}>
+            Cerrar
+          </Button>
         }
       >
-        <ShareInvite invite={done.invite} clientName={done.client.name} coachName={me.name} />
+        <div className="flex flex-col gap-8">
+          {done.invite && <ShareInvite invite={done.invite} clientName={done.client.name} coachName={me.name} />}
+          <section aria-labelledby="next-steps">
+            <h3 id="next-steps" className="font-wide text-[17px]">
+              Siguientes pasos con {first}
+            </h3>
+            <ol className="mt-3 flex flex-col divide-y divide-rule border-y border-rule">
+              {steps.map((st, i) => (
+                <li key={st.label}>
+                  <button type="button" onClick={st.run} className="flex w-full items-start gap-3 py-3 text-left hover:bg-tray">
+                    <span className="font-narrow w-5 shrink-0 text-right text-[17px] leading-6 text-ink-3" aria-hidden="true">
+                      {i + 1}
+                    </span>
+                    <span>
+                      <span className="block text-sm font-medium text-primary">{st.label}</span>
+                      <span className="block text-[13px] text-ink-2">{st.hint}</span>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ol>
+          </section>
+        </div>
       </SidePanel>
     );
   }

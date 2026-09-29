@@ -17,6 +17,8 @@ import {
   WorkoutPatch,
   WorkoutRange,
   type RoutineBlock,
+  applyProgression,
+  weekIndex,
 } from "@coach/shared";
 import { clientProfiles, exercises, routines, users, workouts } from "../db/schema";
 import { audit } from "../lib/audit";
@@ -223,9 +225,16 @@ export function registerTraining(app: FastifyInstance, { db, hub }: Ctx) {
         .from(clientProfiles)
         .where(and(eq(clientProfiles.studioId, u.studioId), inArray(clientProfiles.id, req.body.clientIds)));
       if (clients.length !== new Set(req.body.clientIds).size) throw notFound("Cliente");
-      const dates = [...new Set(req.body.dates)];
+      const dates = [...new Set(req.body.dates)].sort();
       const values = clients.flatMap((c) =>
-        dates.map((date) => ({ studioId: u.studioId, clientId: c.id, routineId: r.id, date, title: r.name, blocks: r.blocks })),
+        dates.map((date) => ({
+          studioId: u.studioId,
+          clientId: c.id,
+          routineId: r.id,
+          date,
+          title: r.name,
+          blocks: applyProgression(r.blocks, weekIndex(dates[0]!, date), req.body.progression),
+        })),
       );
       await db.insert(workouts).values(values);
       await audit(db, req, "routine.assign", { type: "routine", id: r.id }, { clients: clients.length, dates: dates.length });

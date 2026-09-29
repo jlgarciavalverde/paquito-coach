@@ -84,6 +84,14 @@ describe("rutinas y asignación", () => {
     expect(ws.body[0].blocks[0].items[0].load).toBe("80 kg");
     expect((await coach.get("/api/v1/routines")).body.find((x: { id: string }) => x.id === routineId).assignedCount).toBe(2);
   });
+
+  it("asigna con progresión: +2,5 kg cada semana", async () => {
+    const r = await coach.post("/api/v1/routines", { name: "Fuerza", description: "", blocks: [block(squatId)] });
+    await coach.post(`/api/v1/routines/${r.body.id}/assign`, { clientIds: [pepeId], dates: ["2026-11-09", "2026-11-02", "2026-11-04"], progression: { kind: "kg", step: 2.5 } });
+    const ws = await coach.get(`/api/v1/clients/${pepeId}/workouts?from=2026-11-01&to=2026-11-30`);
+    const byDate = Object.fromEntries(ws.body.map((w: { date: string; blocks: { items: { load: string }[] }[] }) => [w.date, w.blocks[0]!.items[0]!.load]));
+    expect(byDate).toEqual({ "2026-11-02": "80 kg", "2026-11-04": "80 kg", "2026-11-09": "82,5 kg" });
+  });
 });
 
 describe("el cliente registra su entreno", () => {

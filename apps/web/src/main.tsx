@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 import { ToastProvider } from "./components/ui/toast";
+import { ConfirmProvider } from "./components/ui/confirm";
 import { RequestError } from "./lib/api";
 import { applyStoredTheme } from "./lib/theme";
 import { registerServiceWorker } from "./lib/push";
@@ -40,7 +41,9 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        <RouterProvider router={router} />
+        <ConfirmProvider>
+          <RouterProvider router={router} />
+        </ConfirmProvider>
       </ToastProvider>
     </QueryClientProvider>
   </StrictMode>,

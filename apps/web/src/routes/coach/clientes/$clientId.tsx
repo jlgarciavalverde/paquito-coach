@@ -1,9 +1,12 @@
 import { useEffect, useId, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { z } from "zod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CaretLeft } from "@phosphor-icons/react";
+import { Barbell, CalendarPlus, CaretLeft, ChatCircle, DotsThree, Ruler } from "@phosphor-icons/react";
 import type { Client, InviteLink } from "@coach/shared";
-import { Button, buttonClass } from "../../../components/ui/button";
+import { Button, IconButton } from "../../../components/ui/button";
+import { Menu, MenuItem } from "../../../components/ui/menu";
+import { useCoachActions } from "../../../components/coach-actions";
 import { Dialog } from "../../../components/ui/dialog";
 import { TextField, controlClass } from "../../../components/ui/field";
 import { HealthAlert, Monogram, RecordRow, RecordSheet } from "../../../components/ui/layout";
@@ -28,14 +31,20 @@ import { useSubmit } from "../../../lib/use-form";
 import { cn } from "../../../lib/cn";
 import { useDocumentTitle } from "../../../lib/title";
 
+const TABS = ["entreno", "progreso", "ficha", "nutricion", "agenda", "chat"] as const;
 export const Route = createFileRoute("/coach/clientes/$clientId")({
+  validateSearch: z.object({ pestana: z.enum(TABS).optional() }),
   component: ClientPage,
 });
 
 function ClientPage() {
   const { clientId } = Route.useParams();
   const q = useQuery(clientQuery(clientId));
-  const [tab, setTab] = useState("entreno");
+  const { pestana } = Route.useSearch();
+  const [tab, setTab] = useState<string>(pestana ?? "entreno");
+  useEffect(() => {
+    if (pestana) setTab(pestana);
+  }, [pestana, clientId]);
   useDocumentTitle(q.data?.name ?? "Cliente");
 
   if (q.isPending) {
@@ -110,6 +119,7 @@ function ClientHeader({ client: c }: { client: Client }) {
   const me = useMe()!;
   const toast = useToast();
   const act = useClientAction(c.id);
+  const actions = useCoachActions();
   const invite = useInvite(c.id);
   const reset = useResetLink(c.id);
   const [link, setLink] = useState<InviteLink | null>(null);
@@ -127,47 +137,67 @@ function ClientHeader({ client: c }: { client: Client }) {
 
   return (
     <header className="mb-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-center gap-4">
+      <div className="flex items-start gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-4">
           <Monogram name={c.name} size={56} />
-          <div>
+          <div className="min-w-0">
             <h1 className="font-wide text-[28px] leading-[1.1] sm:text-[32px]">{c.name}</h1>
             <div className="mt-1">
               <StatusMark status={c.status} />
             </div>
           </div>
         </div>
-        <div className="flex flex-wrap gap-1">
-          {(c.status === "invited" || c.status === "no_account") && (
-            <Button variant={c.status === "no_account" ? "primary" : "secondary"} loading={invite.isPending} onClick={() => invite.mutate(undefined, { onSuccess: setLink, onError: (e) => toast(errorMessage(e), "error") })}>
-              {c.status === "invited" ? "Enlace nuevo" : "Invitar a la app"}
+        <Menu
+          trigger={
+            <IconButton label="Más acciones">
+              <DotsThree size={20} weight="bold" />
+            </IconButton>
+          }
+        >
+          {c.status === "active" && <MenuItem onSelect={() => reset.mutate(undefined, { onSuccess: setResetLink, onError: (e) => toast(errorMessage(e), "error") })}>Recuperar acceso</MenuItem>}
+          <MenuItem asChild>
+            <a href={`/api/v1/clients/${c.id}/export`} download>
+              Descargar datos
+            </a>
+          </MenuItem>
+          {c.status !== "archived" && c.status !== "pending" && <MenuItem onSelect={() => setConfirmArchive(true)}>Archivar</MenuItem>}
+        </Menu>
+      </div>
+      <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label={`Acciones con ${c.name}`}>
+        {(c.status === "invited" || c.status === "no_account") && (
+          <Button size="sm" variant={c.status === "no_account" ? "primary" : "secondary"} loading={invite.isPending} onClick={() => invite.mutate(undefined, { onSuccess: setLink, onError: (e) => toast(errorMessage(e), "error") })}>
+            {c.status === "invited" ? "Enlace nuevo" : "Invitar a la app"}
+          </Button>
+        )}
+        {c.status === "archived" ? (
+          <>
+            <Button size="sm" variant="secondary" loading={act.isPending} onClick={() => act.mutate("unarchive", { onSuccess: () => toast("Cliente recuperado") })}>
+              Recuperar cliente
             </Button>
-          )}
-          {c.status === "active" && (
-            <Button variant="quiet" loading={reset.isPending} onClick={() => reset.mutate(undefined, { onSuccess: setResetLink, onError: (e) => toast(errorMessage(e), "error") })}>
-              Recuperar acceso
+            <Button size="sm" variant="danger" onClick={() => setConfirmDelete(true)}>
+              Borrar definitivamente
             </Button>
-          )}
-          <a href={`/api/v1/clients/${c.id}/export`} download className={buttonClass("quiet")}>
-            Descargar datos
-          </a>
-          {c.status === "archived" ? (
+          </>
+        ) : (
+          c.status !== "pending" && (
             <>
-              <Button variant="secondary" loading={act.isPending} onClick={() => act.mutate("unarchive", { onSuccess: () => toast("Cliente recuperado") })}>
-                Recuperar cliente
+              <Button variant="secondary" size="sm" icon={<Barbell size={16} />} onClick={() => actions.assign({ clientId: c.id })}>
+                Asignar rutina
               </Button>
-              <Button variant="danger" onClick={() => setConfirmDelete(true)}>
-                Borrar definitivamente
+              <Button variant="secondary" size="sm" icon={<CalendarPlus size={16} />} onClick={() => actions.newAppointment(c.id)}>
+                Nueva cita
+              </Button>
+              {c.userId && (
+                <Button variant="secondary" size="sm" icon={<ChatCircle size={16} />} onClick={() => actions.write(c.id)}>
+                  Escribir
+                </Button>
+              )}
+              <Button variant="secondary" size="sm" icon={<Ruler size={16} />} onClick={() => actions.measure(c.id)}>
+                Anotar medidas
               </Button>
             </>
-          ) : (
-            c.status !== "pending" && (
-              <Button variant="quiet" onClick={() => setConfirmArchive(true)}>
-                Archivar
-              </Button>
-            )
-          )}
-        </div>
+          )
+        )}
       </div>
       <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 border-y border-rule py-3.5 sm:grid-cols-4">
         {facts.map(([k, v]) => (

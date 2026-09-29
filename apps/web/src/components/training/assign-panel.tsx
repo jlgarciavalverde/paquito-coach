@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import type { Routine } from "@coach/shared";
+import { applyProgression, weekIndex, type Progression, type Routine } from "@coach/shared";
 import { SidePanel } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Checkbox, Select, TextField } from "../ui/field";
@@ -21,31 +21,47 @@ export function AssignPanel({
   onOpenChange,
   routine,
   clientId,
+  routineId: initialRoutineId,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   routine?: Routine;
   clientId?: string;
+  /** Rutina preseleccionada (sigue pudiendo cambiarse). */
+  routineId?: string;
 }) {
   const toast = useToast();
   const routines = useQuery({ ...routinesQuery, enabled: open && !routine });
   const clients = useQuery({ ...clientsQuery("active"), enabled: open && !clientId });
   const noAccount = useQuery({ ...clientsQuery("no_account"), enabled: open && !clientId });
-  const [routineId, setRoutineId] = useState(routine?.id ?? "");
+  const [routineId, setRoutineId] = useState(routine?.id ?? initialRoutineId ?? "");
   const [selected, setSelected] = useState<string[]>(clientId ? [clientId] : []);
   const [start, setStart] = useState(today());
   const [days, setDays] = useState<number[]>([]);
   const [weeks, setWeeks] = useState(1);
+  const [prog, setProg] = useState<"none" | Progression["kind"]>("none");
+  const [step, setStep] = useState("2,5");
   const rid = routine?.id ?? routineId;
   const assign = useAssign(rid);
 
   const dates = useMemo(() => (days.length ? planDates(start, days, weeks) : [start]), [start, days, weeks]);
   const pool = [...(clients.data ?? []), ...(noAccount.data ?? [])];
   const total = dates.length * selected.length;
+  const stepN = Number(step.replace(",", "."));
+  const progression: Progression | null = prog !== "none" && stepN >= 0.5 && stepN <= 20 ? { kind: prog, step: stepN } : null;
+  const lastWeek = dates.length ? weekIndex(dates[0]!, dates.at(-1)!) : 0;
+  const chosen = routine ?? routines.data?.find((r) => r.id === rid);
+  const preview =
+    progression && chosen && lastWeek > 0
+      ? chosen.blocks
+          .flatMap((b) => b.items)
+          .map((it, i) => ({ name: it.exerciseName, from: it.load, to: applyProgression(chosen.blocks, lastWeek, progression).flatMap((b) => b.items)[i]!.load }))
+          .filter((x) => x.from !== x.to)
+      : [];
 
   const submit = () =>
     assign.mutate(
-      { clientIds: selected, dates },
+      { clientIds: selected, dates, progression: lastWeek > 0 ? progression : null },
       {
         onSuccess: (r) => {
           toast(r.created === 1 ? "Entreno asignado" : `${r.created} entrenos asignados`);
@@ -130,6 +146,36 @@ export function AssignPanel({
           </div>
           {days.length > 0 && (
             <TextField label="Durante" type="number" min={1} max={16} aside="semanas" value={weeks} onChange={(e) => setWeeks(Math.max(1, Math.min(16, Number(e.target.value) || 1)))} className="max-w-[160px]" />
+          )}
+          {lastWeek > 0 && (
+            <div className="flex flex-col gap-3 border-t border-rule pt-4">
+              <Select label="Carga" value={prog} onChange={(e) => setProg(e.target.value as typeof prog)}>
+                <option value="none">La misma todas las semanas</option>
+                <option value="kg">Subir kilos cada semana</option>
+                <option value="pct">Subir un porcentaje cada semana</option>
+              </Select>
+              {prog !== "none" && (
+                <TextField label="Cuánto" inputMode="decimal" aside={prog === "kg" ? "kg por semana" : "% por semana"} value={step} onChange={(e) => setStep(e.target.value)} className="max-w-[200px]" />
+              )}
+              {prog !== "none" &&
+                (preview.length > 0 ? (
+                  <div className="text-[13.5px]">
+                    <p className="text-ink-2">Última semana:</p>
+                    <ul className="mt-1 flex flex-col gap-0.5">
+                      {preview.map((x) => (
+                        <li key={x.name} className="flex justify-between gap-3">
+                          <span className="truncate">{x.name}</span>
+                          <span className="font-narrow tabular shrink-0">
+                            {x.from} a {x.to}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  chosen && <p className="text-[13.5px] text-ink-2">Esta rutina no tiene cargas en kilos: se asignará igual cada semana.</p>
+                ))}
+            </div>
           )}
           <div>
             <p className="text-[13.5px] text-ink-2">{dates.length === 1 ? "1 día:" : `${dates.length} días:`}</p>

@@ -8,3 +8,4 @@ export * from "./agenda";
 export * from "./chat";
 export * from "./progress";
 export * from "./questionnaire";
+export * from "./progression";

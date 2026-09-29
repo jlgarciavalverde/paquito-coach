@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { CoachShell } from "../components/coach-shell";
+import { CoachActionsProvider } from "../components/coach-actions";
 import { meQuery } from "../lib/auth";
 
 export const Route = createFileRoute("/coach")({
@@ -9,8 +10,10 @@ export const Route = createFileRoute("/coach")({
     if (me.role !== "coach") throw redirect({ to: "/app" });
   },
   component: () => (
-    <CoachShell>
-      <Outlet />
-    </CoachShell>
+    <CoachActionsProvider>
+      <CoachShell>
+        <Outlet />
+      </CoachShell>
+    </CoachActionsProvider>
   ),
 });

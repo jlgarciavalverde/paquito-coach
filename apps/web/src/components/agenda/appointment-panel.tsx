@@ -5,6 +5,7 @@ import { SidePanel } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Select, TextArea, TextField } from "../ui/field";
 import { useToast } from "../ui/toast";
+import { useConfirm } from "../ui/confirm";
 import { FormError } from "../form-error";
 import { clientsQuery } from "../../lib/queries";
 import { atLocal, localDate, minutesOf, useAppointmentMutation } from "../../lib/agenda";
@@ -24,6 +25,7 @@ export function AppointmentPanel({ appointment, draft, onClose }: { appointment?
   const open = Boolean(appointment || draft);
   const toast = useToast();
   const m = useAppointmentMutation();
+  const ask = useConfirm();
   const active = useQuery({ ...clientsQuery("active"), enabled: open }).data ?? [];
   const noAccount = useQuery({ ...clientsQuery("no_account"), enabled: open }).data ?? [];
   const [f, setF] = useState({ clientId: "", kind: "session" as AppointmentKind, title: "", date: "", time: "09:00", duration: 60, location: "", notes: "" });
@@ -66,7 +68,7 @@ export function AppointmentPanel({ appointment, draft, onClose }: { appointment?
       footer={
         <>
           {appointment && (
-            <Button variant="danger" className="sm:mr-auto" onClick={() => confirm("¿Borrar esta cita?") && m.mutate({ id: appointment.id, remove: true }, { onSuccess: () => (toast("Cita borrada"), onClose()) })}>
+            <Button variant="danger" className="sm:mr-auto" onClick={async () => (await ask({ title: "Borrar esta cita", body: "Desaparece de tu agenda y de la del cliente.", confirm: "Borrar cita", danger: true })) && m.mutate({ id: appointment.id, remove: true }, { onSuccess: () => (toast("Cita borrada"), onClose()) })}>
               Borrar cita
             </Button>
           )}

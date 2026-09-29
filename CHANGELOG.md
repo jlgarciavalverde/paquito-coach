@@ -1,6 +1,15 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [1.2.0] — 2026-09-29 · Cualquier cosa en dos pasos
+### Añadido
+- **Paleta de órdenes** (⌘K / Ctrl K, «/» o el botón «Buscar»): clientes, rutinas y plantillas; crear cliente, cita, rutina o plantilla; si lo escrito apunta a un cliente, sus acciones directas (escribir, asignar rutina, nueva cita, anotar medidas). A pantalla completa en el móvil.
+- **Atajos**: `g h/c/e/n/a/m` para ir a cada sección, `n` crea en la pantalla actual, `?` los muestra.
+- **Ficha del cliente**: acciones a la vista (Asignar rutina, Nueva cita, Escribir, Anotar medidas); recuperar acceso, descargar datos y archivar pasan al menú «Más acciones».
+- **Alta encadenada**: al crear un cliente se abre su ficha detrás y la hoja muestra «Siguientes pasos» (rutina, primera cita, plan de comidas, medidas de partida).
+- **Asignar con progresión**: «Subir kilos (o un %) cada semana» con vista previa de la última semana; la API aplica la progresión al generar cada copia (`progression` en `POST /routines/:id/assign`).
+- **Deshacer en lugar de preguntar**: quitar un bloque, borrar medidas y copiar o unificar días del plan se hacen al momento con aviso «Deshacer»; lo que no se puede deshacer usa el diálogo de la app en lugar del `confirm()` del navegador.
+
 ## [1.1.0] — 2026-09-29 · Registrar y revisar más rápido
 ### Añadido
 - **Cuaderno del cliente**: bajo cada ejercicio, lo que hizo la última vez; marcar una serie sin escribir nada la da por hecha con la sugerencia (serie anterior, la última vez o lo prescrito); el foco salta a la siguiente serie, que se resalta, con botones ±1 rep, ±2,5 kg e «Igual que la anterior».

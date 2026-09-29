@@ -6,6 +6,7 @@ import { CopyField } from "../../components/ui/copy-field";
 import { BlockTitle, PageTitle } from "../../components/ui/layout";
 import { Skeleton } from "../../components/ui/spinner";
 import { useToast } from "../../components/ui/toast";
+import { useConfirm } from "../../components/ui/confirm";
 import { PasswordSetting, PushSetting, SessionsSetting, ThemeSetting } from "../../components/account-settings";
 import { api } from "../../lib/api";
 import { useMe } from "../../lib/auth";
@@ -39,6 +40,7 @@ function JoinCodeSetting() {
   const qc = useQueryClient();
   const toast = useToast();
   const q = useQuery(joinCodeQuery);
+  const ask = useConfirm();
   const rotate = useMutation({
     mutationFn: () => api<JoinCode>("/studio/join-code/rotate", { body: {} }),
     onSuccess: (d) => {
@@ -58,7 +60,7 @@ function JoinCodeSetting() {
             {q.data.code}
           </p>
           <CopyField value={q.data.url} label="Enlace de registro con el código" />
-          <Button variant="quiet" size="sm" className="self-start" loading={rotate.isPending} onClick={() => confirm("¿Cambiar el código? El actual dejará de funcionar.") && rotate.mutate()}>
+          <Button variant="quiet" size="sm" className="self-start" loading={rotate.isPending} onClick={async () => (await ask({ title: "Cambiar el código", body: "El código y el enlace actuales dejarán de funcionar. Quien ya es cliente no se ve afectado.", confirm: "Cambiar el código" })) && rotate.mutate()}>
             Cambiar el código
           </Button>
         </div>

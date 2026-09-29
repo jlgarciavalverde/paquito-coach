@@ -6,7 +6,8 @@ import { MEAL_PRESETS, type Meal, type MealDay, type MealPlan, type MealPlanBody
 import { Button, IconButton } from "../../../components/ui/button";
 import { controlClass } from "../../../components/ui/field";
 import { Skeleton } from "../../../components/ui/spinner";
-import { useToast } from "../../../components/ui/toast";
+import { useToast, useUndoToast } from "../../../components/ui/toast";
+import { useConfirm } from "../../../components/ui/confirm";
 import { FormError } from "../../../components/form-error";
 import { planQuery, useDeletePlan, useSavePlan, WEEKDAY_NAMES } from "../../../lib/nutrition";
 import { clientQuery } from "../../../lib/queries";
@@ -36,6 +37,8 @@ function PlanEditor({ plan }: { plan: MealPlan }) {
   const navigate = useNavigate();
   const save = useSavePlan(plan.id);
   const del = useDeletePlan();
+  const ask = useConfirm();
+  const undoToast = useUndoToast();
   const client = useQuery({ ...clientQuery(plan.clientId ?? ""), enabled: Boolean(plan.clientId) }).data;
   const [doc, setDoc] = useState<MealPlanBody>(() => toBody(plan));
   const [saved, setSaved] = useState(() => JSON.stringify(toBody(plan)));
@@ -43,7 +46,10 @@ function PlanEditor({ plan }: { plan: MealPlan }) {
   const dirty = JSON.stringify(doc) !== saved;
   useDocumentTitle(doc.name || "Plan de comidas");
   const leaving = useRef(false);
-  useBlocker({ shouldBlockFn: () => !leaving.current && dirty && !confirm("Hay cambios sin guardar. ¿Salir igualmente?"), enableBeforeUnload: () => !leaving.current && dirty });
+  useBlocker({
+    shouldBlockFn: async () => !leaving.current && dirty && !(await ask({ title: "Hay cambios sin guardar", body: "Si sales ahora, se pierden.", confirm: "Salir sin guardar", danger: true })),
+    enableBeforeUnload: () => !leaving.current && dirty,
+  });
 
   const back = plan.clientId ? { to: "/coach/clientes/$clientId" as const, params: { clientId: plan.clientId }, label: client?.name ?? "Ficha del cliente" } : { to: "/coach/nutricion" as const, params: {}, label: "Nutrición" };
   const current = doc.days.find((d) => d.weekday === day) ?? doc.days[0]!;
@@ -58,14 +64,18 @@ function PlanEditor({ plan }: { plan: MealPlan }) {
       setDoc({ ...doc, mode, days: [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({ weekday, meals: cloneMeals(base) })) });
       setDay(1);
     } else {
-      if (!confirm(`Se quedarán las comidas del ${WEEKDAY_NAMES[current.weekday]?.toLowerCase()} para todos los días. ¿Seguir?`)) return;
+      const before = doc;
+      const prevDay = day;
       setDoc({ ...doc, mode, days: [{ weekday: 0, meals: current.meals }] });
       setDay(0);
+      undoToast(`Todos los días con las comidas del ${WEEKDAY_NAMES[current.weekday]?.toLowerCase()}`, () => (setDoc(before), setDay(prevDay)));
     }
   };
-  const copyToAll = () =>
-    confirm(`¿Copiar las comidas del ${WEEKDAY_NAMES[current.weekday]?.toLowerCase()} al resto de días? Se sustituye lo que tengan.`) &&
+  const copyToAll = () => {
+    const before = doc.days;
     setDays((ds) => ds.map((d) => (d.weekday === current.weekday ? d : { ...d, meals: cloneMeals(current.meals) })));
+    undoToast(`Comidas del ${WEEKDAY_NAMES[current.weekday]?.toLowerCase()} copiadas al resto de días`, () => setDays(() => before));
+  };
 
   const submit = () => {
     // Las filas de alimento vacías no se guardan.
@@ -246,8 +256,8 @@ function PlanEditor({ plan }: { plan: MealPlan }) {
               <Button
                 variant="quiet"
                 onClick={() =>
-                  confirm("¿Borrar esta plantilla? Los planes ya aplicados a clientes no cambian.") &&
-                  del.mutate(plan.id, { onSuccess: () => ((leaving.current = true), navigate({ to: "/coach/nutricion" })) })
+                  void ask({ title: "Borrar la plantilla", body: "Los planes ya aplicados a clientes no cambian.", confirm: "Borrar plantilla", danger: true }).then((ok) => ok &&
+                  del.mutate(plan.id, { onSuccess: () => ((leaving.current = true), navigate({ to: "/coach/nutricion" })) }))
                 }
               >
                 Borrar plantilla

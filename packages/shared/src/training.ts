@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { Progression } from "./progression";
 import { DateOnly } from "./common";
 
 export const MUSCLES = [
@@ -105,6 +106,8 @@ export type Routine = z.infer<typeof Routine>;
 export const AssignInput = z.object({
   clientIds: z.array(z.string().uuid()).min(1, "Elige al menos un cliente").max(100),
   dates: z.array(DateOnly).min(1, "Elige al menos un día").max(120),
+  /** Subir la carga cada semana contando desde el primer día asignado. */
+  progression: Progression.nullable().default(null),
 });
 export type AssignInput = z.infer<typeof AssignInput>;
 

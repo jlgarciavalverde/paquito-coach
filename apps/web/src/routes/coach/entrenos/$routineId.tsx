@@ -6,7 +6,8 @@ import type { Exercise, RoutineBlock, RoutineBody, RoutineItem } from "@coach/sh
 import { Button, IconButton } from "../../../components/ui/button";
 import { controlClass } from "../../../components/ui/field";
 import { Skeleton } from "../../../components/ui/spinner";
-import { useToast } from "../../../components/ui/toast";
+import { useToast, useUndoToast } from "../../../components/ui/toast";
+import { useConfirm } from "../../../components/ui/confirm";
 import { FormError } from "../../../components/form-error";
 import { ExercisePicker } from "../../../components/training/exercise-picker";
 import { AssignPanel } from "../../../components/training/assign-panel";
@@ -36,6 +37,8 @@ function Editor({ id, initial }: { id?: string; initial: RoutineBody }) {
   const toast = useToast();
   const save = useSaveRoutine(id);
   const act = useRoutineAction();
+  const ask = useConfirm();
+  const undoToast = useUndoToast();
   const [doc, setDoc] = useState<RoutineBody>(initial);
   const [saved, setSaved] = useState(JSON.stringify(initial));
   const [pickerFor, setPickerFor] = useState<string | null>(null);
@@ -47,7 +50,10 @@ function Editor({ id, initial }: { id?: string; initial: RoutineBody }) {
 
   // Tras guardar o borrar se navega en el mismo tick en que `dirty` aún es true: el ref evita el aviso falso.
   const leaving = useRef(false);
-  useBlocker({ shouldBlockFn: () => !leaving.current && dirty && !confirm("Hay cambios sin guardar. ¿Salir igualmente?"), enableBeforeUnload: () => !leaving.current && dirty });
+  useBlocker({
+    shouldBlockFn: async () => !leaving.current && dirty && !(await ask({ title: "Hay cambios sin guardar", body: "Si sales ahora, se pierden.", confirm: "Salir sin guardar", danger: true })),
+    enableBeforeUnload: () => !leaving.current && dirty,
+  });
 
   const setBlocks = (fn: (b: RoutineBlock[]) => RoutineBlock[]) => setDoc((d) => ({ ...d, blocks: fn(d.blocks) }));
   const setItem = (bid: string, iid: string, patch: Partial<RoutineItem>) =>
@@ -147,7 +153,11 @@ function Editor({ id, initial }: { id?: string; initial: RoutineBody }) {
                 className="font-wide min-w-0 flex-1 bg-transparent text-[19px] outline-none placeholder:text-ink-3 focus:underline"
               />
               {doc.blocks.length > 1 && (
-                <IconButton label="Quitar bloque" onClick={() => (b.items.length === 0 || confirm("¿Quitar el bloque y sus ejercicios?")) && setBlocks((bs) => bs.filter((x) => x.id !== b.id))}>
+                <IconButton label="Quitar bloque" onClick={() => {
+                    const before = doc.blocks;
+                    setBlocks((bs) => bs.filter((x) => x.id !== b.id));
+                    if (b.items.length) undoToast(`Bloque «${b.name || bi + 1}» quitado`, () => setBlocks(() => before));
+                  }}>
                   <Trash size={17} />
                 </IconButton>
               )}
@@ -263,7 +273,7 @@ function Editor({ id, initial }: { id?: string; initial: RoutineBody }) {
             {id && (
               <Button
                 variant="quiet"
-                onClick={() => confirm("¿Borrar esta rutina de tu biblioteca? Lo ya asignado a clientes se mantiene.") && act.mutate({ id, action: "delete" }, { onSuccess: () => ((leaving.current = true), navigate({ to: "/coach/entrenos" })) })}
+                onClick={async () => (await ask({ title: "Borrar la rutina", body: "Sale de tu biblioteca. Lo ya asignado a clientes se mantiene.", confirm: "Borrar rutina", danger: true })) && act.mutate({ id, action: "delete" }, { onSuccess: () => ((leaving.current = true), navigate({ to: "/coach/entrenos" })) })}
               >
                 Borrar
               </Button>

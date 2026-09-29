@@ -1,9 +1,14 @@
-import type { ReactNode } from "react";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { useState, type ReactNode } from "react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Barbell, CalendarBlank, ChatCircle, ForkKnife, GearSix, SignOut, SunHorizon, UsersThree, type Icon } from "@phosphor-icons/react";
+import { Barbell, CalendarBlank, ChatCircle, ForkKnife, GearSix, MagnifyingGlass, SignOut, SunHorizon, UsersThree, type Icon } from "@phosphor-icons/react";
 import { Brand } from "./brand";
 import { Monogram } from "./ui/layout";
+import { Dialog } from "./ui/dialog";
+import { CommandPalette, Kbd } from "./command-palette";
+import { useCoachActions } from "./coach-actions";
+import { SHORTCUTS, useShortcuts } from "../lib/shortcuts";
+import { useCreatePlan } from "../lib/nutrition";
 import { useLogout, useMe } from "../lib/auth";
 import { clientsQuery } from "../lib/queries";
 import { conversationsQuery } from "../lib/chat";
@@ -34,6 +39,25 @@ export function CoachShell({ children }: { children: ReactNode }) {
   const pending = useQuery(clientsQuery("pending")).data?.length ?? 0;
   useRealtime("coach");
   const unread = (useQuery({ ...conversationsQuery, refetchInterval: 120_000 }).data ?? []).reduce((n, c) => n + c.unread, 0);
+  const [palette, setPalette] = useState(false);
+  const [help, setHelp] = useState(false);
+  const navigate = useNavigate();
+  const act = useCoachActions();
+  const createPlan = useCreatePlan();
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const GO: Record<string, string> = { h: "/coach", c: "/coach/clientes", e: "/coach/entrenos", n: "/coach/nutricion", a: "/coach/calendario", m: "/coach/chat" };
+  useShortcuts({
+    palette: () => setPalette(true),
+    help: () => setHelp(true),
+    go: (k) => (GO[k] ? (void navigate({ to: GO[k] }), true) : false),
+    create: () => {
+      if (path.startsWith("/coach/entrenos")) void navigate({ to: "/coach/entrenos/$routineId", params: { routineId: "nueva" } });
+      else if (path.startsWith("/coach/calendario")) act.newAppointment();
+      else if (path.startsWith("/coach/nutricion")) createPlan.mutate({ clientId: null }, { onSuccess: (p) => void navigate({ to: "/coach/nutricion/$planId", params: { planId: p.id } }) });
+      else act.newClient();
+    },
+  });
+  const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
   const badge = (to: string) => (to === "/coach/clientes" ? pending : to === "/coach/chat" ? unread : 0);
   return (
     <div className="min-h-dvh">
@@ -66,6 +90,17 @@ export function CoachShell({ children }: { children: ReactNode }) {
             })}
           </nav>
           <div className="ml-auto flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setPalette(true)}
+              className="flex h-9 items-center gap-2 rounded-[var(--radius-control)] border border-rule-strong px-2.5 text-sm text-ink-2 hover:border-ink-3 hover:text-ink max-sm:border-0 max-sm:px-2"
+              aria-label="Buscar o hacer algo"
+              aria-keyshortcuts="Meta+K Control+K"
+            >
+              <MagnifyingGlass size={17} />
+              <span className="hidden lg:inline">Buscar</span>
+              <span className="hidden lg:inline"><Kbd>{isMac ? "⌘K" : "Ctrl K"}</Kbd></span>
+            </button>
             <Link to="/coach/ajustes" className="hidden items-center gap-2 rounded-[var(--radius-control)] py-1 pr-2 pl-1 text-sm text-ink-2 hover:bg-tray hover:text-ink sm:flex" aria-label="Ajustes de la cuenta">
               <Monogram name={me.name} size={28} />
               <span className="max-w-[16ch] truncate">{me.studio.name}</span>
@@ -79,6 +114,22 @@ export function CoachShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
+
+      <CommandPalette open={palette} onOpenChange={setPalette} />
+      <Dialog open={help} onOpenChange={setHelp} title="Atajos de teclado" description="Para ir más rápido desde el ordenador.">
+        <dl className="flex flex-col divide-y divide-rule text-sm">
+          {SHORTCUTS.map((s) => (
+            <div key={s.keys} className="flex items-center justify-between gap-4 py-2">
+              <dt className="text-ink-2">{s.label}</dt>
+              <dd className="flex shrink-0 gap-1">
+                {s.keys.split(" ").map((k) => (
+                  <Kbd key={k}>{k === "⌘" && !isMac ? "Ctrl" : k}</Kbd>
+                ))}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </Dialog>
 
       <main className="mx-auto w-full max-w-[1280px] px-4 pt-6 pb-28 sm:px-6 md:pt-10 md:pb-16">{children}</main>
 

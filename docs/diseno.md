@@ -62,7 +62,10 @@ Radios: 6 px controles y objetos, 12 px bandejas y hojas. Sombra solo en lo que 
 | Acción | `Button` (`primary`, `secondary`, `quiet`, `danger`) · en enlace: `buttonClass()` · solo icono: `IconButton` |
 | Campos | `TextField`, `TextArea`, `Select`, `Checkbox` |
 | Crear/editar sin salir de la lista | `SidePanel` (hoja lateral; en móvil, a pantalla completa) |
-| Confirmar algo pequeño | `Dialog` |
+| Confirmar algo que no se puede deshacer | `useConfirm()` (diálogo de la app; nunca `confirm()` del navegador) |
+| Acción reversible | hacerla ya y `useUndoToast()` («Deshacer», 7 s) |
+| Acciones poco frecuentes | `Menu` / `MenuItem` (`components/ui/menu.tsx`) |
+| Acción frecuente desde cualquier sitio | `useCoachActions()` (asignar, cita, medidas, nuevo cliente, escribir) y la paleta ⌘K |
 | Pestañas | `Tabs` |
 | Vacío | `EmptyNote` (una frase + la acción, sin icono decorativo) |
 | Aviso de lesión/limitación | `HealthAlert` |

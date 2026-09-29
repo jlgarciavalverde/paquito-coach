@@ -6,7 +6,7 @@ import { SidePanel } from "../ui/dialog";
 import { TextArea, TextField } from "../ui/field";
 import { BlockTitle, EmptyNote } from "../ui/layout";
 import { Skeleton } from "../ui/spinner";
-import { useToast } from "../ui/toast";
+import { useToast, useUndoToast } from "../ui/toast";
 import { FormError } from "../form-error";
 import { LineChart } from "./line-chart";
 import { metricsQuery, progressExercisesQuery, progressQuery, useDeleteMetric, useSaveMetric, type Who } from "../../lib/progress";
@@ -30,6 +30,8 @@ function Measurements({ who, name }: { who: Who; name?: string }) {
   const q = useQuery(metricsQuery(who));
   const [open, setOpen] = useState(false);
   const del = useDeleteMetric(who);
+  const restore = useSaveMetric(who);
+  const undoToast = useUndoToast();
   const rows = q.data ?? [];
   const weights = rows.filter((m) => m.weightKg != null);
   const last = weights.at(-1);
@@ -96,7 +98,7 @@ function Measurements({ who, name }: { who: Who; name?: string }) {
                     <td className="font-narrow py-1.5 text-right">{m.bodyFatPct ?? "—"}</td>
                     <td className="text-right">
                       {who !== "me" && (
-                        <button type="button" onClick={() => confirm(`¿Borrar las medidas del ${dayMonth(m.date)}?`) && del.mutate(m.date)} className="text-[12.5px] text-ink-3 hover:text-plate-red" aria-label={`Borrar medidas del ${dayMonth(m.date)}`}>
+                        <button type="button" onClick={() => del.mutate(m.date, { onSuccess: () => undoToast(`Medidas del ${dayMonth(m.date)} borradas`, () => restore.mutate(m)) })} className="text-[12.5px] text-ink-3 hover:text-plate-red" aria-label={`Borrar medidas del ${dayMonth(m.date)}`}>
                           Borrar
                         </button>
                       )}
@@ -113,7 +115,7 @@ function Measurements({ who, name }: { who: Who; name?: string }) {
   );
 }
 
-function MetricPanel({ who, open, onClose, existing }: { who: Who; open: boolean; onClose: () => void; existing: BodyMetric[] }) {
+export function MetricPanel({ who, open, onClose, existing }: { who: Who; open: boolean; onClose: () => void; existing: BodyMetric[] }) {
   const save = useSaveMetric(who);
   const toast = useToast();
   const [f, setF] = useState({ date: today(), weightKg: "", waistCm: "", hipCm: "", bodyFatPct: "", note: "" });

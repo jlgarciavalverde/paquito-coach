@@ -34,7 +34,9 @@ test("el entrenador borra definitivamente un cliente archivado", async ({ browse
   await c.getByLabel("Nombre y apellidos").fill("Cliente de prueba");
   await c.getByText("No, solo ficha").click();
   await c.getByRole("button", { name: "Crear ficha" }).click();
-  await c.getByRole("button", { name: "Archivar" }).click();
+  await c.getByRole("dialog").getByRole("button", { name: "Cerrar" }).last().click();
+  await c.getByRole("button", { name: "Más acciones" }).click();
+  await c.getByRole("menuitem", { name: "Archivar" }).click();
   await c.getByRole("dialog").getByRole("button", { name: "Archivar" }).click();
   await c.getByRole("button", { name: "Borrar definitivamente" }).click();
   const del = c.getByRole("dialog").getByRole("button", { name: "Borrar todo" });

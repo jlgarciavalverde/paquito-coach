@@ -57,6 +57,8 @@ test("ficha sin cuenta", async () => {
   await coach.getByText("No, solo ficha").click();
   await coach.getByRole("button", { name: "Crear ficha" }).click();
   await expect(coach).toHaveURL(/\/coach\/clientes\/[0-9a-f-]+$/);
+  await expect(coach.getByRole("heading", { name: "Siguientes pasos con Pepe" })).toBeVisible();
+  await coach.getByRole("dialog").getByRole("button", { name: "Cerrar" }).last().click();
   await expect(coach.locator("article").getByText("Sin cuenta")).toBeVisible();
   await coach.getByRole("tab", { name: "Ficha" }).click();
   await coach.getByLabel("Lesiones y limitaciones").fill("Hernia L5-S1");
@@ -129,7 +131,8 @@ test("registro con código del estudio + aceptar (oscuro)", async ({ browser }) 
 test("recuperar acceso de un cliente con enlace del entrenador", async ({ browser }) => {
   await coach.goto("/coach/clientes");
   await coach.getByRole("link", { name: /Lucía Martínez/ }).click();
-  await coach.getByRole("button", { name: "Recuperar acceso" }).click();
+  await coach.getByRole("button", { name: "Más acciones" }).click();
+  await coach.getByRole("menuitem", { name: "Recuperar acceso" }).click();
   const url = await coach.getByLabel("Enlace para nueva contraseña").innerText();
   await coach.keyboard.press("Escape");
   const p = await newPage(browser, { viewport: { width: 390, height: 844 } });
