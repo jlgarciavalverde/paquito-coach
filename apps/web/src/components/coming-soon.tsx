@@ -1,20 +1,26 @@
 import type { ReactNode } from "react";
-import { Sparkle } from "@phosphor-icons/react";
+import { cn } from "../lib/cn";
 
-/** Módulo aún no construido: explica qué va a hacer, para que Paquito vea la hoja de ruta dentro de la app. */
-export function ComingSoon({ title, children, phase }: { title: string; children: ReactNode; phase: string }) {
+const PHASES = ["Cuentas y clientes", "Entrenamiento", "Nutrición", "Agenda", "Mensajes", "Entrega"];
+
+/** Módulo aún no construido: qué hará y en qué punto de la hoja de ruta está (las fases sí son una secuencia). */
+export function ComingSoon({ title, children, phase }: { title: string; children: ReactNode; phase: number }) {
   return (
-    <div className="relative overflow-hidden rounded-[var(--radius-lg)] border border-line bg-surface p-8 shadow-[var(--shadow-soft)] sm:p-10">
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-2.5 py-1 text-[12px] font-medium text-accent-soft-ink">
-        <Sparkle size={13} weight="fill" /> En construcción · {phase}
-      </span>
-      <h2 className="mt-4 font-display text-[32px] leading-tight">{title}</h2>
-      <div className="mt-2 max-w-prose text-ink-2 [&_li]:mt-1.5 [&_ul]:mt-3 [&_ul]:list-disc [&_ul]:pl-5">{children}</div>
-      <svg className="pointer-events-none absolute -right-16 -bottom-16 size-64 text-accent opacity-[0.07]" viewBox="0 0 200 200" aria-hidden="true">
-        {[90, 70, 50, 30].map((r) => (
-          <circle key={r} cx="100" cy="100" r={r} fill="none" stroke="currentColor" strokeWidth={r === 50 ? 10 : 2} />
-        ))}
-      </svg>
-    </div>
+    <section className="max-w-[640px]">
+      <h2 className="font-wide text-[22px]">{title}</h2>
+      <div className="mt-2 text-ink-2 [&_li]:mt-1 [&_ul]:mt-3 [&_ul]:list-disc [&_ul]:pl-5">{children}</div>
+      <ol className="mt-8 grid grid-cols-6 gap-1" aria-label="Hoja de ruta">
+        {PHASES.map((p, i) => {
+          const n = i + 1;
+          return (
+            <li key={p} className="flex flex-col gap-1.5" aria-current={n === phase ? "step" : undefined}>
+              <span className={cn("h-1.5 rounded-[1px]", n < phase ? "bg-plate-green" : n === phase ? "bg-primary" : "bg-tray-2")} />
+              <span className={cn("hidden text-[12px] sm:block", n === phase ? "font-medium text-ink" : "text-ink-3")}>{p}</span>
+            </li>
+          );
+        })}
+      </ol>
+      <p className="mt-3 text-[13px] text-ink-3">Llega en la fase {phase} de 6.</p>
+    </section>
   );
 }

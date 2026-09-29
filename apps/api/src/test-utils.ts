@@ -29,6 +29,7 @@ export async function testApp(over: Partial<AppConfig> = {}): Promise<App> {
     globalRateLimit: 10_000,
     exposeDocs: false,
     logLevel: "silent",
+    seedExercises: false,
     ...over,
   });
 }

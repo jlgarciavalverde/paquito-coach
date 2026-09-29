@@ -1925,6 +1925,4236 @@
         }
       }
     },
+    "/api/v1/exercises": {
+      "get": {
+        "tags": [
+          "entrenamiento"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "in": "query",
+            "name": "q",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "chest",
+                "lats",
+                "middleBack",
+                "lowerBack",
+                "traps",
+                "shoulders",
+                "biceps",
+                "triceps",
+                "forearms",
+                "abs",
+                "quads",
+                "hamstrings",
+                "glutes",
+                "calves",
+                "adductors",
+                "abductors",
+                "neck",
+                "other"
+              ]
+            },
+            "in": "query",
+            "name": "muscle",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "barbell",
+                "dumbbell",
+                "machine",
+                "cable",
+                "bodyweight",
+                "kettlebell",
+                "bands",
+                "other"
+              ]
+            },
+            "in": "query",
+            "name": "equipment",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1"
+              ]
+            },
+            "in": "query",
+            "name": "own",
+            "required": false
+          },
+          {
+            "schema": {
+              "default": 40,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "aliases": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "muscle": {
+                        "type": "string",
+                        "enum": [
+                          "chest",
+                          "lats",
+                          "middleBack",
+                          "lowerBack",
+                          "traps",
+                          "shoulders",
+                          "biceps",
+                          "triceps",
+                          "forearms",
+                          "abs",
+                          "quads",
+                          "hamstrings",
+                          "glutes",
+                          "calves",
+                          "adductors",
+                          "abductors",
+                          "neck",
+                          "other"
+                        ]
+                      },
+                      "secondary": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "chest",
+                            "lats",
+                            "middleBack",
+                            "lowerBack",
+                            "traps",
+                            "shoulders",
+                            "biceps",
+                            "triceps",
+                            "forearms",
+                            "abs",
+                            "quads",
+                            "hamstrings",
+                            "glutes",
+                            "calves",
+                            "adductors",
+                            "abductors",
+                            "neck",
+                            "other"
+                          ]
+                        }
+                      },
+                      "equipment": {
+                        "type": "string",
+                        "enum": [
+                          "barbell",
+                          "dumbbell",
+                          "machine",
+                          "cable",
+                          "bodyweight",
+                          "kettlebell",
+                          "bands",
+                          "other"
+                        ]
+                      },
+                      "instructions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "videoUrl": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "own": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name",
+                      "aliases",
+                      "muscle",
+                      "secondary",
+                      "equipment",
+                      "instructions",
+                      "videoUrl",
+                      "own"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "entrenamiento"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 120
+                  },
+                  "muscle": {
+                    "type": "string",
+                    "enum": [
+                      "chest",
+                      "lats",
+                      "middleBack",
+                      "lowerBack",
+                      "traps",
+                      "shoulders",
+                      "biceps",
+                      "triceps",
+                      "forearms",
+                      "abs",
+                      "quads",
+                      "hamstrings",
+                      "glutes",
+                      "calves",
+                      "adductors",
+                      "abductors",
+                      "neck",
+                      "other"
+                    ]
+                  },
+                  "equipment": {
+                    "type": "string",
+                    "enum": [
+                      "barbell",
+                      "dumbbell",
+                      "machine",
+                      "cable",
+                      "bodyweight",
+                      "kettlebell",
+                      "bands",
+                      "other"
+                    ]
+                  },
+                  "instructions": {
+                    "default": [],
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    }
+                  },
+                  "videoUrl": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 300,
+                    "format": "uri"
+                  }
+                },
+                "required": [
+                  "name",
+                  "muscle",
+                  "equipment"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "aliases": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "muscle": {
+                      "type": "string",
+                      "enum": [
+                        "chest",
+                        "lats",
+                        "middleBack",
+                        "lowerBack",
+                        "traps",
+                        "shoulders",
+                        "biceps",
+                        "triceps",
+                        "forearms",
+                        "abs",
+                        "quads",
+                        "hamstrings",
+                        "glutes",
+                        "calves",
+                        "adductors",
+                        "abductors",
+                        "neck",
+                        "other"
+                      ]
+                    },
+                    "secondary": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "chest",
+                          "lats",
+                          "middleBack",
+                          "lowerBack",
+                          "traps",
+                          "shoulders",
+                          "biceps",
+                          "triceps",
+                          "forearms",
+                          "abs",
+                          "quads",
+                          "hamstrings",
+                          "glutes",
+                          "calves",
+                          "adductors",
+                          "abductors",
+                          "neck",
+                          "other"
+                        ]
+                      }
+                    },
+                    "equipment": {
+                      "type": "string",
+                      "enum": [
+                        "barbell",
+                        "dumbbell",
+                        "machine",
+                        "cable",
+                        "bodyweight",
+                        "kettlebell",
+                        "bands",
+                        "other"
+                      ]
+                    },
+                    "instructions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "videoUrl": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "own": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "aliases",
+                    "muscle",
+                    "secondary",
+                    "equipment",
+                    "instructions",
+                    "videoUrl",
+                    "own"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/exercises/{id}": {
+      "get": {
+        "tags": [
+          "entrenamiento"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "aliases": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "muscle": {
+                      "type": "string",
+                      "enum": [
+                        "chest",
+                        "lats",
+                        "middleBack",
+                        "lowerBack",
+                        "traps",
+                        "shoulders",
+                        "biceps",
+                        "triceps",
+                        "forearms",
+                        "abs",
+                        "quads",
+                        "hamstrings",
+                        "glutes",
+                        "calves",
+                        "adductors",
+                        "abductors",
+                        "neck",
+                        "other"
+                      ]
+                    },
+                    "secondary": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "chest",
+                          "lats",
+                          "middleBack",
+                          "lowerBack",
+                          "traps",
+                          "shoulders",
+                          "biceps",
+                          "triceps",
+                          "forearms",
+                          "abs",
+                          "quads",
+                          "hamstrings",
+                          "glutes",
+                          "calves",
+                          "adductors",
+                          "abductors",
+                          "neck",
+                          "other"
+                        ]
+                      }
+                    },
+                    "equipment": {
+                      "type": "string",
+                      "enum": [
+                        "barbell",
+                        "dumbbell",
+                        "machine",
+                        "cable",
+                        "bodyweight",
+                        "kettlebell",
+                        "bands",
+                        "other"
+                      ]
+                    },
+                    "instructions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "videoUrl": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "own": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "aliases",
+                    "muscle",
+                    "secondary",
+                    "equipment",
+                    "instructions",
+                    "videoUrl",
+                    "own"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "entrenamiento"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 120
+                  },
+                  "muscle": {
+                    "type": "string",
+                    "enum": [
+                      "chest",
+                      "lats",
+                      "middleBack",
+                      "lowerBack",
+                      "traps",
+                      "shoulders",
+                      "biceps",
+                      "triceps",
+                      "forearms",
+                      "abs",
+                      "quads",
+                      "hamstrings",
+                      "glutes",
+                      "calves",
+                      "adductors",
+                      "abductors",
+                      "neck",
+                      "other"
+                    ]
+                  },
+                  "equipment": {
+                    "type": "string",
+                    "enum": [
+                      "barbell",
+                      "dumbbell",
+                      "machine",
+                      "cable",
+                      "bodyweight",
+                      "kettlebell",
+                      "bands",
+                      "other"
+                    ]
+                  },
+                  "instructions": {
+                    "default": [],
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    }
+                  },
+                  "videoUrl": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 300,
+                    "format": "uri"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "aliases": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "muscle": {
+                      "type": "string",
+                      "enum": [
+                        "chest",
+                        "lats",
+                        "middleBack",
+                        "lowerBack",
+                        "traps",
+                        "shoulders",
+                        "biceps",
+                        "triceps",
+                        "forearms",
+                        "abs",
+                        "quads",
+                        "hamstrings",
+                        "glutes",
+                        "calves",
+                        "adductors",
+                        "abductors",
+                        "neck",
+                        "other"
+                      ]
+                    },
+                    "secondary": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "chest",
+                          "lats",
+                          "middleBack",
+                          "lowerBack",
+                          "traps",
+                          "shoulders",
+                          "biceps",
+                          "triceps",
+                          "forearms",
+                          "abs",
+                          "quads",
+                          "hamstrings",
+                          "glutes",
+                          "calves",
+                          "adductors",
+                          "abductors",
+                          "neck",
+                          "other"
+                        ]
+                      }
+                    },
+                    "equipment": {
+                      "type": "string",
+                      "enum": [
+                        "barbell",
+                        "dumbbell",
+                        "machine",
+                        "cable",
+                        "bodyweight",
+                        "kettlebell",
+                        "bands",
+                        "other"
+                      ]
+                    },
+                    "instructions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "videoUrl": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "own": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "aliases",
+                    "muscle",
+                    "secondary",
+                    "equipment",
+                    "instructions",
+                    "videoUrl",
+                    "own"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "entrenamiento"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/routines": {
+      "get": {
+        "tags": [
+          "entrenamiento"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100
+                      },
+                      "description": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 1000
+                      },
+                      "blocks": {
+                        "maxItems": 12,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 40
+                            },
+                            "name": {
+                              "type": "string",
+                              "maxLength": 60
+                            },
+                            "items": {
+                              "maxItems": 30,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 40
+                                  },
+                                  "exerciseId": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  },
+                                  "exerciseName": {
+                                    "type": "string",
+                                    "maxLength": 120
+                                  },
+                                  "sets": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "maximum": 20
+                                  },
+                                  "reps": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 20
+                                  },
+                                  "load": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 30
+                                  },
+                                  "effort": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 20
+                                  },
+                                  "tempo": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 12
+                                  },
+                                  "restSec": {
+                                    "default": null,
+                                    "nullable": true,
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 900
+                                  },
+                                  "notes": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 300
+                                  },
+                                  "group": {
+                                    "default": null,
+                                    "nullable": true,
+                                    "type": "string",
+                                    "maxLength": 4
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "exerciseId",
+                                  "exerciseName",
+                                  "sets",
+                                  "reps",
+                                  "load",
+                                  "effort",
+                                  "tempo",
+                                  "restSec",
+                                  "notes",
+                                  "group"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name",
+                            "items"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "updatedAt": {
+                        "type": "string"
+                      },
+                      "exerciseCount": {
+                        "type": "number"
+                      },
+                      "assignedCount": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "description",
+                      "blocks",
+                      "id",
+                      "updatedAt",
+                      "exerciseCount",
+                      "assignedCount"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "entrenamiento"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "description": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 1000
+                  },
+                  "blocks": {
+                    "maxItems": 12,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "name": {
+                          "type": "string",
+                          "maxLength": 60
+                        },
+                        "items": {
+                          "maxItems": 30,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40
+                              },
+                              "exerciseId": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "exerciseName": {
+                                "type": "string",
+                                "maxLength": 120
+                              },
+                              "sets": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 20
+                              },
+                              "reps": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 20
+                              },
+                              "load": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 30
+                              },
+                              "effort": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 20
+                              },
+                              "tempo": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 12
+                              },
+                              "restSec": {
+                                "default": null,
+                                "nullable": true,
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 900
+                              },
+                              "notes": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 300
+                              },
+                              "group": {
+                                "default": null,
+                                "nullable": true,
+                                "type": "string",
+                                "maxLength": 4
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "exerciseId",
+                              "exerciseName",
+                              "sets"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "items"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "name",
+                  "blocks"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "description": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 1000
+                    },
+                    "blocks": {
+                      "maxItems": 12,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 40
+                          },
+                          "name": {
+                            "type": "string",
+                            "maxLength": 60
+                          },
+                          "items": {
+                            "maxItems": 30,
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "exerciseId": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "exerciseName": {
+                                  "type": "string",
+                                  "maxLength": 120
+                                },
+                                "sets": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 20
+                                },
+                                "reps": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 20
+                                },
+                                "load": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 30
+                                },
+                                "effort": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 20
+                                },
+                                "tempo": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 12
+                                },
+                                "restSec": {
+                                  "default": null,
+                                  "nullable": true,
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 900
+                                },
+                                "notes": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 300
+                                },
+                                "group": {
+                                  "default": null,
+                                  "nullable": true,
+                                  "type": "string",
+                                  "maxLength": 4
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "exerciseId",
+                                "exerciseName",
+                                "sets",
+                                "reps",
+                                "load",
+                                "effort",
+                                "tempo",
+                                "restSec",
+                                "notes",
+                                "group"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "items"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    },
+                    "exerciseCount": {
+                      "type": "number"
+                    },
+                    "assignedCount": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "description",
+                    "blocks",
+                    "id",
+                    "updatedAt",
+                    "exerciseCount",
+                    "assignedCount"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/routines/{id}": {
+      "get": {
+        "tags": [
+          "entrenamiento"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "description": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 1000
+                    },
+                    "blocks": {
+                      "maxItems": 12,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 40
+                          },
+                          "name": {
+                            "type": "string",
+                            "maxLength": 60
+                          },
+                          "items": {
+                            "maxItems": 30,
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "exerciseId": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "exerciseName": {
+                                  "type": "string",
+                                  "maxLength": 120
+                                },
+                                "sets": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 20
+                                },
+                                "reps": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 20
+                                },
+                                "load": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 30
+                                },
+                                "effort": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 20
+                                },
+                                "tempo": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 12
+                                },
+                                "restSec": {
+                                  "default": null,
+                                  "nullable": true,
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 900
+                                },
+                                "notes": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 300
+                                },
+                                "group": {
+                                  "default": null,
+                                  "nullable": true,
+                                  "type": "string",
+                                  "maxLength": 4
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "exerciseId",
+                                "exerciseName",
+                                "sets",
+                                "reps",
+                                "load",
+                                "effort",
+                                "tempo",
+                                "restSec",
+                                "notes",
+                                "group"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "items"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    },
+                    "exerciseCount": {
+                      "type": "number"
+                    },
+                    "assignedCount": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "description",
+                    "blocks",
+                    "id",
+                    "updatedAt",
+                    "exerciseCount",
+                    "assignedCount"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "entrenamiento"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "description": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 1000
+                  },
+                  "blocks": {
+                    "maxItems": 12,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "name": {
+                          "type": "string",
+                          "maxLength": 60
+                        },
+                        "items": {
+                          "maxItems": 30,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40
+                              },
+                              "exerciseId": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "exerciseName": {
+                                "type": "string",
+                                "maxLength": 120
+                              },
+                              "sets": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 20
+                              },
+                              "reps": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 20
+                              },
+                              "load": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 30
+                              },
+                              "effort": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 20
+                              },
+                              "tempo": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 12
+                              },
+                              "restSec": {
+                                "default": null,
+                                "nullable": true,
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 900
+                              },
+                              "notes": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 300
+                              },
+                              "group": {
+                                "default": null,
+                                "nullable": true,
+                                "type": "string",
+                                "maxLength": 4
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "exerciseId",
+                              "exerciseName",
+                              "sets"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "items"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "name",
+                  "blocks"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "description": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 1000
+                    },
+                    "blocks": {
+                      "maxItems": 12,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 40
+                          },
+                          "name": {
+                            "type": "string",
+                            "maxLength": 60
+                          },
+                          "items": {
+                            "maxItems": 30,
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "exerciseId": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "exerciseName": {
+                                  "type": "string",
+                                  "maxLength": 120
+                                },
+                                "sets": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 20
+                                },
+                                "reps": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 20
+                                },
+                                "load": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 30
+                                },
+                                "effort": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 20
+                                },
+                                "tempo": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 12
+                                },
+                                "restSec": {
+                                  "default": null,
+                                  "nullable": true,
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 900
+                                },
+                                "notes": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 300
+                                },
+                                "group": {
+                                  "default": null,
+                                  "nullable": true,
+                                  "type": "string",
+                                  "maxLength": 4
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "exerciseId",
+                                "exerciseName",
+                                "sets",
+                                "reps",
+                                "load",
+                                "effort",
+                                "tempo",
+                                "restSec",
+                                "notes",
+                                "group"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "items"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    },
+                    "exerciseCount": {
+                      "type": "number"
+                    },
+                    "assignedCount": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "description",
+                    "blocks",
+                    "id",
+                    "updatedAt",
+                    "exerciseCount",
+                    "assignedCount"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "entrenamiento"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/routines/{id}/duplicate": {
+      "post": {
+        "tags": [
+          "entrenamiento"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "description": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 1000
+                    },
+                    "blocks": {
+                      "maxItems": 12,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 40
+                          },
+                          "name": {
+                            "type": "string",
+                            "maxLength": 60
+                          },
+                          "items": {
+                            "maxItems": 30,
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "exerciseId": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "exerciseName": {
+                                  "type": "string",
+                                  "maxLength": 120
+                                },
+                                "sets": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 20
+                                },
+                                "reps": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 20
+                                },
+                                "load": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 30
+                                },
+                                "effort": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 20
+                                },
+                                "tempo": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 12
+                                },
+                                "restSec": {
+                                  "default": null,
+                                  "nullable": true,
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 900
+                                },
+                                "notes": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 300
+                                },
+                                "group": {
+                                  "default": null,
+                                  "nullable": true,
+                                  "type": "string",
+                                  "maxLength": 4
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "exerciseId",
+                                "exerciseName",
+                                "sets",
+                                "reps",
+                                "load",
+                                "effort",
+                                "tempo",
+                                "restSec",
+                                "notes",
+                                "group"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "items"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    },
+                    "exerciseCount": {
+                      "type": "number"
+                    },
+                    "assignedCount": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "description",
+                    "blocks",
+                    "id",
+                    "updatedAt",
+                    "exerciseCount",
+                    "assignedCount"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/routines/{id}/assign": {
+      "post": {
+        "tags": [
+          "entrenamiento"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "clientIds": {
+                    "minItems": 1,
+                    "maxItems": 100,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    }
+                  },
+                  "dates": {
+                    "minItems": 1,
+                    "maxItems": 120,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  }
+                },
+                "required": [
+                  "clientIds",
+                  "dates"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "created": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "created"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/clients/{id}/workouts": {
+      "get": {
+        "tags": [
+          "entrenamiento"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "in": "query",
+            "name": "from",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "in": "query",
+            "name": "to",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "clientId": {
+                        "type": "string"
+                      },
+                      "clientName": {
+                        "type": "string"
+                      },
+                      "date": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "coachNotes": {
+                        "type": "string"
+                      },
+                      "blocks": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 40
+                            },
+                            "name": {
+                              "type": "string",
+                              "maxLength": 60
+                            },
+                            "items": {
+                              "maxItems": 30,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 40
+                                  },
+                                  "exerciseId": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  },
+                                  "exerciseName": {
+                                    "type": "string",
+                                    "maxLength": 120
+                                  },
+                                  "sets": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "maximum": 20
+                                  },
+                                  "reps": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 20
+                                  },
+                                  "load": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 30
+                                  },
+                                  "effort": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 20
+                                  },
+                                  "tempo": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 12
+                                  },
+                                  "restSec": {
+                                    "default": null,
+                                    "nullable": true,
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 900
+                                  },
+                                  "notes": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 300
+                                  },
+                                  "group": {
+                                    "default": null,
+                                    "nullable": true,
+                                    "type": "string",
+                                    "maxLength": 4
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "exerciseId",
+                                  "exerciseName",
+                                  "sets",
+                                  "reps",
+                                  "load",
+                                  "effort",
+                                  "tempo",
+                                  "restSec",
+                                  "notes",
+                                  "group"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name",
+                            "items"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "log": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "maxItems": 20,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "reps": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 10
+                              },
+                              "load": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 12
+                              },
+                              "rpe": {
+                                "default": null,
+                                "nullable": true,
+                                "type": "number",
+                                "minimum": 1,
+                                "maximum": 10
+                              },
+                              "done": {
+                                "default": false,
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "reps",
+                              "load",
+                              "rpe",
+                              "done"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "planned",
+                          "done",
+                          "skipped"
+                        ]
+                      },
+                      "sessionRpe": {
+                        "nullable": true,
+                        "type": "number"
+                      },
+                      "clientComment": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "completedAt": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "routineId": {
+                        "nullable": true,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "clientId",
+                      "clientName",
+                      "date",
+                      "title",
+                      "coachNotes",
+                      "blocks",
+                      "log",
+                      "status",
+                      "sessionRpe",
+                      "clientComment",
+                      "completedAt",
+                      "routineId"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/workouts": {
+      "get": {
+        "tags": [
+          "entrenamiento"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "in": "query",
+            "name": "from",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "in": "query",
+            "name": "to",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "clientId": {
+                        "type": "string"
+                      },
+                      "clientName": {
+                        "type": "string"
+                      },
+                      "date": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "coachNotes": {
+                        "type": "string"
+                      },
+                      "blocks": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 40
+                            },
+                            "name": {
+                              "type": "string",
+                              "maxLength": 60
+                            },
+                            "items": {
+                              "maxItems": 30,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 40
+                                  },
+                                  "exerciseId": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  },
+                                  "exerciseName": {
+                                    "type": "string",
+                                    "maxLength": 120
+                                  },
+                                  "sets": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "maximum": 20
+                                  },
+                                  "reps": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 20
+                                  },
+                                  "load": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 30
+                                  },
+                                  "effort": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 20
+                                  },
+                                  "tempo": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 12
+                                  },
+                                  "restSec": {
+                                    "default": null,
+                                    "nullable": true,
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 900
+                                  },
+                                  "notes": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 300
+                                  },
+                                  "group": {
+                                    "default": null,
+                                    "nullable": true,
+                                    "type": "string",
+                                    "maxLength": 4
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "exerciseId",
+                                  "exerciseName",
+                                  "sets",
+                                  "reps",
+                                  "load",
+                                  "effort",
+                                  "tempo",
+                                  "restSec",
+                                  "notes",
+                                  "group"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name",
+                            "items"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "log": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "maxItems": 20,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "reps": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 10
+                              },
+                              "load": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 12
+                              },
+                              "rpe": {
+                                "default": null,
+                                "nullable": true,
+                                "type": "number",
+                                "minimum": 1,
+                                "maximum": 10
+                              },
+                              "done": {
+                                "default": false,
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "reps",
+                              "load",
+                              "rpe",
+                              "done"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "planned",
+                          "done",
+                          "skipped"
+                        ]
+                      },
+                      "sessionRpe": {
+                        "nullable": true,
+                        "type": "number"
+                      },
+                      "clientComment": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "completedAt": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "routineId": {
+                        "nullable": true,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "clientId",
+                      "clientName",
+                      "date",
+                      "title",
+                      "coachNotes",
+                      "blocks",
+                      "log",
+                      "status",
+                      "sessionRpe",
+                      "clientComment",
+                      "completedAt",
+                      "routineId"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workouts/{id}": {
+      "get": {
+        "tags": [
+          "entrenamiento"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientName": {
+                      "type": "string"
+                    },
+                    "date": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "coachNotes": {
+                      "type": "string"
+                    },
+                    "blocks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 40
+                          },
+                          "name": {
+                            "type": "string",
+                            "maxLength": 60
+                          },
+                          "items": {
+                            "maxItems": 30,
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "exerciseId": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "exerciseName": {
+                                  "type": "string",
+                                  "maxLength": 120
+                                },
+                                "sets": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 20
+                                },
+                                "reps": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 20
+                                },
+                                "load": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 30
+                                },
+                                "effort": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 20
+                                },
+                                "tempo": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 12
+                                },
+                                "restSec": {
+                                  "default": null,
+                                  "nullable": true,
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 900
+                                },
+                                "notes": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 300
+                                },
+                                "group": {
+                                  "default": null,
+                                  "nullable": true,
+                                  "type": "string",
+                                  "maxLength": 4
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "exerciseId",
+                                "exerciseName",
+                                "sets",
+                                "reps",
+                                "load",
+                                "effort",
+                                "tempo",
+                                "restSec",
+                                "notes",
+                                "group"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "items"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "log": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "maxItems": 20,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "reps": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 10
+                            },
+                            "load": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 12
+                            },
+                            "rpe": {
+                              "default": null,
+                              "nullable": true,
+                              "type": "number",
+                              "minimum": 1,
+                              "maximum": 10
+                            },
+                            "done": {
+                              "default": false,
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "reps",
+                            "load",
+                            "rpe",
+                            "done"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "planned",
+                        "done",
+                        "skipped"
+                      ]
+                    },
+                    "sessionRpe": {
+                      "nullable": true,
+                      "type": "number"
+                    },
+                    "clientComment": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "completedAt": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "routineId": {
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "clientId",
+                    "clientName",
+                    "date",
+                    "title",
+                    "coachNotes",
+                    "blocks",
+                    "log",
+                    "status",
+                    "sessionRpe",
+                    "clientComment",
+                    "completedAt",
+                    "routineId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "entrenamiento"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "coachNotes": {
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "blocks": {
+                    "maxItems": 12,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "name": {
+                          "type": "string",
+                          "maxLength": 60
+                        },
+                        "items": {
+                          "maxItems": 30,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40
+                              },
+                              "exerciseId": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "exerciseName": {
+                                "type": "string",
+                                "maxLength": 120
+                              },
+                              "sets": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 20
+                              },
+                              "reps": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 20
+                              },
+                              "load": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 30
+                              },
+                              "effort": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 20
+                              },
+                              "tempo": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 12
+                              },
+                              "restSec": {
+                                "default": null,
+                                "nullable": true,
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 900
+                              },
+                              "notes": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 300
+                              },
+                              "group": {
+                                "default": null,
+                                "nullable": true,
+                                "type": "string",
+                                "maxLength": 4
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "exerciseId",
+                              "exerciseName",
+                              "sets"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "items"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientName": {
+                      "type": "string"
+                    },
+                    "date": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "coachNotes": {
+                      "type": "string"
+                    },
+                    "blocks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 40
+                          },
+                          "name": {
+                            "type": "string",
+                            "maxLength": 60
+                          },
+                          "items": {
+                            "maxItems": 30,
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "exerciseId": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "exerciseName": {
+                                  "type": "string",
+                                  "maxLength": 120
+                                },
+                                "sets": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 20
+                                },
+                                "reps": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 20
+                                },
+                                "load": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 30
+                                },
+                                "effort": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 20
+                                },
+                                "tempo": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 12
+                                },
+                                "restSec": {
+                                  "default": null,
+                                  "nullable": true,
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 900
+                                },
+                                "notes": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 300
+                                },
+                                "group": {
+                                  "default": null,
+                                  "nullable": true,
+                                  "type": "string",
+                                  "maxLength": 4
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "exerciseId",
+                                "exerciseName",
+                                "sets",
+                                "reps",
+                                "load",
+                                "effort",
+                                "tempo",
+                                "restSec",
+                                "notes",
+                                "group"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "items"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "log": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "maxItems": 20,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "reps": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 10
+                            },
+                            "load": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 12
+                            },
+                            "rpe": {
+                              "default": null,
+                              "nullable": true,
+                              "type": "number",
+                              "minimum": 1,
+                              "maximum": 10
+                            },
+                            "done": {
+                              "default": false,
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "reps",
+                            "load",
+                            "rpe",
+                            "done"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "planned",
+                        "done",
+                        "skipped"
+                      ]
+                    },
+                    "sessionRpe": {
+                      "nullable": true,
+                      "type": "number"
+                    },
+                    "clientComment": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "completedAt": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "routineId": {
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "clientId",
+                    "clientName",
+                    "date",
+                    "title",
+                    "coachNotes",
+                    "blocks",
+                    "log",
+                    "status",
+                    "sessionRpe",
+                    "clientComment",
+                    "completedAt",
+                    "routineId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "entrenamiento"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workouts/{id}/log": {
+      "put": {
+        "tags": [
+          "entrenamiento"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "maxItems": 20,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "reps": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 10
+                      },
+                      "load": {
+                        "default": "",
+                        "type": "string",
+                        "maxLength": 12
+                      },
+                      "rpe": {
+                        "default": null,
+                        "nullable": true,
+                        "type": "number",
+                        "minimum": 1,
+                        "maximum": 10
+                      },
+                      "done": {
+                        "default": false,
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workouts/{id}/complete": {
+      "post": {
+        "tags": [
+          "entrenamiento"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionRpe": {
+                    "nullable": true,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10
+                  },
+                  "comment": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 1000
+                  },
+                  "skipped": {
+                    "default": false,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "sessionRpe",
+                  "comment"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientName": {
+                      "type": "string"
+                    },
+                    "date": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "coachNotes": {
+                      "type": "string"
+                    },
+                    "blocks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 40
+                          },
+                          "name": {
+                            "type": "string",
+                            "maxLength": 60
+                          },
+                          "items": {
+                            "maxItems": 30,
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "exerciseId": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "exerciseName": {
+                                  "type": "string",
+                                  "maxLength": 120
+                                },
+                                "sets": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 20
+                                },
+                                "reps": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 20
+                                },
+                                "load": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 30
+                                },
+                                "effort": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 20
+                                },
+                                "tempo": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 12
+                                },
+                                "restSec": {
+                                  "default": null,
+                                  "nullable": true,
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 900
+                                },
+                                "notes": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 300
+                                },
+                                "group": {
+                                  "default": null,
+                                  "nullable": true,
+                                  "type": "string",
+                                  "maxLength": 4
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "exerciseId",
+                                "exerciseName",
+                                "sets",
+                                "reps",
+                                "load",
+                                "effort",
+                                "tempo",
+                                "restSec",
+                                "notes",
+                                "group"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "items"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "log": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "maxItems": 20,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "reps": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 10
+                            },
+                            "load": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 12
+                            },
+                            "rpe": {
+                              "default": null,
+                              "nullable": true,
+                              "type": "number",
+                              "minimum": 1,
+                              "maximum": 10
+                            },
+                            "done": {
+                              "default": false,
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "reps",
+                            "load",
+                            "rpe",
+                            "done"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "planned",
+                        "done",
+                        "skipped"
+                      ]
+                    },
+                    "sessionRpe": {
+                      "nullable": true,
+                      "type": "number"
+                    },
+                    "clientComment": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "completedAt": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "routineId": {
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "clientId",
+                    "clientName",
+                    "date",
+                    "title",
+                    "coachNotes",
+                    "blocks",
+                    "log",
+                    "status",
+                    "sessionRpe",
+                    "clientComment",
+                    "completedAt",
+                    "routineId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workouts/{id}/reopen": {
+      "post": {
+        "tags": [
+          "entrenamiento"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "clientId": {
+                      "type": "string"
+                    },
+                    "clientName": {
+                      "type": "string"
+                    },
+                    "date": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "coachNotes": {
+                      "type": "string"
+                    },
+                    "blocks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 40
+                          },
+                          "name": {
+                            "type": "string",
+                            "maxLength": 60
+                          },
+                          "items": {
+                            "maxItems": 30,
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "exerciseId": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "exerciseName": {
+                                  "type": "string",
+                                  "maxLength": 120
+                                },
+                                "sets": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 20
+                                },
+                                "reps": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 20
+                                },
+                                "load": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 30
+                                },
+                                "effort": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 20
+                                },
+                                "tempo": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 12
+                                },
+                                "restSec": {
+                                  "default": null,
+                                  "nullable": true,
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 900
+                                },
+                                "notes": {
+                                  "default": "",
+                                  "type": "string",
+                                  "maxLength": 300
+                                },
+                                "group": {
+                                  "default": null,
+                                  "nullable": true,
+                                  "type": "string",
+                                  "maxLength": 4
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "exerciseId",
+                                "exerciseName",
+                                "sets",
+                                "reps",
+                                "load",
+                                "effort",
+                                "tempo",
+                                "restSec",
+                                "notes",
+                                "group"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "items"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "log": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "maxItems": 20,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "reps": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 10
+                            },
+                            "load": {
+                              "default": "",
+                              "type": "string",
+                              "maxLength": 12
+                            },
+                            "rpe": {
+                              "default": null,
+                              "nullable": true,
+                              "type": "number",
+                              "minimum": 1,
+                              "maximum": 10
+                            },
+                            "done": {
+                              "default": false,
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "reps",
+                            "load",
+                            "rpe",
+                            "done"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "planned",
+                        "done",
+                        "skipped"
+                      ]
+                    },
+                    "sessionRpe": {
+                      "nullable": true,
+                      "type": "number"
+                    },
+                    "clientComment": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "completedAt": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "routineId": {
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "clientId",
+                    "clientName",
+                    "date",
+                    "title",
+                    "coachNotes",
+                    "blocks",
+                    "log",
+                    "status",
+                    "sessionRpe",
+                    "clientComment",
+                    "completedAt",
+                    "routineId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/activity": {
+      "get": {
+        "tags": [
+          "entrenamiento"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "default": 12,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "workoutId": {
+                        "type": "string"
+                      },
+                      "clientId": {
+                        "type": "string"
+                      },
+                      "clientName": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "date": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "planned",
+                          "done",
+                          "skipped"
+                        ]
+                      },
+                      "sessionRpe": {
+                        "nullable": true,
+                        "type": "number"
+                      },
+                      "clientComment": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "completedAt": {
+                        "type": "string"
+                      },
+                      "unseen": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "workoutId",
+                      "clientId",
+                      "clientName",
+                      "title",
+                      "date",
+                      "status",
+                      "sessionRpe",
+                      "clientComment",
+                      "completedAt",
+                      "unseen"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workouts": {
+      "get": {
+        "tags": [
+          "entrenamiento"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "in": "query",
+            "name": "from",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "in": "query",
+            "name": "to",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "clientId": {
+                        "type": "string"
+                      },
+                      "clientName": {
+                        "type": "string"
+                      },
+                      "date": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "coachNotes": {
+                        "type": "string"
+                      },
+                      "blocks": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 40
+                            },
+                            "name": {
+                              "type": "string",
+                              "maxLength": 60
+                            },
+                            "items": {
+                              "maxItems": 30,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 40
+                                  },
+                                  "exerciseId": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  },
+                                  "exerciseName": {
+                                    "type": "string",
+                                    "maxLength": 120
+                                  },
+                                  "sets": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "maximum": 20
+                                  },
+                                  "reps": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 20
+                                  },
+                                  "load": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 30
+                                  },
+                                  "effort": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 20
+                                  },
+                                  "tempo": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 12
+                                  },
+                                  "restSec": {
+                                    "default": null,
+                                    "nullable": true,
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 900
+                                  },
+                                  "notes": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 300
+                                  },
+                                  "group": {
+                                    "default": null,
+                                    "nullable": true,
+                                    "type": "string",
+                                    "maxLength": 4
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "exerciseId",
+                                  "exerciseName",
+                                  "sets",
+                                  "reps",
+                                  "load",
+                                  "effort",
+                                  "tempo",
+                                  "restSec",
+                                  "notes",
+                                  "group"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name",
+                            "items"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "log": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "maxItems": 20,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "reps": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 10
+                              },
+                              "load": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 12
+                              },
+                              "rpe": {
+                                "default": null,
+                                "nullable": true,
+                                "type": "number",
+                                "minimum": 1,
+                                "maximum": 10
+                              },
+                              "done": {
+                                "default": false,
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "reps",
+                              "load",
+                              "rpe",
+                              "done"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "planned",
+                          "done",
+                          "skipped"
+                        ]
+                      },
+                      "sessionRpe": {
+                        "nullable": true,
+                        "type": "number"
+                      },
+                      "clientComment": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "completedAt": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "routineId": {
+                        "nullable": true,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "clientId",
+                      "clientName",
+                      "date",
+                      "title",
+                      "coachNotes",
+                      "blocks",
+                      "log",
+                      "status",
+                      "sessionRpe",
+                      "clientComment",
+                      "completedAt",
+                      "routineId"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/today/workouts": {
+      "get": {
+        "tags": [
+          "entrenamiento"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "in": "query",
+            "name": "date",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "clientId": {
+                        "type": "string"
+                      },
+                      "clientName": {
+                        "type": "string"
+                      },
+                      "date": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "coachNotes": {
+                        "type": "string"
+                      },
+                      "blocks": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 40
+                            },
+                            "name": {
+                              "type": "string",
+                              "maxLength": 60
+                            },
+                            "items": {
+                              "maxItems": 30,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 40
+                                  },
+                                  "exerciseId": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  },
+                                  "exerciseName": {
+                                    "type": "string",
+                                    "maxLength": 120
+                                  },
+                                  "sets": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "maximum": 20
+                                  },
+                                  "reps": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 20
+                                  },
+                                  "load": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 30
+                                  },
+                                  "effort": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 20
+                                  },
+                                  "tempo": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 12
+                                  },
+                                  "restSec": {
+                                    "default": null,
+                                    "nullable": true,
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 900
+                                  },
+                                  "notes": {
+                                    "default": "",
+                                    "type": "string",
+                                    "maxLength": 300
+                                  },
+                                  "group": {
+                                    "default": null,
+                                    "nullable": true,
+                                    "type": "string",
+                                    "maxLength": 4
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "exerciseId",
+                                  "exerciseName",
+                                  "sets",
+                                  "reps",
+                                  "load",
+                                  "effort",
+                                  "tempo",
+                                  "restSec",
+                                  "notes",
+                                  "group"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name",
+                            "items"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "log": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "maxItems": 20,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "reps": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 10
+                              },
+                              "load": {
+                                "default": "",
+                                "type": "string",
+                                "maxLength": 12
+                              },
+                              "rpe": {
+                                "default": null,
+                                "nullable": true,
+                                "type": "number",
+                                "minimum": 1,
+                                "maximum": 10
+                              },
+                              "done": {
+                                "default": false,
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "reps",
+                              "load",
+                              "rpe",
+                              "done"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "planned",
+                          "done",
+                          "skipped"
+                        ]
+                      },
+                      "sessionRpe": {
+                        "nullable": true,
+                        "type": "number"
+                      },
+                      "clientComment": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "completedAt": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "routineId": {
+                        "nullable": true,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "clientId",
+                      "clientName",
+                      "date",
+                      "title",
+                      "coachNotes",
+                      "blocks",
+                      "log",
+                      "status",
+                      "sessionRpe",
+                      "clientComment",
+                      "completedAt",
+                      "routineId"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "tags": [

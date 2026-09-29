@@ -25,6 +25,8 @@ import { registerClients } from "./routes/clients";
 import { registerHealth } from "./routes/health";
 import { registerMe } from "./routes/me";
 import { registerStudio } from "./routes/studio";
+import { registerTraining } from "./routes/training";
+import { seedExercises } from "./db/seed";
 import type { Ctx } from "./routes/ctx";
 
 export type App = FastifyInstance & { db: DB };
@@ -34,6 +36,7 @@ const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 export async function buildApp(cfg: AppConfig): Promise<App> {
   const { db, sql: pg } = createDb(cfg.databaseUrl);
   await runMigrations(db);
+  if (cfg.seedExercises !== false) await seedExercises(db);
   const ctx: Ctx = { db, cfg };
 
   const app = Fastify({
@@ -85,6 +88,8 @@ export async function buildApp(cfg: AppConfig): Promise<App> {
     max: cfg.globalRateLimit,
     timeWindow: "1 minute",
     keyGenerator: clientIp,
+    // Solo la API cuenta: los archivos estáticos (decenas de trozos JS por página) agotarían el límite al cargar la app.
+    allowList: (req) => !req.url.startsWith("/api/"),
     errorResponseBuilder: (_req, ctx) => ({
       statusCode: 429,
       error: "rate_limited",
@@ -139,6 +144,7 @@ export async function buildApp(cfg: AppConfig): Promise<App> {
       registerMe(api, ctx);
       registerClients(api, ctx);
       registerStudio(api, ctx);
+      registerTraining(api, ctx);
     },
     { prefix: "/api/v1" },
   );

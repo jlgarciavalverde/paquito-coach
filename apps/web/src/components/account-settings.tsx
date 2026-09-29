@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Desktop, DeviceMobile, Moon, Sun, SunHorizon } from "@phosphor-icons/react";
 import type { SessionInfo } from "@coach/shared";
-import { Card } from "./ui/surface";
 import { Button } from "./ui/button";
 import { TextField } from "./ui/field";
+import { BlockTitle } from "./ui/layout";
 import { useToast } from "./ui/toast";
 import { FormError } from "./form-error";
 import { api } from "../lib/api";
@@ -13,18 +12,18 @@ import { getThemePref, setThemePref, type ThemePref } from "../lib/theme";
 import { relativeTime } from "../lib/format";
 import { cn } from "../lib/cn";
 
-export function ThemeCard() {
+export function ThemeSetting() {
   const [pref, setPref] = useState<ThemePref>(getThemePref);
-  const opts: { v: ThemePref; label: string; icon: typeof Sun }[] = [
-    { v: "system", label: "Automático", icon: SunHorizon },
-    { v: "light", label: "Claro", icon: Sun },
-    { v: "dark", label: "Oscuro", icon: Moon },
+  const opts: { v: ThemePref; label: string }[] = [
+    { v: "system", label: "Como el dispositivo" },
+    { v: "light", label: "Claro" },
+    { v: "dark", label: "Oscuro" },
   ];
   return (
-    <Card className="p-5 sm:p-6">
-      <h2 className="font-display text-[24px]">Apariencia</h2>
-      <div className="mt-4 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Tema">
-        {opts.map(({ v, label, icon: I }) => (
+    <section>
+      <BlockTitle>Apariencia</BlockTitle>
+      <div className="inline-flex rounded-[var(--radius-control)] border border-rule-strong p-0.5" role="radiogroup" aria-label="Tema">
+        {opts.map(({ v, label }) => (
           <button
             key={v}
             role="radio"
@@ -33,20 +32,17 @@ export function ThemeCard() {
               setPref(v);
               setThemePref(v);
             }}
-            className={cn(
-              "flex flex-col items-center gap-1.5 rounded-[14px] border py-3 text-[13px] font-medium transition-colors",
-              pref === v ? "border-accent bg-accent-soft text-accent-soft-ink" : "border-line-strong text-ink-2 hover:bg-surface-2",
-            )}
+            className={cn("h-9 rounded-[4px] px-3 text-sm font-medium", pref === v ? "bg-ink text-paper" : "text-ink-2 hover:text-ink")}
           >
-            <I size={20} /> {label}
+            {label}
           </button>
         ))}
       </div>
-    </Card>
+    </section>
   );
 }
 
-export function PasswordCard() {
+export function PasswordSetting() {
   const toast = useToast();
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
@@ -55,13 +51,13 @@ export function PasswordCard() {
     () => {
       setCurrent("");
       setNext("");
-      toast("Contraseña cambiada. Hemos cerrado tus otras sesiones.");
+      toast("Contraseña cambiada. Se han cerrado tus otras sesiones.");
     },
   );
   return (
-    <Card className="p-5 sm:p-6">
-      <h2 className="font-display text-[24px]">Contraseña</h2>
-      <form onSubmit={onSubmit} className="mt-4 flex flex-col gap-4">
+    <section>
+      <BlockTitle>Contraseña</BlockTitle>
+      <form onSubmit={onSubmit} className="flex max-w-[420px] flex-col gap-4">
         <TextField label="Contraseña actual" type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} />
         <TextField label="Nueva contraseña" type="password" autoComplete="new-password" hint="Mínimo 10 caracteres." value={next} onChange={(e) => setNext(e.target.value)} />
         <FormError message={error} />
@@ -69,11 +65,11 @@ export function PasswordCard() {
           Cambiar contraseña
         </Button>
       </form>
-    </Card>
+    </section>
   );
 }
 
-export function SessionsCard() {
+export function SessionsSetting() {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["sessions"], queryFn: () => api<SessionInfo[]>("/me/sessions") });
   const close = useMutation({
@@ -81,35 +77,30 @@ export function SessionsCard() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["sessions"] }),
   });
   return (
-    <Card className="p-5 sm:p-6">
-      <h2 className="font-display text-[24px]">Dispositivos con sesión abierta</h2>
-      <ul className="mt-4 divide-y divide-line">
-        {(q.data ?? []).map((s) => {
-          const mobile = /Mobile|Android|iPhone/i.test(s.userAgent ?? "");
-          const I = mobile ? DeviceMobile : Desktop;
-          return (
-            <li key={s.id} className="flex items-center gap-3 py-3">
-              <I size={20} className="text-ink-3" />
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm">{describeUA(s.userAgent)}</span>
-                <span className="block text-[12px] text-ink-3">{s.current ? "Este dispositivo" : `Último uso ${relativeTime(s.lastUsedAt)}`}</span>
-              </span>
-              {!s.current && (
-                <Button size="sm" variant="ghost" loading={close.isPending && close.variables === s.id} onClick={() => close.mutate(s.id)}>
-                  Cerrar
-                </Button>
-              )}
-            </li>
-          );
-        })}
+    <section>
+      <BlockTitle>Dónde tienes la sesión abierta</BlockTitle>
+      <ul className="divide-y divide-rule border-y border-rule">
+        {(q.data ?? []).map((s) => (
+          <li key={s.id} className="flex items-center gap-3 py-3">
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm text-ink">{describeUA(s.userAgent)}</span>
+              <span className="block text-[13px] text-ink-3">{s.current ? "Este dispositivo" : `Último uso ${relativeTime(s.lastUsedAt)}`}</span>
+            </span>
+            {!s.current && (
+              <Button size="sm" variant="quiet" loading={close.isPending && close.variables === s.id} onClick={() => close.mutate(s.id)}>
+                Cerrar sesión
+              </Button>
+            )}
+          </li>
+        ))}
       </ul>
-    </Card>
+    </section>
   );
 }
 
 function describeUA(ua: string | null) {
   if (!ua) return "Dispositivo desconocido";
-  const os = /iPhone|iPad/.test(ua) ? "iPhone/iPad" : /Android/.test(ua) ? "Android" : /Mac OS/.test(ua) ? "Mac" : /Windows/.test(ua) ? "Windows" : /Linux/.test(ua) ? "Linux" : "";
+  const os = /iPhone|iPad/.test(ua) ? "iPhone o iPad" : /Android/.test(ua) ? "Android" : /Mac OS/.test(ua) ? "Mac" : /Windows/.test(ua) ? "Windows" : /Linux/.test(ua) ? "Linux" : "";
   const br = /Edg\//.test(ua) ? "Edge" : /Chrome\//.test(ua) ? "Chrome" : /Firefox\//.test(ua) ? "Firefox" : /Safari\//.test(ua) ? "Safari" : "Navegador";
   return os ? `${br} en ${os}` : br;
 }

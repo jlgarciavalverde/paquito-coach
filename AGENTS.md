@@ -45,7 +45,8 @@ apps/api/src/
 apps/api/drizzle/   migraciones SQL generadas (se commitean; se aplican solas al arrancar)
 apps/web/src/
   routes/           rutas por archivo (TanStack Router). /coach/* entrenador, /app/* cliente, /galeria diseño
-  components/ui/    sistema de diseño (Button, TextField, Card, Badge, Dialog, Tabs, Avatar, Toast…)
+  components/ui/    sistema de diseño (Button, TextField, Select, layout.tsx: PageTitle, RecordSheet, PlateMark, Monogram, HealthAlert…; dialog.tsx: Dialog, SidePanel)
+  components/training/  editor/lectura de rutinas, selector de ejercicios, asignar, semana de clientes, cuaderno
   lib/              api.ts (fetch + RequestError), auth.ts (meQuery), queries.ts (TanStack Query), format.ts
 packages/shared/src esquemas Zod + tipos compartidos + BRAND (nombre provisional)
 e2e/                Playwright (serial, un worker, comparte BD)
@@ -61,7 +62,7 @@ deploy/             docker-compose.yml y .env.example de producción · tools/ s
 4. **Errores**: lanzar `HttpError(status, code, mensajeEnEspañol)`. El cliente muestra `message` tal cual.
 5. **Acciones sensibles** (ver/editar ficha, altas, bajas, enlaces) → `audit(db, req, "accion", target)`.
 6. **Migraciones**: cambiar `schema.ts` → `db:generate` → commitear el SQL. Nunca editar migraciones ya desplegadas.
-7. **Diseño**: solo tokens (`bg-surface`, `text-ink-2`, `bg-accent`…) y componentes de `components/ui`. Nada de hex sueltos (excepción documentada: verde de WhatsApp). Títulos en `font-display`. Ver `docs/diseno.md` y `/galeria`.
+7. **Diseño** («hoja de entrenamiento clínica», ADR 0008): solo tokens (`bg-tray`, `text-ink-2`, `bg-primary`, `bg-plate-red`…) y componentes de `components/ui`. Titulares `font-wide`, cifras `font-narrow`. Nada de hex sueltos (excepción: verde de WhatsApp). **Evitar los tics de diseño generado**: nada de sobretítulos en mayúsculas, palabras sueltas en cursiva/color, tarjetas con sombra para todo, degradados decorativos, «A · B · C», flechas «→» en botones. Ver `docs/diseno.md` y `/galeria`.
 8. **Accesibilidad**: WCAG 2.1 AA verificada con axe en e2e (claro y oscuro). Botón solo-icono → `IconButton` con `label`. Nunca un `<button>` dentro de un `<Link>`: usar `buttonClass()`.
 9. **Textos**: español de España, tuteo, frases cortas. Botones con verbo («Crear e invitar», «Guardar cambios»).
 10. **Tests en verde antes de dar algo por hecho**: `pnpm typecheck && pnpm test && pnpm build && pnpm e2e`.
@@ -73,6 +74,10 @@ deploy/             docker-compose.yml y .env.example de producción · tools/ s
 - Tailwind v4 centra con la propiedad `translate`, no `transform`: las animaciones con `transform` se combinan sin romper el centrado (ver `dialog-in` en `styles.css`).
 - El root `package.json` es `"type": "module"` (los scripts `.ts` de e2e usan top-level await).
 - La cookie de sesión en producción es `__Host-sid` + `Secure`: por HTTP (p. ej. probar la imagen en local) el navegador no la guarda. Es lo esperado.
+- **Rate limit y estáticos**: el límite global solo cuenta `/api/*` (`allowList`). Si cuenta los JS de la web, al cargar la app se agota y el navegador recibe 429 (lo cazó el e2e).
+- **Datos que cambian por acción de otra persona** (actividad, entrenos de clientes): `staleTime: 0` para que se pidan al abrir la pantalla; si no, «Hoy» muestra la caché de hace 30 s.
+- **`useBlocker` tras guardar**: al navegar justo después de guardar, `dirty` aún es `true` en ese render; usar el ref `leaving` (ver editor de rutina).
+- La semilla de ejercicios (`apps/api/src/db/exercise-seed.json`, ~2.500) solo se carga si la biblioteca común está vacía. Los tests la desactivan (`seedExercises: false`) salvo `training.test.ts`.
 - Fastify 5: `disableRequestLogging` está obsoleto → `logController: new LogController(...)`.
 - VPS: Docker **rootless**, sin compilar allí (temperatura), Cloudflare cachea por extensión (HTML y `/health` van con `no-store`).
 

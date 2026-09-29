@@ -20,11 +20,11 @@ export function CopyField({ value, label }: { value: string; label: string }) {
     setTimeout(() => setCopied(false), 2000);
   };
   return (
-    <div className="flex items-center gap-2 rounded-[12px] border border-line-strong bg-surface-2 p-1.5 pl-3.5">
-      <code className="min-w-0 flex-1 truncate font-sans text-[13px] text-ink-2" aria-label={label}>
+    <div className="flex items-center gap-2 rounded-[var(--radius-control)] border border-rule-strong bg-tray py-1 pr-1 pl-3">
+      <span className="min-w-0 flex-1 truncate text-[13.5px] text-ink-2" aria-label={label}>
         {value}
-      </code>
-      <Button size="sm" variant={copied ? "soft" : "secondary"} onClick={copy} icon={copied ? <Check size={15} weight="bold" /> : <Copy size={15} />}>
+      </span>
+      <Button size="sm" variant={copied ? "quiet" : "primary"} onClick={copy} icon={copied ? <Check size={15} weight="bold" /> : <Copy size={15} />}>
         {copied ? "Copiado" : "Copiar"}
       </Button>
     </div>

@@ -106,6 +106,16 @@ describe("CSRF y cabeceras", () => {
     expect(ok.statusCode).toBe(200);
   });
 
+  it("el límite global cuenta solo la API, no los archivos de la web", async () => {
+    await app.close();
+    await resetDb();
+    app = await testApp({ globalRateLimit: 3 });
+    for (let i = 0; i < 5; i++) expect((await app.inject({ method: "GET", url: "/assets/x.js" })).statusCode).not.toBe(429);
+    const codes = [];
+    for (let i = 0; i < 4; i++) codes.push((await app.inject({ method: "GET", url: "/api/v1/auth/setup-status" })).statusCode);
+    expect(codes).toEqual([200, 200, 200, 429]);
+  });
+
   it("envía CSP estricta, frame-ancestors none y nosniff", async () => {
     const r = await app.inject({ method: "GET", url: "/health" });
     expect(r.statusCode).toBe(200);

@@ -3,7 +3,7 @@ import { ComingSoon } from "../../components/coming-soon";
 
 export const Route = createFileRoute("/app/chat")({
   component: () => (
-    <ComingSoon title="Chat con tu entrenador" phase="Fase 5">
+    <ComingSoon title="Chat con tu entrenador" phase={5}>
       Escríbele directamente desde aquí, con fotos, sin necesidad de compartir tu número de teléfono.
     </ComingSoon>
   ),

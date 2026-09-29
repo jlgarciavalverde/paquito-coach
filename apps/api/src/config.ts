@@ -17,6 +17,8 @@ export interface AppConfig {
   exposeDocs: boolean;
   webDir?: string;
   logLevel?: string;
+  /** Cargar la biblioteca común de ejercicios si está vacía (los tests que no la usan la desactivan). */
+  seedExercises?: boolean;
 }
 
 export function configFromEnv(env = process.env): AppConfig {

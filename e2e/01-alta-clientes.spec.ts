@@ -30,20 +30,20 @@ test("alta inicial del estudio", async ({ browser }) => {
   await coach.getByLabel("Código de instalación").fill("e2e-setup");
   await coach.getByRole("button", { name: "Crear mi estudio" }).click();
   await expect(coach).toHaveURL(/\/coach$/);
-  await expect(coach.getByRole("heading", { level: 1 })).toContainText("Paquito");
+  await expect(coach.getByText("Hola, Paquito.")).toBeVisible();
   await expectAccessible(coach, "inicio entrenador");
 });
 
 test("ficha con invitación: enlace listo para WhatsApp", async () => {
   await coach.getByRole("link", { name: "Clientes" }).first().click();
-  await expect(coach.getByText("Tu primer cliente")).toBeVisible();
+  await expect(coach.getByText("Todavía no hay clientes")).toBeVisible();
   await expectAccessible(coach, "clientes vacío");
   await coach.getByRole("button", { name: "Nuevo cliente" }).first().click();
   await coach.getByLabel("Nombre y apellidos").fill("Lucía Martínez");
   await coach.getByLabel("Objetivo").fill("Volver a correr tras LCA");
   await expectAccessible(coach, "diálogo nuevo cliente");
   await coach.getByRole("button", { name: "Crear e invitar" }).click();
-  await expect(coach.getByText("Invitación lista")).toBeVisible();
+  await expect(coach.getByText("Ficha de Lucía Martínez creada")).toBeVisible();
   inviteUrl = await coach.getByLabel("Enlace de invitación").innerText();
   expect(inviteUrl).toContain("/registro?invitacion=");
   await expect(coach.getByRole("link", { name: "Enviar por WhatsApp" })).toHaveAttribute("href", /wa\.me/);
@@ -57,12 +57,16 @@ test("ficha sin cuenta", async () => {
   await coach.getByText("No, solo ficha").click();
   await coach.getByRole("button", { name: "Crear ficha" }).click();
   await expect(coach).toHaveURL(/\/coach\/clientes\/[0-9a-f-]+$/);
-  await expect(coach.getByText("Sin cuenta").first()).toBeVisible();
-  await coach.getByLabel("Lesiones, patologías, limitaciones").fill("Hernia L5-S1");
+  await expect(coach.locator("article").getByText("Sin cuenta")).toBeVisible();
+  await coach.getByRole("tab", { name: "Ficha" }).click();
+  await coach.getByLabel("Lesiones y limitaciones").fill("Hernia L5-S1");
   await coach.getByRole("button", { name: "Guardar cambios" }).click();
   await expect(coach.getByText("Ficha guardada")).toBeVisible();
   await coach.reload();
-  await expect(coach.getByLabel("Lesiones, patologías, limitaciones")).toHaveValue("Hernia L5-S1");
+  // El aviso de lesión aparece encima de las pestañas
+  await expect(coach.getByRole("note")).toContainText("Hernia L5-S1");
+  await coach.getByRole("tab", { name: "Ficha" }).click();
+  await expect(coach.getByLabel("Lesiones y limitaciones")).toHaveValue("Hernia L5-S1");
   await expectAccessible(coach, "ficha de cliente");
 });
 
@@ -78,7 +82,7 @@ test("el cliente se registra con la invitación (móvil)", async ({ browser }) =
   await lucia.getByRole("checkbox").check();
   await create.click();
   await expect(lucia).toHaveURL(/\/app$/);
-  await expect(lucia.getByRole("heading", { level: 1 })).toContainText("Lucía");
+  await expect(lucia.getByText("Hola, Lucía.")).toBeVisible();
   await expectAccessible(lucia, "hoy (cliente)");
   // La invitación ya no vale
   const again = await newPage(browser);
@@ -88,7 +92,7 @@ test("el cliente se registra con la invitación (móvil)", async ({ browser }) =
 
 test("registro con código del estudio + aceptar (oscuro)", async ({ browser }) => {
   await coach.goto("/coach/ajustes");
-  const code = (await coach.locator("p.tabular").first().innerText()).trim();
+  const code = (await coach.getByTestId("join-code").innerText()).trim();
   expect(code).toMatch(/^[A-Z0-9]{8}$/);
   await expectAccessible(coach, "ajustes");
 
@@ -105,15 +109,15 @@ test("registro con código del estudio + aceptar (oscuro)", async ({ browser }) 
   await iker.getByRole("checkbox").check();
   await expectAccessible(iker, "registro por código (oscuro)");
   await iker.getByRole("button", { name: "Crear mi cuenta" }).click();
-  await expect(iker.getByRole("heading", { name: "Solicitud enviada" })).toBeVisible();
+  await expect(iker.getByText("Solicitud enviada")).toBeVisible();
   await expectAccessible(iker, "pendiente (oscuro)");
 
   await coach.goto("/coach/clientes");
-  await expect(coach.getByText("Solicitud pendiente")).toBeVisible();
+  await expect(coach.getByText("1 persona quiere entrenar contigo")).toBeVisible();
   await coach.getByRole("button", { name: "Aceptar" }).click();
   await expect(coach.getByText("Iker López ya es cliente tuyo")).toBeVisible();
   await iker.reload();
-  await expect(iker.getByRole("heading", { level: 1 })).toContainText("Iker");
+  await expect(iker.getByText("Hola, Iker.")).toBeVisible();
 });
 
 test("recuperar acceso de un cliente con enlace del entrenador", async ({ browser }) => {

@@ -6,7 +6,7 @@ import { firstName } from "../../lib/format";
 
 /** Enlace de invitación listo para mandar por WhatsApp, compartir o copiar. */
 export function ShareInvite({ invite, clientName, coachName }: { invite: InviteLink; clientName: string; coachName: string }) {
-  const text = `Hola ${firstName(clientName)}, soy ${firstName(coachName)}. Aquí tienes tu acceso a la app donde verás tus entrenos, tu plan de comidas y podrás escribirme: ${invite.url}`;
+  const text = `Hola ${firstName(clientName)}, soy ${firstName(coachName)}. Con este enlace entras en la app donde verás tus entrenos y tu plan de comidas, y podrás escribirme: ${invite.url}`;
   const canShare = typeof navigator !== "undefined" && "share" in navigator;
   const expires = new Date(invite.expiresAt).toLocaleDateString("es-ES", { day: "numeric", month: "long" });
   return (
@@ -17,7 +17,7 @@ export function ShareInvite({ invite, clientName, coachName }: { invite: InviteL
           href={`https://wa.me/?text=${encodeURIComponent(text)}`}
           target="_blank"
           rel="noreferrer noopener"
-          className="inline-flex h-10 items-center gap-2 rounded-[12px] bg-[#1f7a4d] px-4 text-sm font-medium text-white hover:brightness-110"
+          className="inline-flex h-10 items-center gap-2 rounded-[var(--radius-control)] bg-[#1b7348] px-3.5 text-sm font-medium text-white hover:bg-[#155f3b]"
         >
           <WhatsappLogo size={18} weight="fill" /> Enviar por WhatsApp
         </a>
@@ -27,7 +27,7 @@ export function ShareInvite({ invite, clientName, coachName }: { invite: InviteL
           </Button>
         )}
       </div>
-      <p className="text-[13px] text-ink-3">Es personal y de un solo uso. Caduca el {expires}.</p>
+      <p className="text-[13px] text-ink-3">Sirve una sola vez y caduca el {expires}.</p>
     </div>
   );
 }

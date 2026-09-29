@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
-import { bigserial, date, index, jsonb, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { bigserial, boolean, date, index, integer, jsonb, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import type { RoutineBlock, WorkoutLog } from "@coach/shared";
 
 /**
  * Esquema de la base de datos. Regla de oro: toda tabla con datos de un estudio lleva `studio_id`
@@ -109,4 +110,73 @@ export const auditLog = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("audit_log_studio_idx").on(t.studioId, t.createdAt)],
+);
+
+// ── F2: entrenamiento ──────────────────────────────────────────────────────────
+
+export const workoutStatusEnum = pgEnum("workout_status", ["planned", "done", "skipped"]);
+
+/** Ejercicios. `studio_id` nulo = biblioteca común (semilla); con estudio = propios de ese entrenador. */
+export const exercises = pgTable(
+  "exercises",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").references(() => studios.id, { onDelete: "cascade" }),
+    /** Clave de origen de la semilla (idempotencia); nula en los propios. */
+    sourceKey: text("source_key").unique(),
+    name: text("name").notNull(),
+    aliases: text("aliases").array().notNull().default(sql`'{}'::text[]`),
+    muscle: text("muscle").notNull(),
+    secondary: text("secondary").array().notNull().default(sql`'{}'::text[]`),
+    equipment: text("equipment").notNull(),
+    instructions: text("instructions").array().notNull().default(sql`'{}'::text[]`),
+    videoUrl: text("video_url"),
+    createdAt: createdAt(),
+    archivedAt: ts("archived_at"),
+  },
+  (t) => [index("exercises_studio_idx").on(t.studioId), index("exercises_name_idx").on(sql`lower(${t.name})`)],
+);
+
+/** Rutinas de la biblioteca del entrenador. El contenido (bloques y ejercicios) va en JSONB validado con Zod (ADR 0007). */
+export const routines = pgTable(
+  "routines",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    description: text("description").notNull().default(""),
+    blocks: jsonb("blocks").$type<RoutineBlock[]>().notNull().default(sql`'[]'::jsonb`),
+    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+    updatedAt: ts("updated_at").notNull().defaultNow(),
+    archivedAt: ts("archived_at"),
+  },
+  (t) => [index("routines_studio_idx").on(t.studioId)],
+);
+
+/**
+ * Entreno asignado a un cliente en un día. Guarda una COPIA de los bloques: editar la rutina de la biblioteca
+ * no cambia lo ya asignado (ni lo que el cliente ya registró).
+ */
+export const workouts = pgTable(
+  "workouts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id").notNull().references(() => clientProfiles.id, { onDelete: "cascade" }),
+    routineId: uuid("routine_id").references(() => routines.id, { onDelete: "set null" }),
+    date: date("date", { mode: "string" }).notNull(),
+    title: text("title").notNull(),
+    coachNotes: text("coach_notes").notNull().default(""),
+    blocks: jsonb("blocks").$type<RoutineBlock[]>().notNull(),
+    log: jsonb("log").$type<WorkoutLog>().notNull().default(sql`'{}'::jsonb`),
+    status: workoutStatusEnum("status").notNull().default("planned"),
+    sessionRpe: integer("session_rpe"),
+    clientComment: text("client_comment"),
+    completedAt: ts("completed_at"),
+    seenByCoach: boolean("seen_by_coach").notNull().default(false),
+    createdAt: createdAt(),
+    updatedAt: ts("updated_at").notNull().defaultNow(),
+  },
+  (t) => [index("workouts_client_date_idx").on(t.clientId, t.date), index("workouts_studio_done_idx").on(t.studioId, t.completedAt)],
 );

@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { SignOut } from "@phosphor-icons/react";
-import { Avatar } from "../../components/ui/avatar";
 import { Button } from "../../components/ui/button";
-import { PasswordCard, SessionsCard, ThemeCard } from "../../components/account-settings";
+import { Monogram } from "../../components/ui/layout";
+import { PasswordSetting, SessionsSetting, ThemeSetting } from "../../components/account-settings";
 import { useLogout, useMe } from "../../lib/auth";
 
 export const Route = createFileRoute("/app/perfil")({
@@ -14,20 +13,20 @@ function Profile() {
   const logout = useLogout();
   return (
     <>
-      <div className="mb-8 flex items-center gap-4">
-        <Avatar name={me.name} size={60} />
+      <div className="mb-10 flex items-center gap-4">
+        <Monogram name={me.name} size={56} />
         <div>
-          <h1 className="font-display text-[36px] leading-tight">{me.name}</h1>
+          <h1 className="font-wide text-[28px] leading-tight">{me.name}</h1>
           <p className="text-sm text-ink-2">
-            {me.email} · {me.studio.name}
+            {me.email}. Entrenas con {me.studio.name}.
           </p>
         </div>
       </div>
-      <div className="flex flex-col gap-6">
-        <ThemeCard />
-        <PasswordCard />
-        <SessionsCard />
-        <Button variant="secondary" icon={<SignOut size={17} />} onClick={logout} className="self-start">
+      <div className="flex flex-col gap-12">
+        <ThemeSetting />
+        <PasswordSetting />
+        <SessionsSetting />
+        <Button variant="secondary" onClick={logout} className="self-start">
           Cerrar sesión
         </Button>
       </div>

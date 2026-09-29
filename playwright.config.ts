@@ -29,6 +29,7 @@ export default defineConfig({
       PUBLIC_URL: BASE,
       SETUP_CODE: "e2e-setup",
       AUTH_RATE_LIMIT: "1000",
+      GLOBAL_RATE_LIMIT: "5000",
       LOG_LEVEL: "warn",
     },
   },
