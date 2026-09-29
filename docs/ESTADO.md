@@ -4,11 +4,11 @@
 > Formato: fecha · quién (modelo/herramienta) · qué. Lo más reciente arriba.
 
 ## Ahora mismo
-- **Versión**: **1.6.0** (1.3.0–1.6.0 pendientes de desplegar: el VPS no respondía el 2026-09-29 por la tarde) — MVP + post-MVP (F0–F10) + G1–G2 de agilidad + H1–H3 (bonos y reservas) de paridad con Harbiz, **desplegada en joseluis-vps** (producción + demo).
+- **Versión**: **1.7.0** (1.3.0–1.7.0 pendientes de desplegar: el VPS no respondía el 2026-09-29 por la tarde) — MVP + post-MVP (F0–F10) + G1–G2 de agilidad + H1–H4 de paridad con Harbiz (completa salvo cobros), **desplegada en joseluis-vps** (producción + demo).
 - **Tanda en curso — agilidad** (plan `~/.claude/plans/mighty-splashing-widget.md`): G1 ✅ (v1.1.0: cuaderno con sugerencias, responder desde el entreno, «Necesitan atención»); G2 ✅ (v1.2.0: paleta ⌘K, atajos, acciones en la ficha, alta encadenada, progresión de cargas, deshacer); G3 editores ágiles (v1.3.0); G4 lista de clientes, barra móvil, optimismo, medición de pasos (v1.4.0).
-- **Después — paridad con Harbiz** (lo que Paquito usa hoy): H1 ✅ (v1.3.0: check-ins periódicos, fotos de progreso, medidas propias, ADR 0011); H2 ✅ (v1.4.0: programas de varias semanas con progresión); H3a ✅ (v1.5.0: bonos de sesiones y asistencia); H3b ✅ (v1.6.0: reservas por el cliente, sin lista de espera); H4 biblioteca de contenido, logros e informes. Se intercalan con G3–G4. Sin cobros por ahora.
+- **Después — paridad con Harbiz** (lo que Paquito usa hoy): H1 ✅ (v1.3.0: check-ins periódicos, fotos de progreso, medidas propias, ADR 0011); H2 ✅ (v1.4.0: programas de varias semanas con progresión); H3a ✅ (v1.5.0: bonos de sesiones y asistencia); H3b ✅ (v1.6.0: reservas por el cliente, sin lista de espera); H4 ✅ (v1.7.0: material, constancia e informes). Se intercalan con G3–G4. Sin cobros por ahora.
 - **Aún no es pública**: falta la ruta en Cloudflare (bloqueo 3). Después, alta inicial en `/instalar` con el `SETUP_CODE` del `.env` del VPS.
-- **Siguiente tarea**: desplegar cuando el VPS vuelva (`node tools/deploy.mjs 1.6.0`); luego H4 (biblioteca de contenido, logros, informes) o G3 (editores ágiles). En paralelo, que Paquito lo use (bloqueos).
+- **Siguiente tarea**: desplegar cuando el VPS vuelva (`node tools/deploy.mjs 1.7.0`); luego G3 (editores ágiles) y G4 (lista de clientes, optimismo, medición de pasos). En paralelo, que Paquito lo use (bloqueos).
 - **Plan aprobado**: `~/.claude/plans/mighty-splashing-widget.md` (resumen en `docs/producto/mvp.md`).
 
 ## Fases
@@ -56,6 +56,7 @@ claude mcp add shadcn -- npx -y shadcn@latest mcp
 - Imagen de producción probada en local: `/health` ok, CSP/HSTS, `/api/docs` 404, POST sin Origin → 403, backup diario escrito.
 
 ## Historial
+- **2026-09-29 · Claude (Opus 5.5)** · H4 → **1.7.0**: `packages/shared/src/library.ts` (`weekStreaks`, `ResourceInput`, `StudioReport`; tests), tabla `resources` (migración `0013_material`), `routes/library.ts` (+ `resourceVisible` en `GET /media/:id`, `isPdf`), web: `components/followup/resources.tsx`, `/coach/informes`, `/app/material`, «Tu constancia». API 109, shared 17, e2e 37 + demo.
 - **2026-09-29 · Claude (Opus 5.5)** · H3b → **1.6.0**: `packages/shared/src/booking.ts` (+tests), `booking_settings` + `appointments.booked_by_client` (migración `0012_reservas`), `lib/tz.ts` (`madridInstant`), `routes/booking.ts` (huecos, cerrojo `pg_advisory_xact_lock`, avisos push), web: `components/agenda/booking-settings.tsx`, `/app/reservar`, cancelar en la agenda del cliente. API 107, e2e 36 + demo. Trampa: `cn()` no fusiona clases de Tailwind (no hay tailwind-merge): `controlClass` trae `w-full`, para anchos fijos usar una rejilla o un contenedor.
 - **2026-09-29 · Claude (Opus 5.5)** · H3a → **1.5.0**: `packages/shared/src/packs.ts`, `appointments.status/pack_id` + `session_packs` (migración `0011_bonos`), `lib/packs.ts` (uso contando citas, avisos), `routes/packs.ts`, web: `components/agenda/{client-packs,attendance}.tsx`, bono en la agenda del cliente. API 101, e2e 35 + demo.
 - **2026-09-29 · Claude (Opus 5.5)** · H2 → **1.4.0**: `packages/shared/src/programs.ts` (`programDates`, validación), migración `0010_programas` (programs, program_runs, `workouts.program_run_id`), `routes/programs.ts`, web: pestaña Programas, `entrenos/programa.$programId.tsx`, `program-assign-panel.tsx`, programa en curso en la ficha. API 97, shared 13, e2e 34 + demo.

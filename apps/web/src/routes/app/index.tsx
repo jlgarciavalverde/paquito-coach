@@ -17,6 +17,7 @@ import { fromIso } from "../../lib/dates";
 import { cn } from "../../lib/cn";
 import { myQuestionnaireQuery } from "../../lib/questionnaire";
 import { myCheckinsQuery } from "../../lib/followup";
+import { achievementsQuery, myResourcesQuery } from "../../lib/library";
 
 export const Route = createFileRoute("/app/")({
   component: Today,
@@ -101,7 +102,41 @@ function Today() {
 
       <NextAppointment />
       <TodayMeals />
+      <Streak />
     </>
+  );
+}
+
+/** Logros discretos: la racha de semanas entrenando, los récords recientes y el material nuevo. */
+function Streak() {
+  const a = useQuery(achievementsQuery).data;
+  const res = useQuery(myResourcesQuery).data ?? [];
+  const recent = res.filter((r) => Date.now() - new Date(r.createdAt).getTime() < 14 * 86400000);
+  if (!a && recent.length === 0) return null;
+  const lines: React.ReactNode[] = [];
+  if (a && a.streakWeeks >= 2) lines.push(`${a.streakWeeks} semanas seguidas entrenando${a.bestStreakWeeks > a.streakWeeks ? ` (tu mejor racha: ${a.bestStreakWeeks})` : a.streakWeeks >= 4 ? ", tu mejor racha" : ""}.`);
+  if (a && a.recentRecords.length) lines.push(`Récord este mes en ${a.recentRecords.slice(0, 3).join(", ")}.`);
+  if (a && a.totalDone > 0 && lines.length === 0) lines.push(`${a.totalDone} ${a.totalDone === 1 ? "entreno hecho" : "entrenos hechos"} desde que empezaste.`);
+  if (lines.length === 0 && recent.length === 0) return null;
+  return (
+    <section className="mt-10" aria-labelledby="t-streak">
+      <BlockTitle id="t-streak">Tu constancia</BlockTitle>
+      <ul className="flex flex-col gap-1.5">
+        {lines.map((l, i) => (
+          <li key={i} className="flex gap-2.5 text-[15px] text-ink">
+            <span className={cn("mt-[5px] h-3.5 w-[5px] shrink-0 rounded-[1.5px]", i === 0 ? "bg-plate-green" : "bg-plate-yellow")} aria-hidden="true" />
+            {l}
+          </li>
+        ))}
+        {recent.length > 0 && (
+          <li>
+            <Link to="/app/material" className="text-[15px] font-medium text-primary hover:underline">
+              {recent.length === 1 ? `Material nuevo: ${recent[0]!.title}` : `${recent.length} materiales nuevos`}
+            </Link>
+          </li>
+        )}
+      </ul>
+    </section>
   );
 }
 

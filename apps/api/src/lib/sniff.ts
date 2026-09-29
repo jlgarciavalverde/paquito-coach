@@ -7,3 +7,6 @@ export function sniffImage(buf: Buffer): "image/jpeg" | "image/png" | "image/web
   if (buf.subarray(0, 6).toString("ascii") === "GIF87a" || buf.subarray(0, 6).toString("ascii") === "GIF89a") return "image/gif";
   return null;
 }
+
+/** ¿Es un PDF de verdad? */
+export const isPdf = (buf: Buffer) => buf.length > 5 && buf.subarray(0, 5).toString("ascii") === "%PDF-";

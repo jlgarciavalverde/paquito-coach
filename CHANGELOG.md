@@ -1,6 +1,12 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [1.7.0] — 2026-09-29 · Material, logros e informes
+### Añadido
+- **Material para clientes** (Seguimiento): enlaces y vídeos o PDFs (se comprueba que lo son de verdad, hasta 15 MB), para todos o para algunos clientes. El cliente lo ve en «Material» (desde Perfil y, si es nuevo, desde Hoy); un PDF solo lo pueden abrir aquellos con quienes se ha compartido.
+- **Tu constancia** en el Hoy del cliente: semanas seguidas entrenando, su mejor racha y los récords del último mes.
+- **Informes** (desde Hoy, ⌘K o `g i`): clientes activos, cumplimiento de las últimas 4 semanas con su gráfica semanal y el detalle por cliente, sesiones y faltas del mes, bonos cobrados y pendientes, bonos por renovar. Las cifras van en frases, no en tarjetas.
+
 ## [1.6.0] — 2026-09-29 · Reservas desde la app
 ### Añadido
 - **Reservas**: en Ajustes, Paquito abre franjas semanales (p. ej. lunes a viernes de 9 a 13), duración de cada sesión, plazas por hueco (grupos reducidos), antelación mínima para reservar y hasta cuándo se puede cancelar. El cliente ve los huecos libres en «Reservar sesión» (Agenda), reserva en dos toques y puede cancelar desde su agenda dentro del plazo; Paquito recibe un aviso con cada reserva o cancelación.

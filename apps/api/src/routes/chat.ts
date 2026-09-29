@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { and, desc, eq, inArray, isNull, lt, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { Conversation, Message, MessagePage, MessagesQuery, Ok, PushSubscriptionInput, SendMessageInput } from "@coach/shared";
+import { resourceVisible } from "./library";
 import { clientProfiles, conversationReads, media, messages, pushSubscriptions, users } from "../db/schema";
 import { HttpError, notFound } from "../lib/errors";
 import { requireActiveClient, requireCoach, requireUser, type AuthUser } from "../lib/session";
@@ -215,7 +216,10 @@ export function registerChat(app: FastifyInstance, { db }: Ctx, deps: ChatDeps) 
     const u = requireUser(req);
     const { id } = z.object({ id: z.string().uuid() }).parse(req.params);
     const [m] = await db.select().from(media).where(and(eq(media.id, id), eq(media.studioId, u.studioId)));
-    if (!m || (u.role === "client" && m.clientId !== u.clientId)) throw notFound("Foto");
+    // El cliente ve lo de su conversación/progreso y los PDF de la biblioteca compartidos con él.
+    const clientMayView = async () =>
+      Boolean(u.clientId) && m!.clientId !== undefined && (m!.clientId === u.clientId || (m!.clientId === null && (await resourceVisible(db, u.studioId, u.clientId!, m!.id))));
+    if (!m || (u.role === "client" && !(await clientMayView()))) throw notFound("Foto");
     const path = join(deps.mediaDir, m.id);
     if (!existsSync(path)) throw notFound("Foto");
     return reply

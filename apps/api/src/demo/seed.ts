@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 import type { MealDay, RoutineBlock, WorkoutLog } from "@coach/shared";
 import { questionnaireAlerts } from "@coach/shared";
 import type { DB } from "../db/client";
-import { appointments, bodyMetrics, bookingSettings, checkinAssignments, checkinForms, checkinResponses, clientProfiles, exercises, sessionPacks, mealChecks, mealPlans, messages, metricDefs, metricValues, questionnaires, routines, studios, users, workouts } from "../db/schema";
+import { appointments, bodyMetrics, bookingSettings, resources, checkinAssignments, checkinForms, checkinResponses, clientProfiles, exercises, sessionPacks, mealChecks, mealPlans, messages, metricDefs, metricValues, questionnaires, routines, studios, users, workouts } from "../db/schema";
 import { hashPassword } from "../lib/passwords";
 import { newJoinCode } from "../lib/tokens";
 
@@ -152,6 +152,12 @@ export async function resetDemo(db: DB) {
   await db.insert(questionnaires).values({ studioId, clientId: active[2]!.id, answers, alerts: questionnaireAlerts(answers) });
   const ok = { parq: Array(7).fill(false), anamnesis: { ...answers.anamnesis, painNow: 0, pastInjuries: "", medication: "", painArea: "" } };
   for (const c of [active[0]!, active[1]!, active[3]!]) await db.insert(questionnaires).values({ studioId, clientId: c.id, answers: ok, alerts: [], reviewedAt: new Date(), reviewedBy: coach!.id });
+
+  // Material para clientes
+  await db.insert(resources).values([
+    { studioId, title: "Movilidad de tobillo (5 minutos)", description: "Antes de cada sesión de pierna.", kind: "link", url: "https://www.youtube.com/results?search_query=movilidad+tobillo", forAll: true },
+    { studioId, title: "Pauta de readaptación LCA, fase 2", description: "Qué hacer en casa los días sin sesión.", kind: "link", url: "https://www.youtube.com/results?search_query=readaptacion+lca+fase+2", forAll: false, clientIds: [lucia.id] },
+  ]);
 
   // Reservas abiertas de lunes a viernes, mañanas y tardes
   await db.insert(bookingSettings).values({

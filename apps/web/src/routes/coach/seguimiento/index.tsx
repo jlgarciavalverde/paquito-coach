@@ -11,6 +11,7 @@ import { Skeleton } from "../../../components/ui/spinner";
 import { useToast } from "../../../components/ui/toast";
 import { FormError } from "../../../components/form-error";
 import { AssignCheckinPanel } from "../../../components/followup/assign-checkin-panel";
+import { ResourcesBlock } from "../../../components/followup/resources";
 import { checkinFormsQuery, metricDefsQuery, useMetricDef } from "../../../lib/followup";
 import { relativeTime } from "../../../lib/format";
 import { errorMessage } from "../../../lib/api";
@@ -26,10 +27,13 @@ function Followup() {
     <>
       <PageTitle
         title="Seguimiento"
-        lead="Los check-ins que tus clientes rellenan cada semana o cada mes, y las medidas propias que quieres seguir además del peso."
+        lead="Los check-ins que tus clientes rellenan cada semana o cada mes, el material que les das y las medidas propias que quieres seguir además del peso."
       />
       <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,1fr)_380px] [&>*]:min-w-0">
-        <Forms />
+        <div className="flex flex-col gap-12">
+          <Forms />
+          <ResourcesBlock />
+        </div>
         <Metrics />
       </div>
     </>

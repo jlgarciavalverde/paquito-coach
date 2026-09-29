@@ -506,3 +506,18 @@ export const bookingSettings = pgTable("booking_settings", {
   windows: jsonb("windows").$type<BookingWindow[]>().notNull().default(sql`'[]'::jsonb`),
   updatedAt: ts("updated_at").notNull().defaultNow(),
 });
+
+// ── H4: biblioteca de material ────────────────────────────────────────────────
+
+export const resources = pgTable("resources", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  description: text("description").notNull().default(""),
+  kind: text("kind").$type<"link" | "pdf">().notNull(),
+  url: text("url"),
+  mediaId: uuid("media_id").references(() => media.id, { onDelete: "set null" }),
+  forAll: boolean("for_all").notNull().default(true),
+  clientIds: jsonb("client_ids").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  createdAt: createdAt(),
+});

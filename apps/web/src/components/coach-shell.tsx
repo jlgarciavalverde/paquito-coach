@@ -49,7 +49,7 @@ export function CoachShell({ children }: { children: ReactNode }) {
   const act = useCoachActions();
   const createPlan = useCreatePlan();
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const GO: Record<string, string> = { h: "/coach", c: "/coach/clientes", e: "/coach/entrenos", n: "/coach/nutricion", a: "/coach/calendario", m: "/coach/chat", s: "/coach/seguimiento" };
+  const GO: Record<string, string> = { h: "/coach", c: "/coach/clientes", e: "/coach/entrenos", n: "/coach/nutricion", a: "/coach/calendario", m: "/coach/chat", s: "/coach/seguimiento", i: "/coach/informes" };
   useShortcuts({
     palette: () => setPalette(true),
     help: () => setHelp(true),
@@ -155,7 +155,7 @@ export function CoachShell({ children }: { children: ReactNode }) {
         })}
         {(() => {
           const rest = COACH_NAV.filter((it) => !MOBILE_MAIN.includes(it.to));
-          const on = rest.some(isActive) || path.startsWith("/coach/ajustes");
+          const on = rest.some(isActive) || path.startsWith("/coach/ajustes") || path.startsWith("/coach/informes");
           return (
             <Menu
               trigger={
@@ -171,6 +171,9 @@ export function CoachShell({ children }: { children: ReactNode }) {
                   <Link to={it.to}>{it.label}</Link>
                 </MenuItem>
               ))}
+              <MenuItem asChild>
+                <Link to="/coach/informes">Informes</Link>
+              </MenuItem>
               <MenuItem asChild>
                 <Link to="/coach/ajustes">Ajustes</Link>
               </MenuItem>

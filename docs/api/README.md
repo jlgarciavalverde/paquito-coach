@@ -91,4 +91,8 @@
 | GET · PUT | `/studio/booking` | entrenador | ajustes de reservas (franjas, duración, plazas, antelación, cancelación) |
 | GET · POST | `/me/booking?from&days` · `/me/booking` | cliente activo | huecos libres · reservar (`startsAt`; 409 si ya no está libre) |
 | POST | `/me/appointments/:id/cancel` | cliente activo | cancelar dentro del plazo (409 `too_late` si no) |
+| POST | `/resources/upload` | entrenador | sube un PDF (comprobado por bytes, 15 MB) |
+| GET · POST · PUT · DELETE | `/resources[/:id]` · `GET /me/resources` | entrenador · cliente activo | material para todos o para algunos clientes |
+| GET | `/me/achievements` | cliente activo | racha de semanas, total y récords del último mes |
+| GET | `/reports` | entrenador | informe del estudio (cumplimiento, sesiones, bonos, por cliente) |
 | GET | `/health` | público | versión, uptime, BD |

@@ -40,6 +40,7 @@ import { registerFollowup } from "./routes/followup";
 import { registerPrograms } from "./routes/programs";
 import { registerPacks } from "./routes/packs";
 import { registerBooking } from "./routes/booking";
+import { registerLibrary } from "./routes/library";
 import { Hub } from "./lib/realtime";
 import { createPushSender, type PushSender } from "./lib/push";
 import { seedExercises } from "./db/seed";
@@ -195,6 +196,7 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender } = {})
       registerPrograms(api, ctx);
       registerPacks(api, ctx);
       registerBooking(api, ctx, { push });
+      registerLibrary(api, ctx);
       registerChat(api, ctx, { hub, push, mediaDir: join(cfg.dataDir, "media"), vapidPublicKey: cfg.vapidPublicKey });
     },
     { prefix: "/api/v1" },

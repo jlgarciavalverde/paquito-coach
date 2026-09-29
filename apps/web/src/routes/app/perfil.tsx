@@ -39,6 +39,13 @@ function Profile() {
             Ir a mi progreso
           </Link>
         </section>
+        <section>
+          <BlockTitle>Material</BlockTitle>
+          <p className="text-sm text-ink-2">Pautas, vídeos y lecturas que te comparte tu entrenador.</p>
+          <Link to="/app/material" className={buttonClass("secondary", "md", "mt-3")}>
+            Ver material
+          </Link>
+        </section>
         <PushSetting />
         <ThemeSetting />
         <PasswordSetting />

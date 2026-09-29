@@ -59,7 +59,12 @@ function CoachToday() {
       <header className="pb-8">
         <p className="text-ink-2">Hola, {firstName(me.name)}.</p>
         <h1 className="font-wide mt-1 text-[30px] leading-[1.1] sm:text-[38px]">{cap(dayLong(t))}</h1>
-        <p className="mt-2 max-w-[70ch] text-ink-2">{sentences.join(" ") || " "}</p>
+        <p className="mt-2 max-w-[70ch] text-ink-2">
+          {sentences.join(" ") || " "}{" "}
+          <Link to="/coach/informes" className="font-medium whitespace-nowrap text-primary hover:underline">
+            Ver informes
+          </Link>
+        </p>
       </header>
 
       <FirstSteps />
