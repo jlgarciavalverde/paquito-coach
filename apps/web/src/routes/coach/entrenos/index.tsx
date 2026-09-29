@@ -102,7 +102,7 @@ function Exercises() {
   return (
     <>
       <div className="mb-4 flex flex-wrap items-end gap-2">
-        <label className="relative min-w-[220px] flex-1">
+        <label className="relative min-w-0 flex-1 basis-[220px]">
           <span className="sr-only">Buscar ejercicio</span>
           <MagnifyingGlass size={16} className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-3" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar en más de 2.500 ejercicios" className={cn(controlClass, "h-10 pl-9")} />
@@ -130,7 +130,7 @@ function Exercises() {
       ) : (list.data ?? []).length === 0 ? (
         <p className="py-6 text-sm text-ink-2">{own ? "Todavía no has creado ejercicios propios." : "Nada con ese nombre."}</p>
       ) : (
-        <ul className="grid border-t border-rule sm:grid-cols-2 sm:gap-x-8">
+        <ul className="grid grid-cols-1 border-t border-rule sm:grid-cols-2 sm:gap-x-8 [&>*]:min-w-0">
           {list.data!.map((e) => (
             <li key={e.id} className="border-b border-rule">
               <button type="button" onClick={() => setPanel({ open: true, ex: e })} className="flex w-full items-baseline gap-3 py-2.5 text-left hover:text-primary">

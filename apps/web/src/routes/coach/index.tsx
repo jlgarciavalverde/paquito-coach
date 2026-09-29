@@ -13,6 +13,9 @@ import { PendingRequests } from "../../components/clients/pending-requests";
 import { WorkoutPanel } from "../../components/training/workout-panel";
 import { WorkoutStatusMark } from "../../components/training/workout-status";
 import { WeekMatrix } from "../../components/training/week-matrix";
+import { appointmentsQuery, hhmm } from "../../lib/agenda";
+import { appointmentLabel } from "@coach/shared";
+import { plusDays } from "../../lib/dates";
 import { cn } from "../../lib/cn";
 
 export const Route = createFileRoute("/coach/")({
@@ -30,6 +33,8 @@ function CoachToday() {
   const clients = useQuery(clientsQuery());
   const pending = useQuery(clientsQuery("pending")).data ?? [];
   const [openId, setOpenId] = useState<string | null>(null);
+  const appts = useQuery(appointmentsQuery(t, plusDays(t, 1)));
+  const apptList = appts.data ?? [];
 
   const list = todays.data ?? [];
   const doneToday = list.filter((w) => w.status === "done").length;
@@ -37,6 +42,7 @@ function CoachToday() {
   const unseen = (activity.data ?? []).filter((a) => a.unseen).length;
 
   const sentences: string[] = [];
+  if (apptList.length) sentences.push(`${apptList.length === 1 ? "Tienes 1 cita" : `Tienes ${apptList.length} citas`}, la primera a las ${hhmm(apptList[0]!.startsAt)}.`);
   if (todays.data) sentences.push(list.length === 0 ? "Hoy no entrena nadie con plan asignado." : `Hoy entrenan ${list.length} ${list.length === 1 ? "cliente" : "clientes"}${doneToday ? ` y ${doneToday} ya ${doneToday === 1 ? "ha terminado" : "han terminado"}` : ""}.`);
   if (unseen) sentences.push(`${unseen} ${unseen === 1 ? "entreno terminado que no has revisado" : "entrenos terminados que no has revisado"}.`);
   if (pending.length) sentences.push(`${pending.length === 1 ? "Una persona espera" : `${pending.length} personas esperan`} a que la aceptes.`);
@@ -49,8 +55,26 @@ function CoachToday() {
         <p className="mt-2 max-w-[70ch] text-ink-2">{sentences.join(" ") || " "}</p>
       </header>
 
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] [&>*]:min-w-0">
         <section aria-labelledby="today-title">
+          {apptList.length > 0 && (
+            <div className="mb-10">
+              <BlockTitle action={<Link to="/coach/calendario" className="text-sm font-medium text-primary hover:underline">Abrir agenda</Link>}>Citas de hoy</BlockTitle>
+              <ol className="divide-y divide-rule border-y border-rule">
+                {apptList.map((a) => (
+                  <li key={a.id} className="grid grid-cols-[96px_1fr] items-baseline gap-3 py-3">
+                    <span className={cn("font-narrow text-[16px]", new Date(a.endsAt) < new Date() ? "text-ink-3" : "text-ink")}>
+                      {hhmm(a.startsAt)}–{hhmm(a.endsAt)}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate font-medium">{appointmentLabel(a)}</span>
+                      {a.location && <span className="block truncate text-[13px] text-ink-2">{a.location}</span>}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
           <BlockTitle id="today-title">Entrenos de hoy</BlockTitle>
           {todays.isPending ? (
             <Skeleton className="h-40" />

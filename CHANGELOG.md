@@ -1,6 +1,13 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [0.4.0] — 2026-09-29
+### Añadido
+- **Agenda**: citas (sesión, valoración u otro; con o sin cliente; lugar y notas internas); calendario de semana (7:00–22:00, franja de todo el día con entrenos y comidas), mes y lista; filtro por cliente y capas; arrastrar citas y entrenos para cambiarlos de día u hora; crear cita pulsando un hueco.
+- Ficha → pestaña «Agenda» (próximas 4 semanas). Cliente: pantalla «Agenda» y «Próxima sesión» en «Hoy». Entrenador: «Citas de hoy» en «Hoy».
+### Corregido
+- Desbordamiento horizontal en el móvil en «Hoy», ejercicios, ajustes y galería.
+
 ## [0.3.0] — 2026-09-29
 ### Añadido
 - **Nutrición**: plantillas de planes de comidas; plan activo por cliente, igual todos los días o distinto cada día (copiar un día al resto); objetivos diarios de kcal y macros; comidas con hora, alimentos y cantidades, alternativas y notas; aplicar una plantilla a varios clientes (copia editable).

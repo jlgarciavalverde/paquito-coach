@@ -20,7 +20,7 @@ function Settings() {
   return (
     <>
       <PageTitle title="Ajustes" lead={`${me.name}, ${me.email}. Estudio «${me.studio.name}».`} />
-      <div className="grid gap-12 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 [&>*]:min-w-0">
         <div className="flex flex-col gap-12">
           <JoinCodeSetting />
           <ThemeSetting />

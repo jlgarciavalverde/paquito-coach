@@ -8,7 +8,7 @@
 
 | Código | Cuándo |
 |---|---|
-| 400 `validation`, `weak_password`, `bad_password`, `unknown_exercise` | datos no válidos |
+| 400 `validation`, `weak_password`, `bad_password`, `unknown_exercise`, `unknown_meal`, `bad_range` | datos no válidos |
 | 401 `unauthorized`, `invalid_credentials` | sin sesión / credenciales |
 | 403 `forbidden`, `bad_origin`, `bad_setup_code` | sin permiso |
 | 404 `not_found`, `join_code_invalid` | no existe **o no es de tu estudio** |
@@ -16,7 +16,7 @@
 | 410 `invite_used`, `invite_invalid`, `reset_invalid` | enlace caducado o usado |
 | 429 `rate_limited`, `locked` | límite por IP o bloqueo por cuenta |
 
-## Endpoints (v0.3)
+## Endpoints (v0.4)
 | Método | Ruta | Quién | Qué |
 |---|---|---|---|
 | GET | `/auth/setup-status` | público | ¿falta el alta inicial? |
@@ -50,4 +50,7 @@
 | GET | `/clients/:id/meal-plan` · `/clients/:id/meal-checks?from&to` | entrenador | plan activo · cumplimiento |
 | GET | `/me/meal-plan` · `/me/meal-checks?from&to` | cliente activo | mi plan · lo marcado |
 | PUT | `/me/meal-checks` | cliente activo | marcar/desmarcar una comida de un día |
+| GET · POST | `/appointments` (`from`, `to` ISO, `clientId`) | entrenador | citas que se solapan con el rango (máx. 2 meses) · crear |
+| PATCH · DELETE | `/appointments/:id` | entrenador | mover/editar · borrar |
+| GET | `/me/appointments?from&to` | cliente activo | mis citas (sin notas internas) |
 | GET | `/health` | público | versión, uptime, BD |

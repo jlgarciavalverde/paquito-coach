@@ -10,7 +10,8 @@ import { myWorkoutsQuery } from "../../lib/training";
 import { dayLong, dayShort, plusDays, today } from "../../lib/dates";
 import { firstName } from "../../lib/format";
 import { myChecksQuery, myPlanQuery } from "../../lib/nutrition";
-import { mealsFor } from "@coach/shared";
+import { appointmentLabel, mealsFor } from "@coach/shared";
+import { hhmm, localDate, myAppointmentsQuery } from "../../lib/agenda";
 import { fromIso } from "../../lib/dates";
 import { cn } from "../../lib/cn";
 
@@ -92,6 +93,7 @@ function Today() {
         </section>
       )}
 
+      <NextAppointment />
       <TodayMeals />
     </>
   );
@@ -131,6 +133,24 @@ function TodayMeals() {
           );
         })}
       </ul>
+    </section>
+  );
+}
+
+function NextAppointment() {
+  const t = today();
+  const q = useQuery(myAppointmentsQuery(t, plusDays(t, 15)));
+  const next = (q.data ?? []).find((a) => new Date(a.endsAt) > new Date());
+  if (!next) return null;
+  const d = localDate(next.startsAt);
+  return (
+    <section className="mt-10" aria-labelledby="t-appt">
+      <BlockTitle id="t-appt">Próxima sesión</BlockTitle>
+      <p className="text-ink">
+        <span className="font-narrow mr-2 text-[18px]">{d === t ? "Hoy" : dayShort(d)}, {hhmm(next.startsAt)}</span>
+        {next.title || appointmentLabel({ ...next, clientName: null })}
+        {next.location && <span className="text-ink-2">, {next.location}</span>}
+      </p>
     </section>
   );
 }

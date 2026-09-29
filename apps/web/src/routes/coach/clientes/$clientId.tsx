@@ -17,6 +17,7 @@ import { StatusMark } from "../../../components/clients/status-mark";
 import { ShareInvite } from "../../../components/clients/share-invite";
 import { ClientTraining } from "../../../components/training/client-training";
 import { ClientNutrition } from "../../../components/nutrition/client-nutrition";
+import { ClientAgenda } from "../../../components/agenda/client-agenda";
 import { clientQuery, useClientAction, useInvite, useResetLink, useUpdateClient } from "../../../lib/queries";
 import { useMe } from "../../../lib/auth";
 import { age, fmtDate } from "../../../lib/format";
@@ -76,9 +77,7 @@ function ClientPage() {
           <ClientNutrition client={c} />
         </TabPanel>
         <TabPanel value="agenda">
-          <ComingSoon title="Agenda" phase={4}>
-            Sesiones presenciales, entrenos asignados y comidas de este cliente en una vista de semana o de mes.
-          </ComingSoon>
+          <ClientAgenda client={c} />
         </TabPanel>
         <TabPanel value="chat">
           <ComingSoon title="Conversación" phase={5}>

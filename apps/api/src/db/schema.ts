@@ -221,3 +221,25 @@ export const mealChecks = pgTable(
   },
   (t) => [uniqueIndex("meal_checks_uq").on(t.clientId, t.date, t.mealId)],
 );
+
+// ── F4: agenda ─────────────────────────────────────────────────────────────────
+
+export const appointments = pgTable(
+  "appointments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    /** Nulo = cita sin cliente (reunión, bloqueo de agenda…). */
+    clientId: uuid("client_id").references(() => clientProfiles.id, { onDelete: "cascade" }),
+    kind: text("kind").$type<"session" | "assessment" | "other">().notNull(),
+    title: text("title").notNull().default(""),
+    startsAt: ts("starts_at").notNull(),
+    endsAt: ts("ends_at").notNull(),
+    location: text("location").notNull().default(""),
+    notes: text("notes").notNull().default(""),
+    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+    updatedAt: ts("updated_at").notNull().defaultNow(),
+  },
+  (t) => [index("appointments_studio_time_idx").on(t.studioId, t.startsAt), index("appointments_client_time_idx").on(t.clientId, t.startsAt)],
+);

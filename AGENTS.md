@@ -77,6 +77,9 @@ deploy/             docker-compose.yml y .env.example de producción · tools/ s
 - **Rate limit y estáticos**: el límite global solo cuenta `/api/*` (`allowList`). Si cuenta los JS de la web, al cargar la app se agota y el navegador recibe 429 (lo cazó el e2e).
 - **Datos que cambian por acción de otra persona** (actividad, entrenos de clientes): `staleTime: 0` para que se pidan al abrir la pantalla; si no, «Hoy» muestra la caché de hace 30 s.
 - **`useBlocker` tras guardar**: al navegar justo después de guardar, `dirty` aún es `true` en ese render; usar el ref `leaving` (ver editor de rutina).
+- **Rejillas y desbordamiento**: un hijo de `grid` tiene `min-width: auto`; una tabla o un texto largo dentro desborda en el móvil. Usar `grid-cols-1 … [&>*]:min-w-0` o `minmax(0,1fr)`. El e2e «ninguna pantalla desborda» lo vigila.
+- **Arrastrar (dnd-kit)**: el elemento arrastrable ES el botón (`DragButton`); no envolver un botón en otro control. Siempre hay alternativa sin arrastrar (el panel de edición con fecha y hora).
+- **Fechas y horas**: las fechas de día son `YYYY-MM-DD` locales (`lib/dates.ts`); las citas son instantes ISO; convertir con `atLocal`/`localDate`/`minutesOf` (`lib/agenda.ts`). Los e2e fijan `timezoneId: "Europe/Madrid"`.
 - La semilla de ejercicios (`apps/api/src/db/exercise-seed.json`, ~2.500) solo se carga si la biblioteca común está vacía. Los tests la desactivan (`seedExercises: false`) salvo `training.test.ts`.
 - Fastify 5: `disableRequestLogging` está obsoleto → `logController: new LogController(...)`.
 - VPS: Docker **rootless**, sin compilar allí (temperatura), Cloudflare cachea por extensión (HTML y `/health` van con `no-store`).

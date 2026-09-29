@@ -57,8 +57,8 @@ function Gallery() {
 
         <section>
           <BlockTitle>Marca</BlockTitle>
-          <div className="flex items-center gap-6">
-            <BarbellMark className="h-12 w-16" />
+          <div className="flex min-w-0 items-center gap-6">
+            <BarbellMark className="h-12 w-16 shrink-0" />
             <Tray className="w-full max-w-md overflow-hidden">
               <LoadedBarbell className="w-full" />
             </Tray>
@@ -112,7 +112,7 @@ function Gallery() {
           </div>
         </section>
 
-        <section className="grid gap-10 md:grid-cols-2">
+        <section className="grid grid-cols-1 gap-10 md:grid-cols-2 [&>*]:min-w-0">
           <div className="flex flex-col gap-4">
             <BlockTitle>Campos</BlockTitle>
             <TextField label="Nombre" placeholder="Escribe…" />
