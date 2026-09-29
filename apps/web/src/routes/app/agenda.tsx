@@ -100,7 +100,7 @@ function MyPacks() {
     <p className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[var(--radius-zone)] bg-tray px-4 py-3 text-sm">
       <span className="font-medium">{p.name}</span>
       <span className="text-ink-2">
-        {p.remaining === 0 ? "Agotado: habla con tu entrenador para renovarlo." : `Te ${p.remaining === 1 ? "queda 1 sesión" : `quedan ${p.remaining} sesiones`} de ${p.total}`}
+        {p.remaining === 0 ? "Agotado: puedes renovarlo en Pagos o hablarlo con tu entrenador." : `Te ${p.remaining === 1 ? "queda 1 sesión" : `quedan ${p.remaining} sesiones`} de ${p.total}`}
         {p.remaining > 0 && p.expires ? `, hasta el ${dayShort(p.expires)}` : ""}.
       </span>
     </p>

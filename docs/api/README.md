@@ -98,4 +98,10 @@
 | GET | `/ai/status` · `/ai/documents` | entrenador | estado (activa, uso de hoy, límite) · documentos |
 | POST · DELETE | `/ai/documents` (multipart) · `/ai/documents/:id` | entrenador | subir PDF/DOCX/TXT (texto extraído y troceado) · quitar |
 | POST | `/ai/routine` · `/ai/program` · `/ai/meal-plan` · `/ai/ask` | entrenador | borradores validados con los esquemas de la app y fuentes; 409 sin clave, 429 al llegar al límite |
+| GET | `/payments/info` | cualquiera con sesión | cobros activos y si es modo prueba |
+| GET · POST · PUT | `/prices[/:id]` · `GET /me/prices` | entrenador · cliente activo | tarifas (importes en euros; en BD, céntimos) |
+| POST | `/me/checkout` | cliente activo | cobro de una tarifa: devuelve la URL de Stripe Checkout |
+| POST | `/clients/:id/payment-links` · `/payments/:id/renew` | entrenador | enlace de pago (tarifa o concepto+importe) · enlace nuevo |
+| GET | `/payments` · `/clients/:id/payments` · `/me/payments` · `/payments.csv` | entrenador · cliente | cobros · CSV para el gestor |
+| POST | `/stripe/webhook` | Stripe (firma) | eventos de Checkout y devoluciones; idempotente |
 | GET | `/health` | público | versión, uptime, BD |

@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { and, desc, eq, gte, inArray, isNotNull, lt } from "drizzle-orm";
 import { z } from "zod";
 import { Achievements, Ok, Resource, ResourceInput, StudioReport, packUsable, weekStreaks } from "@coach/shared";
-import { appointments, clientProfiles, media, resources, sessionPacks, workouts } from "../db/schema";
+import { appointments, clientProfiles, media, payments, resources, sessionPacks, workouts } from "../db/schema";
 import { HttpError, notFound } from "../lib/errors";
 import { isPdf } from "../lib/sniff";
 import { packsOf } from "../lib/packs";
@@ -166,7 +166,10 @@ export function registerLibrary(app: FastifyInstance, { db, cfg }: Ctx) {
       .select({ status: appointments.status })
       .from(appointments)
       .where(and(eq(appointments.studioId, u.studioId), gte(appointments.startsAt, madridInstant(monthStart, 0)), lt(appointments.startsAt, new Date())));
-    const packs = await db.select({ clientId: sessionPacks.clientId, price: sessionPacks.price, paid: sessionPacks.paid, createdAt: sessionPacks.createdAt }).from(sessionPacks).where(eq(sessionPacks.studioId, u.studioId));
+    const packs = await db.select({ id: sessionPacks.id, clientId: sessionPacks.clientId, price: sessionPacks.price, paid: sessionPacks.paid, createdAt: sessionPacks.createdAt }).from(sessionPacks).where(eq(sessionPacks.studioId, u.studioId));
+    const pays = await db.select({ amountCents: payments.amountCents, status: payments.status, paidAt: payments.paidAt, packId: payments.packId }).from(payments).where(eq(payments.studioId, u.studioId));
+    // Los bonos pagados en la app ya cuentan como cobro: no se suman dos veces.
+    const paidInApp = new Set(pays.map((p) => p.packId).filter(Boolean));
     let toRenew = 0;
     for (const id of new Set(packs.map((p) => p.clientId))) {
       const ps = (await packsOf(db, id)).filter((p) => !p.archived);
@@ -181,8 +184,12 @@ export function registerLibrary(app: FastifyInstance, { db, cfg }: Ctx) {
       sessionsMonth: monthRows.filter((a) => a.status === "done").length,
       noShowsMonth: monthRows.filter((a) => a.status === "no_show").length,
       packsToRenew: toRenew,
-      paidMonth: packs.filter((p) => p.paid && p.createdAt >= monthStartInstant).reduce((n, p) => n + (p.price ?? 0), 0),
-      pendingPayments: packs.filter((p) => !p.paid && (p.price ?? 0) > 0).reduce((n, p) => n + (p.price ?? 0), 0),
+      paidMonth:
+        packs.filter((p) => p.paid && !paidInApp.has(p.id) && p.createdAt >= monthStartInstant).reduce((n, p) => n + (p.price ?? 0), 0) +
+        pays.filter((p) => p.status === "paid" && p.paidAt && p.paidAt >= monthStartInstant).reduce((n, p) => n + p.amountCents / 100, 0),
+      pendingPayments:
+        packs.filter((p) => !p.paid && (p.price ?? 0) > 0).reduce((n, p) => n + (p.price ?? 0), 0) +
+        pays.filter((p) => p.status === "pending").reduce((n, p) => n + p.amountCents / 100, 0),
       weekly,
       byClient,
     };

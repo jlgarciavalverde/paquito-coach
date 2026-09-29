@@ -7,6 +7,7 @@ import { BlockTitle, PageTitle } from "../../components/ui/layout";
 import { Skeleton } from "../../components/ui/spinner";
 import { useToast } from "../../components/ui/toast";
 import { useConfirm } from "../../components/ui/confirm";
+import { PaymentsSettings } from "../../components/payments/prices-settings";
 import { BookingSettingsBlock } from "../../components/agenda/booking-settings";
 import { PasswordSetting, PushSetting, SessionsSetting, ThemeSetting } from "../../components/account-settings";
 import { api } from "../../lib/api";
@@ -29,6 +30,7 @@ function Settings() {
           <ThemeSetting />
         </div>
         <div className="flex flex-col gap-12">
+          <PaymentsSettings />
           <BookingSettingsBlock />
           <PasswordSetting />
           <SessionsSetting />

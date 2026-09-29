@@ -40,6 +40,13 @@ function Profile() {
           </Link>
         </section>
         <section>
+          <BlockTitle>Pagos</BlockTitle>
+          <p className="text-sm text-ink-2">Compra tus bonos y sesiones, y consulta tus recibos.</p>
+          <Link to="/app/pagos" className={buttonClass("secondary", "md", "mt-3")}>
+            Ver pagos
+          </Link>
+        </section>
+        <section>
           <BlockTitle>Material</BlockTitle>
           <p className="text-sm text-ink-2">Pautas, vídeos y lecturas que te comparte tu entrenador.</p>
           <Link to="/app/material" className={buttonClass("secondary", "md", "mt-3")}>

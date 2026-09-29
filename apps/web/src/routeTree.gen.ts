@@ -23,6 +23,7 @@ import { Route as AppAgendaRouteImport } from './routes/app/agenda'
 import { Route as AppChatRouteImport } from './routes/app/chat'
 import { Route as AppComidasRouteImport } from './routes/app/comidas'
 import { Route as AppMaterialRouteImport } from './routes/app/material'
+import { Route as AppPagosRouteImport } from './routes/app/pagos'
 import { Route as AppPerfilRouteImport } from './routes/app/perfil'
 import { Route as AppProgresoRouteImport } from './routes/app/progreso'
 import { Route as AppReservarRouteImport } from './routes/app/reservar'
@@ -115,6 +116,11 @@ const AppComidasRoute = AppComidasRouteImport.update({
 const AppMaterialRoute = AppMaterialRouteImport.update({
   id: '/material',
   path: '/material',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPagosRoute = AppPagosRouteImport.update({
+  id: '/pagos',
+  path: '/pagos',
   getParentRoute: () => AppRoute,
 } as any)
 const AppPerfilRoute = AppPerfilRouteImport.update({
@@ -248,6 +254,7 @@ export interface FileRoutesByFullPath {
   '/app/chat': typeof AppChatRoute
   '/app/comidas': typeof AppComidasRoute
   '/app/material': typeof AppMaterialRoute
+  '/app/pagos': typeof AppPagosRoute
   '/app/perfil': typeof AppPerfilRoute
   '/app/progreso': typeof AppProgresoRoute
   '/app/reservar': typeof AppReservarRoute
@@ -285,6 +292,7 @@ export interface FileRoutesByTo {
   '/app/chat': typeof AppChatRoute
   '/app/comidas': typeof AppComidasRoute
   '/app/material': typeof AppMaterialRoute
+  '/app/pagos': typeof AppPagosRoute
   '/app/perfil': typeof AppPerfilRoute
   '/app/progreso': typeof AppProgresoRoute
   '/app/reservar': typeof AppReservarRoute
@@ -324,6 +332,7 @@ export interface FileRoutesById {
   '/app/chat': typeof AppChatRoute
   '/app/comidas': typeof AppComidasRoute
   '/app/material': typeof AppMaterialRoute
+  '/app/pagos': typeof AppPagosRoute
   '/app/perfil': typeof AppPerfilRoute
   '/app/progreso': typeof AppProgresoRoute
   '/app/reservar': typeof AppReservarRoute
@@ -365,6 +374,7 @@ export interface FileRouteTypes {
     | '/app/chat'
     | '/app/comidas'
     | '/app/material'
+    | '/app/pagos'
     | '/app/perfil'
     | '/app/progreso'
     | '/app/reservar'
@@ -402,6 +412,7 @@ export interface FileRouteTypes {
     | '/app/chat'
     | '/app/comidas'
     | '/app/material'
+    | '/app/pagos'
     | '/app/perfil'
     | '/app/progreso'
     | '/app/reservar'
@@ -440,6 +451,7 @@ export interface FileRouteTypes {
     | '/app/chat'
     | '/app/comidas'
     | '/app/material'
+    | '/app/pagos'
     | '/app/perfil'
     | '/app/progreso'
     | '/app/reservar'
@@ -576,6 +588,13 @@ declare module '@tanstack/react-router' {
       path: '/material'
       fullPath: '/app/material'
       preLoaderRoute: typeof AppMaterialRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/pagos': {
+      id: '/app/pagos'
+      path: '/pagos'
+      fullPath: '/app/pagos'
+      preLoaderRoute: typeof AppPagosRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/perfil': {
@@ -747,6 +766,7 @@ interface AppRouteChildren {
   AppChatRoute: typeof AppChatRoute
   AppComidasRoute: typeof AppComidasRoute
   AppMaterialRoute: typeof AppMaterialRoute
+  AppPagosRoute: typeof AppPagosRoute
   AppPerfilRoute: typeof AppPerfilRoute
   AppProgresoRoute: typeof AppProgresoRoute
   AppReservarRoute: typeof AppReservarRoute
@@ -762,6 +782,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppChatRoute: AppChatRoute,
   AppComidasRoute: AppComidasRoute,
   AppMaterialRoute: AppMaterialRoute,
+  AppPagosRoute: AppPagosRoute,
   AppPerfilRoute: AppPerfilRoute,
   AppProgresoRoute: AppProgresoRoute,
   AppReservarRoute: AppReservarRoute,

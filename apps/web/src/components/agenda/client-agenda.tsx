@@ -6,6 +6,7 @@ import { Button, buttonClass } from "../ui/button";
 import { ListView } from "./calendar";
 import { AppointmentPanel, type AppointmentDraft } from "./appointment-panel";
 import { ClientPacks } from "./client-packs";
+import { ClientPayments } from "../payments/client-payments";
 import { WorkoutPanel } from "../training/workout-panel";
 import { appointmentsQuery } from "../../lib/agenda";
 import { clientWorkoutsQuery } from "../../lib/training";
@@ -24,6 +25,7 @@ export function ClientAgenda({ client }: { client: Client }) {
   return (
     <div>
       <ClientPacks client={client} />
+      <ClientPayments client={client} />
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-ink-2">Próximas cuatro semanas.</p>
         <div className="flex gap-2">

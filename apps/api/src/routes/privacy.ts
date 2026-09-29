@@ -5,7 +5,7 @@ import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { Ok } from "@coach/shared";
 import type { DB } from "../db/client";
-import { appointments, bodyMetrics, checkinResponses, clientProfiles, metricDefs, metricValues, progressPhotos, questionnaires, sessionPacks, mealChecks, mealPlans, media, messages, users, workouts } from "../db/schema";
+import { appointments, bodyMetrics, checkinResponses, clientProfiles, metricDefs, metricValues, progressPhotos, questionnaires, sessionPacks, payments, mealChecks, mealPlans, media, messages, users, workouts } from "../db/schema";
 import { audit } from "../lib/audit";
 import { HttpError, notFound } from "../lib/errors";
 import { verifyPassword } from "../lib/passwords";
@@ -36,6 +36,7 @@ export function registerPrivacy(app: FastifyInstance, { db, cfg }: Ctx) {
       entrenos: await db.select({ fecha: workouts.date, titulo: workouts.title, indicaciones: workouts.coachNotes, prescripcion: workouts.blocks, registro: workouts.log, estado: workouts.status, esfuerzo: workouts.sessionRpe, comentario: workouts.clientComment, terminadoEl: workouts.completedAt }).from(workouts).where(eq(workouts.clientId, clientId)).orderBy(asc(workouts.date)),
       planesDeComidas: await db.select({ nombre: mealPlans.name, notas: mealPlans.notes, objetivos: mealPlans.targets, dias: mealPlans.days, activo: mealPlans.active, creadoEl: mealPlans.createdAt }).from(mealPlans).where(eq(mealPlans.clientId, clientId)),
       comidasMarcadas: await db.select({ fecha: mealChecks.date, comida: mealChecks.mealId, hecha: mealChecks.done, nota: mealChecks.note }).from(mealChecks).where(eq(mealChecks.clientId, clientId)).orderBy(asc(mealChecks.date)),
+      pagos: await db.select({ concepto: payments.description, importeCentimos: payments.amountCents, estado: payments.status, creadoEl: payments.createdAt, pagadoEl: payments.paidAt }).from(payments).where(eq(payments.clientId, clientId)),
       bonos: await db.select({ nombre: sessionPacks.name, sesiones: sessionPacks.total, caduca: sessionPacks.expires, precio: sessionPacks.price, pagado: sessionPacks.paid, creadoEl: sessionPacks.createdAt }).from(sessionPacks).where(eq(sessionPacks.clientId, clientId)),
       citas: await db.select({ tipo: appointments.kind, titulo: appointments.title, empieza: appointments.startsAt, termina: appointments.endsAt, lugar: appointments.location, asistencia: appointments.status }).from(appointments).where(eq(appointments.clientId, clientId)).orderBy(asc(appointments.startsAt)),
       cuestionariosDeSalud: await db.select({ enviadoEl: questionnaires.submittedAt, respuestas: questionnaires.answers, alertas: questionnaires.alerts, revisadoEl: questionnaires.reviewedAt }).from(questionnaires).where(eq(questionnaires.clientId, clientId)),

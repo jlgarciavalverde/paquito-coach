@@ -30,6 +30,11 @@ export interface AppConfig {
   geminiEmbedModel: string;
   /** Límite propio de peticiones a la IA por estudio y día (el plan gratuito también tiene los suyos). */
   aiDailyLimit: number;
+  /** Cobros (Stripe). Sin clave, los cobros están desactivados. */
+  stripeSecretKey?: string;
+  stripeWebhookSecret?: string;
+  /** Pasarela simulada (e2e): sin Stripe real y con POST /api/v1/stripe/simulate. */
+  paymentsFake?: boolean;
   /** Respuestas de ejemplo fijas en lugar de la IA real (demo y e2e). */
   aiFake?: boolean;
   /** Instancia de demostración pública (base de datos propia, se re-siembra cada noche). */
@@ -63,5 +68,8 @@ export function configFromEnv(env = process.env): AppConfig {
     geminiEmbedModel: env.GEMINI_EMBED_MODEL || "gemini-embedding-001",
     aiDailyLimit: Number(env.AI_DAILY_LIMIT ?? 150),
     aiFake: env.AI_FAKE === "1",
+    stripeSecretKey: env.STRIPE_SECRET_KEY || undefined,
+    stripeWebhookSecret: env.STRIPE_WEBHOOK_SECRET || undefined,
+    paymentsFake: env.PAYMENTS_FAKE === "1",
   };
 }

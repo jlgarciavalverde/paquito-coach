@@ -32,6 +32,7 @@ export default defineConfig({
       GLOBAL_RATE_LIMIT: "5000",
       LOG_LEVEL: "warn",
       AI_FAKE: "1",
+      PAYMENTS_FAKE: "1",
     },
   },
 });

@@ -16,12 +16,12 @@ import {
   serializerCompiler,
   validatorCompiler,
 } from "fastify-type-provider-zod";
-import { ZodError } from "zod";
+import { ZodError, z } from "zod";
 import { sql } from "drizzle-orm";
 import { BRAND } from "@coach/shared";
 import type { AppConfig } from "./config";
 import { createDb, runMigrations, type DB } from "./db/client";
-import { HttpError } from "./lib/errors";
+import { HttpError, notFound } from "./lib/errors";
 import { authenticate, cookieName } from "./lib/session";
 import { registerAuth } from "./routes/auth";
 import { registerClients } from "./routes/clients";
@@ -44,6 +44,8 @@ import { registerLibrary } from "./routes/library";
 import { registerAi } from "./routes/ai";
 import { createGemini } from "./lib/ai/gemini";
 import { createCannedAi } from "./lib/ai/canned";
+import { registerPayments } from "./routes/payments";
+import { createFakeGateway, createStripeGateway, type PaymentGateway } from "./lib/stripe";
 import type { AiProvider } from "./lib/ai/provider";
 import { Hub } from "./lib/realtime";
 import { createPushSender, type PushSender } from "./lib/push";
@@ -54,7 +56,7 @@ export type App = FastifyInstance & { db: DB; push: PushSender };
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
-export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: AiProvider | null } = {}): Promise<App> {
+export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: AiProvider | null; gateway?: PaymentGateway | null } = {}): Promise<App> {
   const { db, sql: pg } = createDb(cfg.databaseUrl);
   await runMigrations(db);
   if (cfg.seedExercises !== false) await seedExercises(db);
@@ -69,6 +71,14 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
         : cfg.geminiApiKey
           ? createGemini({ apiKey: cfg.geminiApiKey, model: cfg.geminiModel, embedModel: cfg.geminiEmbedModel })
           : null;
+  // Cobros: Stripe con claves; simulado en e2e; nunca en la demo.
+  const fakeGateway = cfg.paymentsFake && !cfg.demoMode ? createFakeGateway() : null;
+  const gateway =
+    opts.gateway !== undefined
+      ? opts.gateway
+      : cfg.demoMode
+        ? null
+        : (fakeGateway ?? (cfg.stripeSecretKey && cfg.stripeWebhookSecret ? createStripeGateway({ secretKey: cfg.stripeSecretKey, webhookSecret: cfg.stripeWebhookSecret }) : null));
   const push = opts.push ?? createPushSender(db, { publicKey: cfg.vapidPublicKey, privateKey: cfg.vapidPrivateKey, subject: cfg.vapidSubject ?? "mailto:admin@example.com" });
 
   const app = Fastify({
@@ -159,6 +169,8 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
   app.addHook("onRequest", async (req, reply) => {
     if (SAFE_METHODS.has(req.method)) return;
     if (req.url.startsWith("/ws")) return;
+    // Stripe no manda Origin: el webhook se autentica con su firma.
+    if (req.url.startsWith("/api/v1/stripe/webhook")) return;
     const origin = req.headers.origin;
     if (!origin || !cfg.allowedOrigins.includes(origin)) {
       return reply.code(403).send({ error: "bad_origin", message: "Origen no permitido" });
@@ -211,6 +223,18 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
       registerBooking(api, ctx, { push });
       registerLibrary(api, ctx);
       registerAi(api, ctx, { ai });
+      registerPayments(api, ctx, { gateway, push });
+      if (fakeGateway) {
+        // Solo e2e: simula que Stripe confirma el pago de un checkout (evento firmado que entra por el webhook real).
+        api.post("/stripe/simulate", async (req) => {
+          const { checkoutId } = z.object({ checkoutId: z.string() }).parse(req.body);
+          const c = fakeGateway.checkouts.find((x) => x.id === checkoutId);
+          if (!c) throw notFound("Pago");
+          const payload = JSON.stringify({ id: `evt_${checkoutId}`, object: "event", type: "checkout.session.completed", data: { object: { id: c.id, object: "checkout.session", amount_total: c.amountCents, currency: "eur", payment_status: "paid", payment_intent: `pi_${checkoutId}`, metadata: c.metadata } } });
+          const r = await api.inject({ method: "POST", url: "/api/v1/stripe/webhook", payload, headers: { "content-type": "application/json", "stripe-signature": fakeGateway.sign(payload) } });
+          return { status: r.statusCode };
+        });
+      }
       registerChat(api, ctx, { hub, push, mediaDir: join(cfg.dataDir, "media"), vapidPublicKey: cfg.vapidPublicKey });
     },
     { prefix: "/api/v1" },

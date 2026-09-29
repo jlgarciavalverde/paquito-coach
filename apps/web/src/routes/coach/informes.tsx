@@ -41,6 +41,9 @@ function Reports() {
                 <p key={l}>{l}</p>
               ))}
             </div>
+            <a href="/api/v1/payments.csv" download className="mt-3 inline-block text-sm font-medium text-primary hover:underline">
+              Descargar los cobros de la app (CSV para tu gestor)
+            </a>
           </section>
           <section aria-labelledby="adh-title">
             <BlockTitle id="adh-title">Cumplimiento semanal</BlockTitle>

@@ -1,6 +1,14 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [1.9.0] — 2026-09-29 · Cobros con Stripe
+### Añadido
+- **Tarifas** (Ajustes → Cobros): bonos (sesiones y días de validez), sesión suelta y cuota mensual (esta, preparada para la próxima versión).
+- **El cliente paga desde su app** (Perfil → Pagos): compra un bono o una sesión en la página segura de Stripe (tarjeta, Apple Pay, Google Pay) y el bono se le activa solo al confirmarse el pago; historial con recibos.
+- **Enlaces de pago** desde la ficha (Agenda → Cobros): con una tarifa o con concepto e importe libres, listos para WhatsApp o para el chat de la app; enlace nuevo si caduca.
+- Aviso al entrenador con cada pago; los cobros entran en Informes y se descargan en CSV para el gestor. Devoluciones hechas en Stripe se reflejan solas.
+- Seguridad: el importe lo pone el servidor, el pago solo cuenta con el webhook firmado por Stripe, eventos idempotentes, clave restringida (ADR 0013). Guía paso a paso en OPERACIONES.
+
 ## [1.8.0] — 2026-09-29 · IA con los documentos de Paquito
 ### Añadido
 - **IA** (nueva sección, ⌘K y `g x`): Paquito sube sus documentos (PDF, Word o texto: metodología, pautas, tablas) y genera **rutinas, programas de varias semanas y planes de comidas** basados en ellos, además de **preguntar a sus documentos** con las fuentes citadas.

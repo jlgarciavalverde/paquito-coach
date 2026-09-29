@@ -71,6 +71,8 @@ export const clientProfiles = pgTable(
     status: clientStatusEnum("status").notNull(),
     /** El entrenador ha pedido que vuelva a rellenar el cuestionario de salud. */
     questionnaireRequestedAt: ts("questionnaire_requested_at"),
+    /** Cliente en Stripe (se crea al primer cobro). */
+    stripeCustomerId: text("stripe_customer_id"),
     createdAt: createdAt(),
     updatedAt: ts("updated_at").notNull().defaultNow(),
   },
@@ -561,3 +563,50 @@ export const aiUsage = pgTable(
   },
   (t) => [index("ai_usage_studio_idx").on(t.studioId, t.createdAt)],
 );
+
+// ── C1: cobros con Stripe ──────────────────────────────────────────────────────
+
+/** Tarifas del estudio (importes en céntimos). */
+export const prices = pgTable("prices", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  kind: text("kind").$type<"pack" | "session" | "subscription">().notNull(),
+  amountCents: integer("amount_cents").notNull(),
+  sessions: integer("sessions"),
+  validDays: integer("valid_days"),
+  active: boolean("active").notNull().default(true),
+  createdAt: createdAt(),
+});
+
+/** Cada cobro. El importe lo fija el servidor; Stripe confirma por webhook. */
+export const payments = pgTable(
+  "payments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id").notNull().references(() => clientProfiles.id, { onDelete: "cascade" }),
+    priceId: uuid("price_id").references(() => prices.id, { onDelete: "set null" }),
+    kind: text("kind").$type<"pack" | "session" | "link" | "subscription">().notNull(),
+    description: text("description").notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    status: text("status").$type<"pending" | "paid" | "failed" | "refunded" | "expired">().notNull().default("pending"),
+    checkoutId: text("checkout_id"),
+    checkoutUrl: text("checkout_url"),
+    checkoutExpiresAt: ts("checkout_expires_at"),
+    paymentIntentId: text("payment_intent_id"),
+    receiptUrl: text("receipt_url"),
+    packId: uuid("pack_id").references(() => sessionPacks.id, { onDelete: "set null" }),
+    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+    paidAt: ts("paid_at"),
+  },
+  (t) => [index("payments_studio_idx").on(t.studioId, t.createdAt), index("payments_client_idx").on(t.clientId), uniqueIndex("payments_checkout_uq").on(t.checkoutId)],
+);
+
+/** Eventos de Stripe ya procesados (los webhooks pueden repetirse). */
+export const stripeEvents = pgTable("stripe_events", {
+  id: text("id").primaryKey(),
+  type: text("type").notNull(),
+  receivedAt: ts("received_at").notNull().defaultNow(),
+});
