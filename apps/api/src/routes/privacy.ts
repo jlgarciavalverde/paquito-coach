@@ -5,7 +5,7 @@ import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { Ok } from "@coach/shared";
 import type { DB } from "../db/client";
-import { appointments, clientProfiles, mealChecks, mealPlans, media, messages, users, workouts } from "../db/schema";
+import { appointments, bodyMetrics, clientProfiles, mealChecks, mealPlans, media, messages, users, workouts } from "../db/schema";
 import { audit } from "../lib/audit";
 import { HttpError, notFound } from "../lib/errors";
 import { verifyPassword } from "../lib/passwords";
@@ -37,6 +37,7 @@ export function registerPrivacy(app: FastifyInstance, { db, cfg }: Ctx) {
       planesDeComidas: await db.select({ nombre: mealPlans.name, notas: mealPlans.notes, objetivos: mealPlans.targets, dias: mealPlans.days, activo: mealPlans.active, creadoEl: mealPlans.createdAt }).from(mealPlans).where(eq(mealPlans.clientId, clientId)),
       comidasMarcadas: await db.select({ fecha: mealChecks.date, comida: mealChecks.mealId, hecha: mealChecks.done, nota: mealChecks.note }).from(mealChecks).where(eq(mealChecks.clientId, clientId)).orderBy(asc(mealChecks.date)),
       citas: await db.select({ tipo: appointments.kind, titulo: appointments.title, empieza: appointments.startsAt, termina: appointments.endsAt, lugar: appointments.location }).from(appointments).where(eq(appointments.clientId, clientId)).orderBy(asc(appointments.startsAt)),
+      pesoYMedidas: await db.select({ fecha: bodyMetrics.date, pesoKg: bodyMetrics.weightKg, cinturaCm: bodyMetrics.waistCm, caderaCm: bodyMetrics.hipCm, grasaPct: bodyMetrics.bodyFatPct, nota: bodyMetrics.note }).from(bodyMetrics).where(eq(bodyMetrics.clientId, clientId)).orderBy(asc(bodyMetrics.date)),
       mensajes: await db.select({ fecha: messages.createdAt, delEntrenador: messages.fromCoach, texto: messages.body, foto: messages.mediaId }).from(messages).where(eq(messages.clientId, clientId)).orderBy(asc(messages.createdAt)),
     };
   }

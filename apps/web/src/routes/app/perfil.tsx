@@ -32,6 +32,13 @@ function Profile() {
         </div>
       </div>
       <div className="flex flex-col gap-12">
+        <section>
+          <BlockTitle>Peso y progreso</BlockTitle>
+          <p className="text-sm text-ink-2">Anota tu peso y tus medidas y mira cómo evolucionan tus cargas.</p>
+          <Link to="/app/progreso" className={buttonClass("secondary", "md", "mt-3")}>
+            Ir a mi progreso
+          </Link>
+        </section>
         <PushSetting />
         <ThemeSetting />
         <PasswordSetting />

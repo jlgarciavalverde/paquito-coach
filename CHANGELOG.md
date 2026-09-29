@@ -1,6 +1,13 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [0.7.0] — 2026-09-29
+### Añadido
+- **Progreso**: peso, cintura, cadera y % de grasa con gráficas (el cliente y el entrenador pueden anotarlos); cargas por ejercicio con 1RM estimado y mejor serie de cada sesión, calculadas de lo que el cliente registra; tabla con los datos de cada gráfica.
+- Pestaña «Progreso» en la ficha y pantalla «Progreso» del cliente (desde Entreno y Perfil).
+- «Hoy» del entrenador marca los **récords** (mejor 1RM estimado del cliente en un ejercicio).
+- La copia de datos (RGPD) incluye peso y medidas.
+
 ## [0.6.0] — 2026-09-29 · MVP completo
 ### Añadido
 - **Protección de datos (RGPD)**: el cliente descarga todos sus datos en JSON y puede borrar su cuenta (con su contraseña); el entrenador exporta los datos de un cliente y lo borra definitivamente (solo archivados, escribiendo su nombre), fotos incluidas. Aviso de privacidad en `/privacidad`, enlazado desde el registro y el perfil.

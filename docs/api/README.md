@@ -16,7 +16,7 @@
 | 410 `invite_used`, `invite_invalid`, `reset_invalid` | enlace caducado o usado |
 | 429 `rate_limited`, `locked` | límite por IP o bloqueo por cuenta |
 
-## Endpoints (v0.6)
+## Endpoints (v0.7)
 | Método | Ruta | Quién | Qué |
 |---|---|---|---|
 | GET | `/auth/setup-status` | público | ¿falta el alta inicial? |
@@ -62,4 +62,8 @@
 | WS | `/ws` | con sesión + Origin permitido | eventos `message.new`, `message.read`, `workout.completed` |
 | GET · POST | `/me/export` · `/me/delete` (`password`) | cliente | RGPD: copia JSON · borrar cuenta y datos |
 | GET · POST | `/clients/:id/export` · `/clients/:id/delete` (`confirmName`, solo archivados) | entrenador | RGPD de un cliente |
+| GET · PUT | `/clients/:id/metrics` · DELETE `/clients/:id/metrics/:date` | entrenador | peso y medidas (una fila por día) |
+| GET · PUT | `/me/metrics` | cliente activo | mis medidas |
+| GET | `/clients/:id/progress/exercises` · `/clients/:id/progress?exerciseId=` | entrenador | resumen por ejercicio · serie de sesiones (e1RM Epley) |
+| GET | `/me/progress/exercises` · `/me/progress?exerciseId=` | cliente activo | lo mismo, propio |
 | GET | `/health` | público | versión, uptime, BD |

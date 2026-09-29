@@ -137,6 +137,12 @@ function CoachToday() {
                           <strong className="font-medium">{a.clientName}</strong> {a.status === "skipped" ? "no hizo" : "terminó"} {a.title}
                           {a.sessionRpe ? `, esfuerzo ${a.sessionRpe}/10` : ""}
                         </span>
+                        {a.records.length > 0 && (
+                          <span className="mt-1 flex items-center gap-2 text-[13px] text-ink">
+                            <span className="h-3.5 w-[5px] rounded-[1.5px] bg-plate-yellow" aria-hidden="true" />
+                            Récord en {a.records.join(", ")}
+                          </span>
+                        )}
                         {a.clientComment && <span className="mt-0.5 block text-ink-2">«{a.clientComment}»</span>}
                         <span className="mt-0.5 block text-[13px] text-ink-3">
                           {relativeTime(a.completedAt)}, entreno del {dayShort(a.date)}

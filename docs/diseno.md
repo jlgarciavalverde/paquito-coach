@@ -66,6 +66,7 @@ Radios: 6 px controles y objetos, 12 px bandejas y hojas. Sombra solo en lo que 
 | Pestañas | `Tabs` |
 | Vacío | `EmptyNote` (una frase + la acción, sin icono decorativo) |
 | Aviso de lesión/limitación | `HealthAlert` |
+| Gráfica de evolución | `LineChart` (`components/progress/line-chart.tsx`): tokens `--chart-1/--chart-2` validados con la skill dataviz, un solo eje, marcador círculo/cuadrado, tabla alternativa |
 | Cargando | `Skeleton`, `Spinner` |
 | Confirmación breve | `useToast()` |
 

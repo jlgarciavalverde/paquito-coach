@@ -21,7 +21,7 @@ export const myWorkoutsQuery = (from: string, to: string) =>
   queryOptions({ queryKey: ["workouts", "me", from, to], queryFn: () => api<Workout[]>(`/me/workouts?from=${from}&to=${to}`) });
 export const workoutQuery = (id: string) => queryOptions({ queryKey: ["workout", id], queryFn: () => api<Workout>(`/workouts/${id}`) });
 // Lo que cambia por acción de otra persona (clientes) se vuelve a pedir siempre al abrir la pantalla.
-export const activityQuery = queryOptions({ queryKey: ["activity"], queryFn: () => api<(ActivityItem & { unseen: boolean })[]>("/activity"), staleTime: 0, refetchInterval: 60_000 });
+export const activityQuery = queryOptions({ queryKey: ["activity"], queryFn: () => api<(ActivityItem & { unseen: boolean; records: string[] })[]>("/activity"), staleTime: 0, refetchInterval: 60_000 });
 export const studioWorkoutsQuery = (from: string, to: string) =>
   queryOptions({ queryKey: ["workouts", "studio", from, to], queryFn: () => api<Workout[]>(`/workouts?from=${from}&to=${to}`), staleTime: 0 });
 export const todayWorkoutsQuery = (date: string) => queryOptions({ queryKey: ["workouts", "today", date], queryFn: () => api<Workout[]>(`/today/workouts?date=${date}`), staleTime: 0 });

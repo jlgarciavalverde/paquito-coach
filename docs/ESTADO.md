@@ -4,7 +4,7 @@
 > Formato: fecha · quién (modelo/herramienta) · qué. Lo más reciente arriba.
 
 ## Ahora mismo
-- **Versión**: 0.6.0 — **MVP completo** (F0–F6) **desplegado en joseluis-vps** (`~/servicios/coach`: `coach`, `coach-db`, `coach-backup`; volumen `data/` para fotos; claves VAPID en `.env`).
+- **Versión**: 0.7.0 (F7 Progreso) **desplegada en joseluis-vps**. MVP (F0–F6) completo; tanda post-MVP F7–F10 en curso (plan en `~/.claude/plans/mighty-splashing-widget.md`).
 - **Aún no es pública**: falta la ruta en Cloudflare (bloqueo 3). Después, alta inicial en `/instalar` con el `SETUP_CODE` del `.env` del VPS.
 - **Siguiente tarea**: que Paquito lo use (bloqueos 3–5). Después, lo que pida tras probarlo (ideas en «Después del MVP»).
 - **Plan aprobado**: `~/.claude/plans/mighty-splashing-widget.md` (resumen en `docs/producto/mvp.md`).
@@ -19,6 +19,10 @@
 | F3 | Nutrición: plantillas, plan activo por cliente (igual todos los días o por día), objetivos kcal/macros, alternativas, el cliente marca comidas, cumplimiento 7 días en la ficha | ✅ hecho |
 | F4 | Agenda: citas (con o sin cliente), calendario propio semana/mes/lista con capas (citas, entrenos, comidas por cliente), arrastrar para mover, crear pulsando un hueco; agenda del cliente; citas en «Hoy» | ✅ hecho |
 | F5 | Mensajes: chat en tiempo real (WebSocket con comprobación de Origin), fotos (tipo real por bytes, acceso solo de participantes), no leídos y «visto», avisos push VAPID, app instalable (manifest + sw) | ✅ hecho |
+| F7 | Progreso: peso y medidas (gráficas), cargas por ejercicio con 1RM estimado (Epley) calculadas de los registros, récords en «Hoy» | ✅ hecho |
+| F8 | Anamnesis y PAR-Q con alertas | ⏳ siguiente |
+| F9 | Entorno demo separado que se re-siembra cada noche | pendiente |
+| F10 | Copias fuera del VPS + simulacro de restauración, monitor, recordatorios push → v1.0.0 | pendiente |
 | F6 | RGPD (exportar/borrar, aviso de privacidad), revisión de seguridad, recuperación de la cuenta del entrenador, primeros pasos, títulos, guardarraíl de diseño | ✅ hecho |
 
 ## Bloqueos (necesitan al humano)
@@ -48,6 +52,7 @@ claude mcp add shadcn -- npx -y shadcn@latest mcp
 - Imagen de producción probada en local: `/health` ok, CSP/HSTS, `/api/docs` 404, POST sin Origin → 403, backup diario escrito.
 
 ## Historial
+- **2026-09-29 · Claude (Opus 5.5)** · F7 Progreso: `lib/progress.ts` (carga desde texto libre, Epley, series por ejercicio, sin tabla nueva), `routes/progress.ts`, tabla `body_metrics`, gráfica SVG propia `components/progress/line-chart.tsx` (paleta validada con la skill dataviz: tokens `--chart-1/2/grid`, un eje, marcador círculo/cuadrado como segunda codificación, tabla alternativa), pestaña «Progreso» y `/app/progreso`, récords en la actividad. API 70 tests, e2e 27/27.
 - **2026-09-29 · Claude (Opus 5.5)** · F6: `routes/privacy.ts` (exportar/borrar), `/privacidad`, `reset-link.js`, copia de fotos, primeros pasos, títulos, `design.test.ts`. Revisión visual completa (escritorio claro y móvil oscuro, sin errores de consola). API 53 tests, web 15, e2e 26/26. `pnpm audit --prod` limpio.
 - **2026-09-29 · Claude (Opus 5.5)** · F5 Mensajes: `routes/chat.ts`, `lib/realtime.ts` (Hub), `lib/push.ts`, `lib/sniff.ts`; web `components/chat/thread.tsx`, bandeja `/coach/chat`, `/app/chat`, `public/sw.js`, manifest e iconos. Trampa: la hora de «leído» la pone Postgres (reloj de la VM distinto del Mac). Producción: volumen `./data` para fotos, claves VAPID generadas por `tools/deploy.mjs` en el VPS. Remote Control preparado (`.claude/settings.json`). API 49 tests, e2e 24/24.
 - **2026-09-29 · Claude (Opus 5.5)** · F4 Agenda: `routes/agenda.ts` (citas por solapamiento de rango, máx. 2 meses; el cliente no recibe las notas internas), calendario propio con @dnd-kit (`components/agenda/calendar.tsx`, botón arrastrable único para no anidar controles), movimientos optimistas. Corregidos desbordamientos horizontales en móvil (rejillas sin `min-w-0`) y añadido e2e que lo vigila. API 43 tests, e2e 20/20.

@@ -18,6 +18,7 @@ import { ShareInvite } from "../../../components/clients/share-invite";
 import { ClientTraining } from "../../../components/training/client-training";
 import { ClientNutrition } from "../../../components/nutrition/client-nutrition";
 import { ClientAgenda } from "../../../components/agenda/client-agenda";
+import { ClientProgress } from "../../../components/progress/client-progress";
 import { clientQuery, useClientAction, useInvite, useResetLink, useUpdateClient } from "../../../lib/queries";
 import { useMe } from "../../../lib/auth";
 import { age, fmtDate } from "../../../lib/format";
@@ -64,6 +65,7 @@ function ClientPage() {
         onValueChange={setTab}
         items={[
           { value: "entreno", label: "Entreno" },
+          { value: "progreso", label: "Progreso" },
           { value: "ficha", label: "Ficha" },
           { value: "nutricion", label: "Nutrición" },
           { value: "agenda", label: "Agenda" },
@@ -72,6 +74,9 @@ function ClientPage() {
       >
         <TabPanel value="entreno">
           <ClientTraining client={c} />
+        </TabPanel>
+        <TabPanel value="progreso">
+          <ClientProgress who={c.id} name={c.name} />
         </TabPanel>
         <TabPanel value="ficha">
           <ClientForm client={c} />

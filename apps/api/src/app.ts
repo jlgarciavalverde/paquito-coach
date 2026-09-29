@@ -33,6 +33,7 @@ import { registerNutrition } from "./routes/nutrition";
 import { registerAgenda } from "./routes/agenda";
 import { registerChat } from "./routes/chat";
 import { registerPrivacy } from "./routes/privacy";
+import { registerProgress } from "./routes/progress";
 import { Hub } from "./lib/realtime";
 import { createPushSender, type PushSender } from "./lib/push";
 import { seedExercises } from "./db/seed";
@@ -168,6 +169,7 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender } = {})
       registerNutrition(api, ctx);
       registerAgenda(api, ctx);
       registerPrivacy(api, ctx);
+      registerProgress(api, ctx);
       registerChat(api, ctx, { hub, push, mediaDir: join(cfg.dataDir, "media"), vapidPublicKey: cfg.vapidPublicKey });
     },
     { prefix: "/api/v1" },

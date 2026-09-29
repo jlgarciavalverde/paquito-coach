@@ -5669,6 +5669,12 @@
                       },
                       "unseen": {
                         "type": "boolean"
+                      },
+                      "records": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
                       }
                     },
                     "required": [
@@ -5681,7 +5687,8 @@
                       "sessionRpe",
                       "clientComment",
                       "completedAt",
-                      "unseen"
+                      "unseen",
+                      "records"
                     ],
                     "additionalProperties": false
                   }
@@ -8661,6 +8668,674 @@
                     "ok"
                   ],
                   "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/clients/{id}/metrics": {
+      "get": {
+        "tags": [
+          "progreso"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "date": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "weightKg": {
+                        "nullable": true,
+                        "type": "number"
+                      },
+                      "waistCm": {
+                        "nullable": true,
+                        "type": "number"
+                      },
+                      "hipCm": {
+                        "nullable": true,
+                        "type": "number"
+                      },
+                      "bodyFatPct": {
+                        "nullable": true,
+                        "type": "number"
+                      },
+                      "note": {
+                        "nullable": true,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "date",
+                      "weightKg",
+                      "waistCm",
+                      "hipCm",
+                      "bodyFatPct",
+                      "note"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "progreso"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "weightKg": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "number",
+                    "minimum": 20,
+                    "maximum": 400
+                  },
+                  "waistCm": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "number",
+                    "minimum": 30,
+                    "maximum": 250
+                  },
+                  "hipCm": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "number",
+                    "minimum": 30,
+                    "maximum": 250
+                  },
+                  "bodyFatPct": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "number",
+                    "minimum": 2,
+                    "maximum": 70
+                  },
+                  "note": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 300
+                  }
+                },
+                "required": [
+                  "date"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "date": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    },
+                    "weightKg": {
+                      "nullable": true,
+                      "type": "number"
+                    },
+                    "waistCm": {
+                      "nullable": true,
+                      "type": "number"
+                    },
+                    "hipCm": {
+                      "nullable": true,
+                      "type": "number"
+                    },
+                    "bodyFatPct": {
+                      "nullable": true,
+                      "type": "number"
+                    },
+                    "note": {
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "date",
+                    "weightKg",
+                    "waistCm",
+                    "hipCm",
+                    "bodyFatPct",
+                    "note"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/clients/{id}/metrics/{date}": {
+      "delete": {
+        "tags": [
+          "progreso"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "in": "path",
+            "name": "date",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/clients/{id}/progress/exercises": {
+      "get": {
+        "tags": [
+          "progreso"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "exerciseId": {
+                        "type": "string"
+                      },
+                      "exerciseName": {
+                        "type": "string"
+                      },
+                      "sessions": {
+                        "type": "number"
+                      },
+                      "lastDate": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "bestE1rm": {
+                        "nullable": true,
+                        "type": "number"
+                      },
+                      "lastE1rm": {
+                        "nullable": true,
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "exerciseId",
+                      "exerciseName",
+                      "sessions",
+                      "lastDate",
+                      "bestE1rm",
+                      "lastE1rm"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/clients/{id}/progress": {
+      "get": {
+        "tags": [
+          "progreso"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "query",
+            "name": "exerciseId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "date": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "workoutId": {
+                        "type": "string"
+                      },
+                      "bestLoadKg": {
+                        "type": "number"
+                      },
+                      "reps": {
+                        "type": "number"
+                      },
+                      "e1rm": {
+                        "nullable": true,
+                        "type": "number"
+                      },
+                      "sets": {
+                        "type": "number"
+                      },
+                      "volumeKg": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "date",
+                      "workoutId",
+                      "bestLoadKg",
+                      "reps",
+                      "e1rm",
+                      "sets",
+                      "volumeKg"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/metrics": {
+      "get": {
+        "tags": [
+          "progreso"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "date": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "weightKg": {
+                        "nullable": true,
+                        "type": "number"
+                      },
+                      "waistCm": {
+                        "nullable": true,
+                        "type": "number"
+                      },
+                      "hipCm": {
+                        "nullable": true,
+                        "type": "number"
+                      },
+                      "bodyFatPct": {
+                        "nullable": true,
+                        "type": "number"
+                      },
+                      "note": {
+                        "nullable": true,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "date",
+                      "weightKg",
+                      "waistCm",
+                      "hipCm",
+                      "bodyFatPct",
+                      "note"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "progreso"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "weightKg": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "number",
+                    "minimum": 20,
+                    "maximum": 400
+                  },
+                  "waistCm": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "number",
+                    "minimum": 30,
+                    "maximum": 250
+                  },
+                  "hipCm": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "number",
+                    "minimum": 30,
+                    "maximum": 250
+                  },
+                  "bodyFatPct": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "number",
+                    "minimum": 2,
+                    "maximum": 70
+                  },
+                  "note": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 300
+                  }
+                },
+                "required": [
+                  "date"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "date": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    },
+                    "weightKg": {
+                      "nullable": true,
+                      "type": "number"
+                    },
+                    "waistCm": {
+                      "nullable": true,
+                      "type": "number"
+                    },
+                    "hipCm": {
+                      "nullable": true,
+                      "type": "number"
+                    },
+                    "bodyFatPct": {
+                      "nullable": true,
+                      "type": "number"
+                    },
+                    "note": {
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "date",
+                    "weightKg",
+                    "waistCm",
+                    "hipCm",
+                    "bodyFatPct",
+                    "note"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/progress/exercises": {
+      "get": {
+        "tags": [
+          "progreso"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "exerciseId": {
+                        "type": "string"
+                      },
+                      "exerciseName": {
+                        "type": "string"
+                      },
+                      "sessions": {
+                        "type": "number"
+                      },
+                      "lastDate": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "bestE1rm": {
+                        "nullable": true,
+                        "type": "number"
+                      },
+                      "lastE1rm": {
+                        "nullable": true,
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "exerciseId",
+                      "exerciseName",
+                      "sessions",
+                      "lastDate",
+                      "bestE1rm",
+                      "lastE1rm"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/progress": {
+      "get": {
+        "tags": [
+          "progreso"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "query",
+            "name": "exerciseId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "date": {
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      },
+                      "workoutId": {
+                        "type": "string"
+                      },
+                      "bestLoadKg": {
+                        "type": "number"
+                      },
+                      "reps": {
+                        "type": "number"
+                      },
+                      "e1rm": {
+                        "nullable": true,
+                        "type": "number"
+                      },
+                      "sets": {
+                        "type": "number"
+                      },
+                      "volumeKg": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "date",
+                      "workoutId",
+                      "bestLoadKg",
+                      "reps",
+                      "e1rm",
+                      "sets",
+                      "volumeKg"
+                    ],
+                    "additionalProperties": false
+                  }
                 }
               }
             }

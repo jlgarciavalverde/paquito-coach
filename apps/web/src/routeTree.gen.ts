@@ -23,6 +23,7 @@ import { Route as AppAgendaRouteImport } from './routes/app/agenda'
 import { Route as AppChatRouteImport } from './routes/app/chat'
 import { Route as AppComidasRouteImport } from './routes/app/comidas'
 import { Route as AppPerfilRouteImport } from './routes/app/perfil'
+import { Route as AppProgresoRouteImport } from './routes/app/progreso'
 import { Route as CoachIndexRouteImport } from './routes/coach/index'
 import { Route as CoachAjustesRouteImport } from './routes/coach/ajustes'
 import { Route as CoachCalendarioRouteImport } from './routes/coach/calendario'
@@ -107,6 +108,11 @@ const AppPerfilRoute = AppPerfilRouteImport.update({
   path: '/perfil',
   getParentRoute: () => AppRoute,
 } as any)
+const AppProgresoRoute = AppProgresoRouteImport.update({
+  id: '/progreso',
+  path: '/progreso',
+  getParentRoute: () => AppRoute,
+} as any)
 const CoachIndexRoute = CoachIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -187,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/app/chat': typeof AppChatRoute
   '/app/comidas': typeof AppComidasRoute
   '/app/perfil': typeof AppPerfilRoute
+  '/app/progreso': typeof AppProgresoRoute
   '/coach/ajustes': typeof CoachAjustesRoute
   '/coach/calendario': typeof CoachCalendarioRoute
   '/coach/chat': typeof CoachChatRoute
@@ -214,6 +221,7 @@ export interface FileRoutesByTo {
   '/app/chat': typeof AppChatRoute
   '/app/comidas': typeof AppComidasRoute
   '/app/perfil': typeof AppPerfilRoute
+  '/app/progreso': typeof AppProgresoRoute
   '/coach/ajustes': typeof CoachAjustesRoute
   '/coach/calendario': typeof CoachCalendarioRoute
   '/coach/chat': typeof CoachChatRoute
@@ -243,6 +251,7 @@ export interface FileRoutesById {
   '/app/chat': typeof AppChatRoute
   '/app/comidas': typeof AppComidasRoute
   '/app/perfil': typeof AppPerfilRoute
+  '/app/progreso': typeof AppProgresoRoute
   '/coach/ajustes': typeof CoachAjustesRoute
   '/coach/calendario': typeof CoachCalendarioRoute
   '/coach/chat': typeof CoachChatRoute
@@ -274,6 +283,7 @@ export interface FileRouteTypes {
     | '/app/chat'
     | '/app/comidas'
     | '/app/perfil'
+    | '/app/progreso'
     | '/coach/ajustes'
     | '/coach/calendario'
     | '/coach/chat'
@@ -301,6 +311,7 @@ export interface FileRouteTypes {
     | '/app/chat'
     | '/app/comidas'
     | '/app/perfil'
+    | '/app/progreso'
     | '/coach/ajustes'
     | '/coach/calendario'
     | '/coach/chat'
@@ -329,6 +340,7 @@ export interface FileRouteTypes {
     | '/app/chat'
     | '/app/comidas'
     | '/app/perfil'
+    | '/app/progreso'
     | '/coach/ajustes'
     | '/coach/calendario'
     | '/coach/chat'
@@ -457,6 +469,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPerfilRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/progreso': {
+      id: '/app/progreso'
+      path: '/progreso'
+      fullPath: '/app/progreso'
+      preLoaderRoute: typeof AppProgresoRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/coach/': {
       id: '/coach/'
       path: '/'
@@ -556,6 +575,7 @@ interface AppRouteChildren {
   AppChatRoute: typeof AppChatRoute
   AppComidasRoute: typeof AppComidasRoute
   AppPerfilRoute: typeof AppPerfilRoute
+  AppProgresoRoute: typeof AppProgresoRoute
   AppIndexRoute: typeof AppIndexRoute
   AppEntrenoWorkoutIdRoute: typeof AppEntrenoWorkoutIdRoute
   AppEntrenoIndexRoute: typeof AppEntrenoIndexRoute
@@ -566,6 +586,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppChatRoute: AppChatRoute,
   AppComidasRoute: AppComidasRoute,
   AppPerfilRoute: AppPerfilRoute,
+  AppProgresoRoute: AppProgresoRoute,
   AppIndexRoute: AppIndexRoute,
   AppEntrenoWorkoutIdRoute: AppEntrenoWorkoutIdRoute,
   AppEntrenoIndexRoute: AppEntrenoIndexRoute,

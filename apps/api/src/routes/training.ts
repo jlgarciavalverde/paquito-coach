@@ -22,6 +22,7 @@ import { clientProfiles, exercises, routines, users, workouts } from "../db/sche
 import { audit } from "../lib/audit";
 import { HttpError, notFound } from "../lib/errors";
 import { requireActiveClient, requireCoach, requireUser } from "../lib/session";
+import { progressFromWorkouts } from "../lib/progress";
 import { typed, type Ctx } from "./ctx";
 
 const IdParams = z.object({ id: z.string().uuid() });
@@ -340,7 +341,7 @@ export function registerTraining(app: FastifyInstance, { db, hub }: Ctx) {
   /** Lo último que han hecho los clientes (panel «Hoy» del entrenador). */
   api.get(
     "/activity",
-    { schema: { tags: ["entrenamiento"], querystring: z.object({ limit: z.coerce.number().int().min(1).max(50).default(12) }), response: { 200: z.array(ActivityItem.extend({ unseen: z.boolean() })) } } },
+    { schema: { tags: ["entrenamiento"], querystring: z.object({ limit: z.coerce.number().int().min(1).max(50).default(12) }), response: { 200: z.array(ActivityItem.extend({ unseen: z.boolean(), records: z.array(z.string()) })) } } },
     async (req) => {
       const u = requireCoach(req);
       const rows = await db
@@ -350,7 +351,24 @@ export function registerTraining(app: FastifyInstance, { db, hub }: Ctx) {
         .where(and(eq(workouts.studioId, u.studioId), isNotNull(workouts.completedAt)))
         .orderBy(desc(workouts.completedAt))
         .limit(req.query.limit);
+      // Récords: ejercicios en los que ese entreno alcanza el mejor 1RM estimado del cliente (con historial previo).
+      const clientIds = [...new Set(rows.map((r) => r.w.clientId))];
+      const history = clientIds.length
+        ? await db
+            .select({ id: workouts.id, clientId: workouts.clientId, date: workouts.date, blocks: workouts.blocks, log: workouts.log })
+            .from(workouts)
+            .where(and(inArray(workouts.clientId, clientIds), eq(workouts.status, "done")))
+        : [];
+      const recordsOf = new Map<string, string[]>();
+      for (const cid of clientIds) {
+        for (const { name, points } of progressFromWorkouts(history.filter((h) => h.clientId === cid)).values()) {
+          if (points.length < 2) continue;
+          const best = Math.max(...points.map((p) => p.e1rm ?? 0));
+          for (const p of points) if (best > 0 && p.e1rm === best) recordsOf.set(p.workoutId, [...(recordsOf.get(p.workoutId) ?? []), name]);
+        }
+      }
       return rows.map(({ w, name }) => ({
+        records: recordsOf.get(w.id) ?? [],
         workoutId: w.id,
         clientId: w.clientId,
         clientName: name,

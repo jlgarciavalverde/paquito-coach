@@ -29,6 +29,10 @@
   --plate-green-soft: #e0f0e5;
 
   --focus: #2447a6;
+  /* Gráficas (paleta validada con dataviz/validate_palette.js en claro y oscuro) */
+  --chart-1: #2447a6;
+  --chart-2: #2b7c46;
+  --chart-grid: #dfe6e2;
   --float-shadow: 0 1px 2px rgb(21 34 44 / 0.06), 0 18px 40px -16px rgb(21 34 44 / 0.28);
   color-scheme: light;
 }
@@ -54,6 +58,9 @@
     --plate-green: #72c790;
     --plate-green-soft: #18311f;
     --focus: #8aa6f2;
+    --chart-1: #6d8be6;
+    --chart-2: #46a36a;
+    --chart-grid: #26333c;
     --float-shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 18px 40px -16px rgb(0 0 0 / 0.6);
     color-scheme: dark;
   }
@@ -78,6 +85,9 @@
   --plate-green: #72c790;
   --plate-green-soft: #18311f;
   --focus: #8aa6f2;
+  --chart-1: #6d8be6;
+  --chart-2: #46a36a;
+  --chart-grid: #26333c;
   --float-shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 18px 40px -16px rgb(0 0 0 / 0.6);
   color-scheme: dark;
 }

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { bigserial, boolean, date, index, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { bigserial, boolean, date, index, integer, jsonb, pgEnum, pgTable, primaryKey, real, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import type { MealDay, RoutineBlock, Targets, WorkoutLog } from "@coach/shared";
 
 /**
@@ -293,3 +293,24 @@ export const pushSubscriptions = pgTable("push_subscriptions", {
   auth: text("auth").notNull(),
   createdAt: createdAt(),
 });
+
+// ── F7: progreso ───────────────────────────────────────────────────────────────
+
+/** Peso y medidas del cliente: una fila por día (se sobrescribe si se vuelve a anotar ese día). */
+export const bodyMetrics = pgTable(
+  "body_metrics",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id").notNull().references(() => clientProfiles.id, { onDelete: "cascade" }),
+    date: date("date", { mode: "string" }).notNull(),
+    weightKg: real("weight_kg"),
+    waistCm: real("waist_cm"),
+    hipCm: real("hip_cm"),
+    bodyFatPct: real("body_fat_pct"),
+    note: text("note"),
+    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+    updatedAt: ts("updated_at").notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("body_metrics_client_date_uq").on(t.clientId, t.date)],
+);

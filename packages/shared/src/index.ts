@@ -6,3 +6,4 @@ export * from "./training";
 export * from "./nutrition";
 export * from "./agenda";
 export * from "./chat";
+export * from "./progress";

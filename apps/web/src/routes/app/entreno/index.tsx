@@ -41,7 +41,14 @@ function Week() {
 
   return (
     <>
-      <PageTitle title="Entreno" />
+      <PageTitle
+        title="Entreno"
+        actions={
+          <Link to="/app/progreso" className="text-sm font-medium text-primary hover:underline">
+            Ver mi progreso
+          </Link>
+        }
+      />
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-sm font-medium text-ink-2">{weekLabel(monday)}</h2>
         <div className="flex">
