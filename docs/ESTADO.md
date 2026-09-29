@@ -4,9 +4,10 @@
 > Formato: fecha · quién (modelo/herramienta) · qué. Lo más reciente arriba.
 
 ## Ahora mismo
-- **Versión**: **1.0.0** — MVP + tanda post-MVP (F0–F10) **desplegada en joseluis-vps** (producción + demo). Plan de la tanda en `~/.claude/plans/mighty-splashing-widget.md`.
+- **Versión**: **1.1.0** — MVP + post-MVP (F0–F10) + G1 de la tanda de agilidad, **desplegada en joseluis-vps** (producción + demo).
+- **Tanda en curso — agilidad** (plan `~/.claude/plans/mighty-splashing-widget.md`): G1 ✅ (v1.1.0: cuaderno con sugerencias, responder desde el entreno, «Necesitan atención»); G2 paleta ⌘K, atajos, acciones en la ficha, alta encadenada, progresión de cargas, deshacer (v1.2.0); G3 editores ágiles (v1.3.0); G4 lista de clientes, barra móvil, optimismo, medición de pasos (v1.4.0).
 - **Aún no es pública**: falta la ruta en Cloudflare (bloqueo 3). Después, alta inicial en `/instalar` con el `SETUP_CODE` del `.env` del VPS.
-- **Siguiente tarea**: que Paquito lo use (bloqueos). Después, lo que pida tras probarlo (ideas en «Después del MVP»).
+- **Siguiente tarea**: G2 de la tanda de agilidad. En paralelo, que Paquito lo use (bloqueos).
 - **Plan aprobado**: `~/.claude/plans/mighty-splashing-widget.md` (resumen en `docs/producto/mvp.md`).
 
 ## Fases
@@ -54,6 +55,7 @@ claude mcp add shadcn -- npx -y shadcn@latest mcp
 - Imagen de producción probada en local: `/health` ok, CSP/HSTS, `/api/docs` 404, POST sin Origin → 403, backup diario escrito.
 
 ## Historial
+- **2026-09-29 · Claude (Opus 5.5)** · G1 → **1.1.0**: `GET /me/progress/last` (series de la última vez por ejercicio), `routes/attention.ts` (`/attention`, `/activity/seen`, con aislamiento), cuaderno reescrito (`suggest()`, foco a la siguiente serie, barra ±), `logDiff` en `prescription.tsx`, `QuickReply` en `workout-panel.tsx`, «Necesitan atención» en Hoy. e2e nuevo `09-agilidad`; el de agenda fija el reloj del navegador. API 87, web 15, e2e 29 + demo 1.
 - **2026-09-29 · Claude (Opus 5.5)** · F10 → **1.0.0**: `lib/scheduler.ts` + `reminder_log` + `users.reminders` + `PATCH /me/preferences`; `tools/{pull-backups,restore-drill,monitor,install-launchd}.sh` y plantillas `deploy/launchd/`. El primer simulacro real cazó que la copia diaria podía ser anterior al esquema (se elige la más reciente, sin presuponer tablas). Revisión de autorización de las rutas nuevas y `pnpm audit --prod` limpio. API 83 tests, e2e 28 + demo 1.
 - **2026-09-29 · Claude (Opus 5.5)** · F9 Demo: `demo/seed.ts` (estudio realista: 5 clientes + 1 solicitud, rutinas, 4 semanas de entrenos con cargas que suben, plan de comidas, citas, chat, peso, PAR-Q con alerta), `DEMO_MODE`, `POST /auth/demo`, bloqueos, banda, servicios `demo`/`demo-db` en compose, `pnpm e2e:demo`. Monograma ignora símbolos. API 79 tests.
 - **2026-09-29 · Claude (Opus 5.5)** · F8 Salud: `packages/shared/src/questionnaire.ts` (PAR-Q+ en tuteo, anamnesis, `questionnaireAlerts`), `routes/questionnaire.ts`, tabla `questionnaires` + `client_profiles.questionnaire_requested_at`, `/app/salud`, alertas en ficha y «Hoy». Corregido: zonas con scroll de diálogos/hojas enfocables (axe `scrollable-region-focusable`). API 74 tests, e2e 28/28.

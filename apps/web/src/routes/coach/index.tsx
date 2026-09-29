@@ -4,18 +4,18 @@ import { useQuery } from "@tanstack/react-query";
 import { useMe } from "../../lib/auth";
 import { useDocumentTitle } from "../../lib/title";
 import { clientsQuery } from "../../lib/queries";
-import { activityQuery, todayWorkoutsQuery } from "../../lib/training";
+import { activityQuery, attentionQuery, todayWorkoutsQuery, useMarkAllSeen } from "../../lib/training";
 import { dayLong, dayShort, today } from "../../lib/dates";
 import { firstName, relativeTime } from "../../lib/format";
-import { BlockTitle, Monogram } from "../../components/ui/layout";
-import { buttonClass } from "../../components/ui/button";
+import { BlockTitle, Monogram, PlateMark } from "../../components/ui/layout";
+import { Button, buttonClass } from "../../components/ui/button";
 import { Skeleton } from "../../components/ui/spinner";
 import { PendingRequests } from "../../components/clients/pending-requests";
 import { WorkoutPanel } from "../../components/training/workout-panel";
 import { WorkoutStatusMark } from "../../components/training/workout-status";
 import { WeekMatrix } from "../../components/training/week-matrix";
 import { FirstSteps } from "../../components/first-steps";
-import { unreviewedQuery } from "../../lib/questionnaire";
+
 import { appointmentsQuery, hhmm } from "../../lib/agenda";
 import { appointmentLabel } from "@coach/shared";
 import { plusDays } from "../../lib/dates";
@@ -37,6 +37,8 @@ function CoachToday() {
   const clients = useQuery(clientsQuery());
   const pending = useQuery(clientsQuery("pending")).data ?? [];
   const [openId, setOpenId] = useState<string | null>(null);
+  const [onlyUnseen, setOnlyUnseen] = useState(false);
+  const markAll = useMarkAllSeen();
   const appts = useQuery(appointmentsQuery(t, plusDays(t, 1)));
   const apptList = appts.data ?? [];
 
@@ -120,17 +122,34 @@ function CoachToday() {
 
         <aside className="flex flex-col gap-8">
           <PendingRequests />
-          <UnreviewedQuestionnaires />
+          <NeedsAttention />
 
           <section aria-labelledby="activity-title">
-            <BlockTitle id="activity-title">Lo último que han hecho</BlockTitle>
+            <BlockTitle
+              id="activity-title"
+              action={
+                unseen > 0 && (
+                  <Button size="sm" variant="quiet" loading={markAll.isPending} onClick={() => markAll.mutate()}>
+                    Marcar todo como revisado
+                  </Button>
+                )
+              }
+            >
+              Lo último que han hecho
+            </BlockTitle>
+            {(unseen > 0 || onlyUnseen) && (
+              <label className="mb-2 flex items-center gap-2 text-[13px] text-ink-2">
+                <input type="checkbox" checked={onlyUnseen} onChange={(e) => setOnlyUnseen(e.target.checked)} className="accent-[var(--primary)]" /> Solo sin revisar ({unseen})
+              </label>
+            )}
             {activity.isPending ? (
               <Skeleton className="h-32" />
             ) : (activity.data ?? []).length === 0 ? (
               <p className="text-sm text-ink-2">Cuando tus clientes terminen un entreno lo verás aquí, con su esfuerzo y sus comentarios.</p>
             ) : (
               <ol className="flex flex-col">
-                {activity.data!.map((a) => (
+                {onlyUnseen && unseen === 0 && <li className="py-3 text-sm text-ink-2">Todo revisado.</li>}
+                {activity.data!.filter((a) => !onlyUnseen || a.unseen).map((a) => (
                   <li key={a.workoutId}>
                     <button type="button" onClick={() => setOpenId(a.workoutId)} className="relative flex w-full gap-3 border-b border-rule py-3 pl-3 text-left hover:bg-tray">
                       <span className={cn("absolute top-3.5 bottom-3.5 left-0 w-[3px] rounded-[1px]", a.unseen ? "bg-primary" : "bg-transparent")} aria-hidden="true" />
@@ -180,21 +199,35 @@ function CoachToday() {
   );
 }
 
-function UnreviewedQuestionnaires() {
-  const q = useQuery(unreviewedQuery);
+/** Clientes que piden acción (entrenos sin hacer, inactividad, PAR-Q con alerta, mensajes sin contestar). */
+function NeedsAttention() {
+  const q = useQuery(attentionQuery);
   if (!q.data?.length) return null;
+  const tone = { health: "red", missed: "red", unanswered: "blue", inactive: "yellow" } as const;
   return (
-    <section aria-labelledby="unrev-title" className="border-l-[5px] border-plate-red bg-plate-red-soft px-4 py-3.5">
-      <h2 id="unrev-title" className="text-sm font-medium text-ink">
-        Cuestionarios de salud por revisar
-      </h2>
-      <ul className="mt-2 flex flex-col gap-1 text-sm">
-        {q.data.map((r) => (
-          <li key={r.clientId}>
-            <Link to="/coach/clientes/$clientId" params={{ clientId: r.clientId }} className="flex justify-between gap-3 py-1 hover:underline">
-              <span className="font-medium text-ink">{r.clientName}</span>
-              <span className="text-ink-2">{r.alerts === 1 ? "1 alerta" : `${r.alerts} alertas`}</span>
+    <section aria-labelledby="att-title">
+      <BlockTitle id="att-title">Necesitan atención</BlockTitle>
+      <ul className="divide-y divide-rule border-y border-rule">
+        {q.data.map((a) => (
+          <li key={a.clientId} className="py-2.5">
+            <Link to="/coach/clientes/$clientId" params={{ clientId: a.clientId }} className="flex items-center gap-3 hover:text-primary">
+              <Monogram name={a.clientName} size={32} />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-medium text-ink">{a.clientName}</span>
+                <span className="mt-0.5 flex flex-col gap-0.5">
+                  {a.reasons.map((r) => (
+                    <PlateMark key={r.kind} tone={tone[r.kind]} className="text-[13px]">
+                      {r.text}
+                    </PlateMark>
+                  ))}
+                </span>
+              </span>
             </Link>
+            {a.reasons.some((r) => r.kind === "unanswered") && (
+              <Link to="/coach/chat" search={{ cliente: a.clientId }} className="mt-1 ml-11 inline-block text-[13px] font-medium text-primary hover:underline">
+                Contestar
+              </Link>
+            )}
           </li>
         ))}
       </ul>

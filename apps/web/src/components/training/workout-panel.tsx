@@ -8,7 +8,8 @@ import { useToast } from "../ui/toast";
 import { PrescriptionList } from "./prescription";
 import { WorkoutStatusMark } from "./workout-status";
 import { useWorkoutEdit, workoutQuery } from "../../lib/training";
-import { dayLong } from "../../lib/dates";
+import { dayLong, dayShort } from "../../lib/dates";
+import { useSendMessage } from "../../lib/chat";
 import { errorMessage } from "../../lib/api";
 
 /** Detalle de un entreno asignado (entrenador): lo prescrito, lo registrado por el cliente, mover o borrar. */
@@ -70,6 +71,7 @@ export function WorkoutPanel({ id, onClose }: { id: string | null; onClose: () =
             </blockquote>
           )}
           <PrescriptionList blocks={w.blocks} log={w.log} />
+          {w.completedAt && <QuickReply clientId={w.clientId} clientName={w.clientName} context={`Sobre tu entreno «${w.title}» del ${dayShort(w.date)}`} />}
           <div className="grid gap-4 border-t border-rule pt-5 sm:grid-cols-[200px_1fr]">
             <TextField label="Fecha" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             <TextArea label="Indicaciones para el cliente" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Calienta bien la rodilla antes del bloque A" />
@@ -77,5 +79,29 @@ export function WorkoutPanel({ id, onClose }: { id: string | null; onClose: () =
         </div>
       )}
     </SidePanel>
+  );
+}
+
+/** Contestar al cliente sin salir del entreno: el mensaje va a su chat citando el entreno. */
+function QuickReply({ clientId, clientName, context }: { clientId: string; clientName: string; context: string }) {
+  const send = useSendMessage(clientId);
+  const toast = useToast();
+  const [text, setText] = useState("");
+  return (
+    <form
+      className="flex flex-col gap-2 border-t border-rule pt-5"
+      onSubmit={(e) => {
+        e.preventDefault();
+        send.mutate(
+          { body: `${context}: ${text.trim()}`, mediaId: null },
+          { onSuccess: () => (setText(""), toast(`Enviado a ${clientName.split(" ")[0]}`)), onError: (err) => toast(errorMessage(err), "error") },
+        );
+      }}
+    >
+      <TextArea label={`Responder a ${clientName.split(" ")[0]}`} hint="Le llega a su chat con el entreno citado." rows={2} value={text} onChange={(e) => setText(e.target.value)} placeholder="¡Buen trabajo! La próxima semana subimos a 72,5 kg." />
+      <Button type="submit" variant="secondary" className="self-start" loading={send.isPending} disabled={!text.trim()}>
+        Enviar mensaje
+      </Button>
+    </form>
   );
 }

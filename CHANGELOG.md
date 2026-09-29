@@ -1,6 +1,16 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [1.1.0] — 2026-09-29 · Registrar y revisar más rápido
+### Añadido
+- **Cuaderno del cliente**: bajo cada ejercicio, lo que hizo la última vez; marcar una serie sin escribir nada la da por hecha con la sugerencia (serie anterior, la última vez o lo prescrito); el foco salta a la siguiente serie, que se resalta, con botones ±1 rep, ±2,5 kg e «Igual que la anterior».
+- **Detalle del entreno (entrenador)**: diferencia con lo previsto («+2,5 kg sobre lo previsto», «1 serie menos») y caja para **responder al cliente ahí mismo** (le llega a su chat con el entreno citado).
+- **«Necesitan atención»** en Hoy: entrenos sin registrar esta semana, sin entrenar en 10 días, cuestionario de salud con alertas sin revisar y mensajes sin contestar hace más de 24 h, con enlace para contestar. Sustituye a «Cuestionarios de salud por revisar».
+- «Lo último que han hecho»: **marcar todo como revisado** y filtro «Solo sin revisar».
+- API: `GET /me/progress/last`, `GET /attention`, `POST /activity/seen`.
+### Corregido
+- El e2e de la agenda dependía de la hora a la que se ejecutaba.
+
 ## [1.0.0] — 2026-09-29
 ### Añadido
 - **Recordatorios**: a las 8:00, el entreno del día a cada cliente y el resumen del día al entrenador; a las 20:00, a quien aún no ha anotado su entreno. Se pueden desactivar en Ajustes o Perfil.

@@ -9,7 +9,7 @@ test("la demo se prueba con un clic y avisa de que es una demo", async ({ browse
   await expectAccessible(coach, "acceso de la demo");
   await coach.getByRole("button", { name: "Entrar como entrenador" }).click();
   await expect(coach).toHaveURL(/\/coach$/);
-  await expect(coach.getByText("Cuestionarios de salud por revisar")).toBeVisible();
+  await expect(coach.getByText("Necesitan atención")).toBeVisible();
   await expect(coach.getByText(/Récord en/).first()).toBeVisible();
   await expectAccessible(coach, "hoy del entrenador (demo)");
   await coach.goto("/coach/ajustes");

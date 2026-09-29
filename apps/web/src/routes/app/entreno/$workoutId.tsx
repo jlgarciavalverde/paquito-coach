@@ -12,7 +12,9 @@ import { useToast } from "../../../components/ui/toast";
 import { ItemSpec, PrescriptionList } from "../../../components/training/prescription";
 import { VideoEmbed } from "../../../components/training/video";
 import { exerciseQuery, itemLabels, saveLog, useCompleteWorkout, workoutQuery } from "../../../lib/training";
-import { dayLong, fmtRest } from "../../../lib/dates";
+import { lastSetsQuery } from "../../../lib/progress";
+import type { LastSets } from "@coach/shared";
+import { dayLong, dayMonth, fmtRest } from "../../../lib/dates";
 import { errorMessage } from "../../../lib/api";
 import { cn } from "../../../lib/cn";
 import { useDocumentTitle } from "../../../lib/title";
@@ -30,6 +32,12 @@ function WorkoutPage() {
   return q.data.status === "planned" ? <Logbook key={q.data.id} w={q.data} /> : <Finished w={q.data} />;
 }
 
+type Suggestion = { reps: string; load: string };
+const fmtKg = (n: number) => String(Math.round(n * 10) / 10).replace(".", ",");
+const num = (t: string) => Number(t.replace(",", "."));
+/** Carga prescrita como número de kg («80 kg» → «80»); texto como «70 % 1RM» no sirve de sugerencia. */
+const prescribedKg = (load: string) => load.trim().match(/^(\d+(?:[.,]\d+)?)\s*(kg)?$/i)?.[1] ?? "";
+
 const blankSets = (it: RoutineItem): SetLog[] => Array.from({ length: it.sets }, () => ({ reps: "", load: "", rpe: null, done: false }));
 
 /** Cuaderno de la sesión: una tabla de series por ejercicio. Se guarda solo mientras escribes. */
@@ -42,6 +50,21 @@ function Logbook({ w }: { w: Workout }) {
   const [rest, setRest] = useState<{ until: number; total: number; name: string } | null>(null);
   const [finishOpen, setFinishOpen] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const last = useQuery(lastSetsQuery(items.map((it) => it.exerciseId), w.id)).data ?? {};
+  const [active, setActive] = useState<string | null>(null);
+
+  /**
+   * Qué proponer en una serie vacía: lo de la serie anterior de hoy (si ya está hecha), si no lo de la misma serie
+   * la última vez, y si no, lo prescrito. Marcar la serie sin escribir nada la da por hecha con esto.
+   */
+  const suggest = (it: RoutineItem, idx: number): Suggestion => {
+    const prev = idx > 0 ? log[it.id]?.[idx - 1] : undefined;
+    if (prev?.done && (prev.reps || prev.load)) return { reps: prev.reps, load: prev.load };
+    const l = last[it.exerciseId]?.sets;
+    const ls = l?.[idx] ?? l?.at(-1);
+    if (ls) return { reps: ls.reps, load: ls.load };
+    return { reps: it.reps.match(/^\d+/)?.[0] ?? "", load: prescribedKg(it.load) };
+  };
 
   const persist = useCallback(
     (next: WorkoutLog) => {
@@ -66,11 +89,25 @@ function Logbook({ w }: { w: Workout }) {
     });
 
   const toggleDone = (it: RoutineItem, idx: number) => {
-    const wasDone = log[it.id]![idx]!.done;
     const s = log[it.id]![idx]!;
-    // Al marcar una serie sin anotar, se da por hecha tal como estaba prescrita.
-    update(it.id, idx, { done: !wasDone, reps: s.reps || (!wasDone ? it.reps.replace(/[^\d]+.*$/, "") : s.reps) });
-    if (!wasDone && it.restSec) setRest({ until: Date.now() + it.restSec * 1000, total: it.restSec, name: it.exerciseName });
+    if (s.done) return update(it.id, idx, { done: false });
+    const sg = suggest(it, idx);
+    update(it.id, idx, { done: true, reps: s.reps || sg.reps, load: s.load || sg.load });
+    if (it.restSec) setRest({ until: Date.now() + it.restSec * 1000, total: it.restSec, name: it.exerciseName });
+    // El foco pasa a la siguiente serie pendiente (de este ejercicio o del siguiente).
+    const order = items.flatMap((x) => log[x.id]!.map((_, i) => `${x.id}:${i}`));
+    const next = order.slice(order.indexOf(`${it.id}:${idx}`) + 1).find((k) => {
+      const [iid, i] = k.split(":");
+      return !log[iid!]![Number(i)]!.done;
+    });
+    if (next) {
+      setActive(next);
+      requestAnimationFrame(() => {
+        const el = document.querySelector<HTMLButtonElement>(`[data-check="${next}"]`);
+        el?.focus({ preventScroll: true });
+        el?.scrollIntoView({ block: "center", behavior: "smooth" });
+      });
+    }
   };
 
   const doneSets = Object.values(log).flat().filter((s) => s.done).length;
@@ -91,7 +128,18 @@ function Logbook({ w }: { w: Workout }) {
 
       <div className="mt-8 flex flex-col gap-8">
         {items.map((it) => (
-          <ExerciseLog key={it.id} it={it} label={labels.get(it.id)!} sets={log[it.id]!} onChange={(i, p) => update(it.id, i, p)} onToggle={(i) => toggleDone(it, i)} />
+          <ExerciseLog
+            key={it.id}
+            it={it}
+            label={labels.get(it.id)!}
+            sets={log[it.id]!}
+            last={last[it.exerciseId]}
+            suggest={(i) => suggest(it, i)}
+            active={active}
+            setActive={setActive}
+            onChange={(i, p) => update(it.id, i, p)}
+            onToggle={(i) => toggleDone(it, i)}
+          />
         ))}
       </div>
 
@@ -125,10 +173,38 @@ function Logbook({ w }: { w: Workout }) {
   );
 }
 
-function ExerciseLog({ it, label, sets, onChange, onToggle }: { it: RoutineItem; label: string; sets: SetLog[]; onChange: (i: number, p: Partial<SetLog>) => void; onToggle: (i: number) => void }) {
+function ExerciseLog({
+  it,
+  label,
+  sets,
+  last,
+  suggest,
+  active,
+  setActive,
+  onChange,
+  onToggle,
+}: {
+  it: RoutineItem;
+  label: string;
+  sets: SetLog[];
+  last?: LastSets[string];
+  suggest: (i: number) => Suggestion;
+  active: string | null;
+  setActive: (k: string | null) => void;
+  onChange: (i: number, p: Partial<SetLog>) => void;
+  onToggle: (i: number) => void;
+}) {
   const [howOpen, setHowOpen] = useState(false);
   const ex = useQuery({ ...exerciseQuery(it.exerciseId), enabled: howOpen });
-  const input = "h-11 w-full rounded-[var(--radius-control)] border border-rule-strong bg-paper px-2 text-center font-narrow text-[17px] outline-none focus:border-primary";
+  const input = "h-11 w-full rounded-[var(--radius-control)] border border-rule-strong bg-paper px-2 text-center font-narrow text-[17px] outline-none placeholder:text-ink-3 focus:border-primary";
+  const firstPending = sets.findIndex((s) => !s.done);
+  /** Ajuste rápido de la serie activa: parte de lo escrito o, si está vacía, de lo sugerido. */
+  const bump = (i: number, field: "reps" | "load", delta: number) => {
+    const cur = sets[i]![field] || suggest(i)[field];
+    const n = num(cur);
+    if (!Number.isFinite(n)) return;
+    onChange(i, { [field]: field === "load" ? fmtKg(Math.max(0, n + delta)) : String(Math.max(0, n + delta)) });
+  };
   return (
     <section aria-label={`${label} ${it.exerciseName}`}>
       <div className="flex items-baseline gap-3">
@@ -137,6 +213,12 @@ function ExerciseLog({ it, label, sets, onChange, onToggle }: { it: RoutineItem;
           <h2 className="text-[16px] font-medium text-ink">{it.exerciseName}</h2>
           <ItemSpec it={it} />
           {it.notes && <p className="mt-1 text-sm text-ink-2">{it.notes}</p>}
+          {last && (
+            <p className="mt-1 text-[13px] text-ink-2">
+              La última vez ({dayMonth(last.date)}):{" "}
+              <span className="font-narrow text-ink">{last.sets.map((s) => `${s.reps || "—"}×${s.load || "—"}`).join("  ")}</span>
+            </p>
+          )}
         </div>
       </div>
       <button type="button" onClick={() => setHowOpen((o) => !o)} className="mt-1 ml-8 text-[13.5px] font-medium text-primary hover:underline" aria-expanded={howOpen}>
@@ -177,43 +259,70 @@ function ExerciseLog({ it, label, sets, onChange, onToggle }: { it: RoutineItem;
           </tr>
         </thead>
         <tbody>
-          {sets.map((s, i) => (
-            <tr key={i} className={cn(s.done && "bg-plate-green-soft")}>
-              <td className="font-narrow py-1 pl-1 text-[16px] text-ink-3">{i + 1}</td>
-              <td className="px-1 py-1">
-                <input aria-label={`Repeticiones, serie ${i + 1}`} inputMode="numeric" className={input} placeholder={it.reps || "—"} value={s.reps} onChange={(e) => onChange(i, { reps: e.target.value })} />
-              </td>
-              <td className="px-1 py-1">
-                <input aria-label={`Kilos, serie ${i + 1}`} inputMode="decimal" className={input} placeholder={it.load.replace(/\s*kg$/i, "") || "—"} value={s.load} onChange={(e) => onChange(i, { load: e.target.value })} />
-              </td>
-              <td className="px-1 py-1">
-                <select
-                  aria-label={`RPE, serie ${i + 1}`}
-                  className={cn(input, "px-1")}
-                  value={s.rpe ?? ""}
-                  onChange={(e) => onChange(i, { rpe: e.target.value ? Number(e.target.value) : null })}
-                >
-                  <option value="">—</option>
-                  {RPE_SCALE.map((r) => (
-                    <option key={r.value} value={r.value}>
-                      {r.value}
-                    </option>
-                  ))}
-                </select>
-              </td>
-              <td className="py-1 pr-1 text-right">
-                <button
-                  type="button"
-                  onClick={() => onToggle(i)}
-                  aria-pressed={s.done}
-                  aria-label={`Serie ${i + 1} hecha`}
-                  className={cn("inline-flex size-11 items-center justify-center rounded-[var(--radius-control)] border", s.done ? "border-plate-green bg-plate-green text-paper" : "border-rule-strong text-ink-3 hover:border-plate-green")}
-                >
-                  <Check size={20} weight="bold" />
-                </button>
-              </td>
-            </tr>
-          ))}
+          {sets.map((s, i) => {
+            const key = `${it.id}:${i}`;
+            const isActive = active === key || (active === null && i === firstPending);
+            const sg = suggest(i);
+            return [
+              <tr key={key} className={cn(s.done ? "bg-plate-green-soft" : isActive && "bg-primary-soft")} onFocus={() => setActive(key)}>
+                <td className="font-narrow py-1 pl-1 text-[16px] text-ink-3">{i + 1}</td>
+                <td className="px-1 py-1">
+                  <input aria-label={`Repeticiones, serie ${i + 1}`} inputMode="numeric" className={input} placeholder={sg.reps || "—"} value={s.reps} onChange={(e) => onChange(i, { reps: e.target.value })} />
+                </td>
+                <td className="px-1 py-1">
+                  <input aria-label={`Kilos, serie ${i + 1}`} inputMode="decimal" className={input} placeholder={sg.load || "—"} value={s.load} onChange={(e) => onChange(i, { load: e.target.value })} />
+                </td>
+                <td className="px-1 py-1">
+                  <select aria-label={`RPE, serie ${i + 1}`} className={cn(input, "px-1")} value={s.rpe ?? ""} onChange={(e) => onChange(i, { rpe: e.target.value ? Number(e.target.value) : null })}>
+                    <option value="">—</option>
+                    {RPE_SCALE.map((r) => (
+                      <option key={r.value} value={r.value}>
+                        {r.value}
+                      </option>
+                    ))}
+                  </select>
+                </td>
+                <td className="py-1 pr-1 text-right">
+                  <button
+                    type="button"
+                    data-check={key}
+                    onClick={() => onToggle(i)}
+                    aria-pressed={s.done}
+                    aria-label={`Serie ${i + 1} hecha${!s.done && (sg.reps || sg.load) ? ` (${sg.reps || "—"} × ${sg.load || "—"} kg)` : ""}`}
+                    className={cn("inline-flex size-11 items-center justify-center rounded-[var(--radius-control)] border", s.done ? "border-plate-green bg-plate-green text-paper" : "border-rule-strong text-ink-3 hover:border-plate-green")}
+                  >
+                    <Check size={20} weight="bold" />
+                  </button>
+                </td>
+              </tr>,
+              isActive && !s.done ? (
+                <tr key={`${key}-tools`} className="bg-primary-soft">
+                  <td />
+                  <td colSpan={4} className="px-1 pb-2">
+                    <div className="flex flex-wrap gap-1" role="group" aria-label={`Ajustes rápidos de la serie ${i + 1}`}>
+                      {(
+                        [
+                          ["−1 rep", "reps", -1],
+                          ["+1 rep", "reps", 1],
+                          ["−2,5 kg", "load", -2.5],
+                          ["+2,5 kg", "load", 2.5],
+                        ] as const
+                      ).map(([l, f, d]) => (
+                        <button key={l} type="button" onClick={() => bump(i, f, d)} className="font-narrow h-9 rounded-[var(--radius-control)] border border-rule-strong bg-paper px-2.5 text-[14px] text-ink hover:border-primary">
+                          {l}
+                        </button>
+                      ))}
+                      {i > 0 && sets[i - 1]!.done && (
+                        <button type="button" onClick={() => onChange(i, { reps: sets[i - 1]!.reps, load: sets[i - 1]!.load, rpe: sets[i - 1]!.rpe })} className="h-9 rounded-[var(--radius-control)] px-2.5 text-[13.5px] font-medium text-primary hover:underline">
+                          Igual que la anterior
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ) : null,
+            ];
+          })}
         </tbody>
       </table>
     </section>

@@ -48,6 +48,8 @@ test("la mueve arrastrando una hora antes", async () => {
 
 test("Lucía la ve en su agenda y en Hoy", async ({ browser }) => {
   const lucia = await (await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, locale: "es-ES", timezoneId: "Europe/Madrid" })).newPage();
+  // La cita es hoy a las 19:00: fijar el mediodía para que siga siendo «próxima» corra el test a la hora que corra
+  await lucia.clock.setFixedTime(new Date(`${new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Madrid" })}T12:00:00Z`));
   await lucia.goto("/acceso");
   await lucia.getByLabel("Correo electrónico").fill("lucia@example.com");
   await lucia.getByLabel("Contraseña").fill("contraseña-nueva-lucia");

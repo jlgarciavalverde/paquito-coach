@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
-import { and, asc, eq, isNotNull } from "drizzle-orm";
+import { and, asc, desc, eq, isNotNull, ne } from "drizzle-orm";
 import { z } from "zod";
-import { BodyMetric, BodyMetricInput, DateOnly, Ok, ProgressExercise, ProgressPoint } from "@coach/shared";
+import { BodyMetric, BodyMetricInput, DateOnly, LastSets, Ok, ProgressExercise, ProgressPoint } from "@coach/shared";
 import { bodyMetrics, clientProfiles, workouts } from "../db/schema";
 import { notFound } from "../lib/errors";
 import { exerciseSummaries, progressFromWorkouts } from "../lib/progress";
@@ -74,6 +74,36 @@ export function registerProgress(app: FastifyInstance, { db }: Ctx) {
   });
 
   // ── Cliente ──
+  /** Series hechas la última vez en cada ejercicio pedido (entreno terminado más reciente que lo tenga). */
+  api.get(
+    "/me/progress/last",
+    {
+      schema: {
+        tags: ["progreso"],
+        querystring: z.object({ exerciseIds: z.string().max(2000), excludeWorkoutId: z.string().uuid().optional() }),
+        response: { 200: LastSets },
+      },
+    },
+    async (req) => {
+      const { clientId } = selfClient(req);
+      const wanted = new Set(req.query.exerciseIds.split(",").filter((x) => /^[0-9a-f-]{36}$/.test(x)).slice(0, 40));
+      const where = [eq(workouts.clientId, clientId), eq(workouts.status, "done")];
+      if (req.query.excludeWorkoutId) where.push(ne(workouts.id, req.query.excludeWorkoutId));
+      const rows = await db.select({ date: workouts.date, blocks: workouts.blocks, log: workouts.log }).from(workouts).where(and(...where)).orderBy(desc(workouts.date)).limit(60);
+      const out: LastSets = {};
+      for (const w of rows) {
+        for (const b of w.blocks)
+          for (const it of b.items) {
+            if (!wanted.has(it.exerciseId) || out[it.exerciseId]) continue;
+            const sets = (w.log[it.id] ?? []).filter((s) => s.done).map((s) => ({ reps: s.reps, load: s.load, rpe: s.rpe }));
+            if (sets.length) out[it.exerciseId] = { date: w.date, sets };
+          }
+        if (Object.keys(out).length === wanted.size) break;
+      }
+      return out;
+    },
+  );
+
   api.get("/me/metrics", { schema: { tags: ["progreso"], response: { 200: z.array(BodyMetric) } } }, async (req) => listMetrics(selfClient(req).clientId));
   api.put("/me/metrics", { schema: { tags: ["progreso"], body: BodyMetricInput, response: { 200: BodyMetric } } }, async (req) => {
     const { user, clientId } = selfClient(req);

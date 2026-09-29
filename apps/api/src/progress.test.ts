@@ -56,6 +56,13 @@ describe("progreso de cargas", () => {
     expect(pts.body.map((p: { bestLoadKg: number }) => p.bestLoadKg)).toEqual([60, 65]);
   });
 
+  it("«la última vez»: series hechas en el entreno terminado más reciente de cada ejercicio", async () => {
+    const ws = (await lucia.get("/api/v1/me/workouts?from=2026-10-01&to=2026-10-31")).body;
+    const last = await lucia.get(`/api/v1/me/progress/last?exerciseIds=${squatId},00000000-0000-4000-8000-000000000000&excludeWorkoutId=${ws[2].id}`);
+    expect(Object.keys(last.body)).toEqual([squatId]);
+    expect(last.body[squatId]).toMatchObject({ date: "2026-10-07", sets: [{ reps: "5", load: "65", rpe: 8 }] });
+  });
+
   it("aislamiento: otro estudio y otro cliente no ven nada", async () => {
     const [st] = await app.db.insert(studios).values({ name: "B", joinCode: "BBBBBBB6" }).returning();
     await app.db.insert(users).values({ studioId: st!.id, role: "coach", name: "Otro", email: "otro6@example.com", passwordHash: await hashPassword(PASSWORD) });
@@ -67,6 +74,7 @@ describe("progreso de cargas", () => {
     const { client: pepe } = await inviteAndRegister(app, coach, "Pepe", "pepe@example.com");
     expect((await pepe.get("/api/v1/me/metrics")).body).toEqual([]);
     expect((await pepe.get("/api/v1/me/progress/exercises")).body).toEqual([]);
+    expect((await pepe.get(`/api/v1/me/progress/last?exerciseIds=${squatId}`)).body).toEqual({});
     expect((await pepe.get(`/api/v1/clients/${luciaId}/metrics`)).status).toBe(403);
   });
 });

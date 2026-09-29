@@ -183,3 +183,11 @@ export const RPE_SCALE: { value: number; label: string; tone: "green" | "yellow"
   { value: 9, label: "Casi al máximo", tone: "red" },
   { value: 10, label: "Máximo", tone: "red" },
 ];
+
+/** Un cliente que pide atención del entrenador y por qué (ver `GET /attention`). */
+export const AttentionItem = z.object({
+  clientId: z.string(),
+  clientName: z.string(),
+  reasons: z.array(z.object({ kind: z.enum(["missed", "inactive", "health", "unanswered"]), text: z.string() })),
+});
+export type AttentionItem = z.infer<typeof AttentionItem>;

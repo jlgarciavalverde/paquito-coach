@@ -35,6 +35,7 @@ import { registerChat } from "./routes/chat";
 import { registerPrivacy } from "./routes/privacy";
 import { registerProgress } from "./routes/progress";
 import { registerQuestionnaire } from "./routes/questionnaire";
+import { registerAttention } from "./routes/attention";
 import { Hub } from "./lib/realtime";
 import { createPushSender, type PushSender } from "./lib/push";
 import { seedExercises } from "./db/seed";
@@ -185,6 +186,7 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender } = {})
       registerPrivacy(api, ctx);
       registerProgress(api, ctx);
       registerQuestionnaire(api, ctx);
+      registerAttention(api, ctx);
       registerChat(api, ctx, { hub, push, mediaDir: join(cfg.dataDir, "media"), vapidPublicKey: cfg.vapidPublicKey });
     },
     { prefix: "/api/v1" },

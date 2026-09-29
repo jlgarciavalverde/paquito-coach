@@ -68,6 +68,9 @@
 | GET · PUT | `/me/metrics` | cliente activo | mis medidas |
 | GET | `/clients/:id/progress/exercises` · `/clients/:id/progress?exerciseId=` | entrenador | resumen por ejercicio · serie de sesiones (e1RM Epley) |
 | GET | `/me/progress/exercises` · `/me/progress?exerciseId=` | cliente activo | lo mismo, propio |
+| GET | `/me/progress/last?exerciseIds=&excludeWorkoutId=` | cliente activo | series hechas la última vez en cada ejercicio (sugerencias del cuaderno) |
+| GET | `/attention` | entrenador | clientes que necesitan atención y por qué (`missed`, `inactive`, `health`, `unanswered`) |
+| POST | `/activity/seen` | entrenador | marca como revisados todos los entrenos terminados |
 | GET · POST | `/me/questionnaire` | cliente activo | estado (pendiente, último) · enviar PAR-Q+ y anamnesis |
 | GET | `/clients/:id/questionnaire` | entrenador | estado y respuestas (auditado) |
 | POST | `/clients/:id/questionnaire/review` · `/request` | entrenador | marcar revisado · pedir que lo repita |

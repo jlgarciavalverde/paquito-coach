@@ -26,8 +26,8 @@ test("cuestionario de salud con alerta", async ({ browser }) => {
   await coach.getByLabel("Correo electrónico").fill("paquito@example.com");
   await coach.getByLabel("Contraseña").fill(PASSWORD);
   await coach.getByRole("button", { name: "Entrar" }).click();
-  await expect(coach.getByText("Cuestionarios de salud por revisar")).toBeVisible();
-  await coach.getByRole("link", { name: /Lucía Martínez.*1 alerta/ }).click();
+  await expect(coach.getByText("Necesitan atención")).toBeVisible();
+  await coach.getByRole("link", { name: /Lucía Martínez.*Cuestionario de salud con 1 alerta/ }).click();
   await expect(coach.getByText("Cuestionario de salud: 1 respuesta de riesgo")).toBeVisible();
   await coach.getByRole("button", { name: "Ver respuestas" }).first().click();
   await expect(coach.getByText("Plastia de LCA en marzo de 2026")).toBeVisible();

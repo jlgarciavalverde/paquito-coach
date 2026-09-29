@@ -49,3 +49,10 @@ export const ProgressExercise = z.object({
   lastE1rm: z.number().nullable(),
 });
 export type ProgressExercise = z.infer<typeof ProgressExercise>;
+
+/** Lo que el cliente hizo la última vez en un ejercicio (para sugerirlo al registrar). */
+export const LastSets = z.record(
+  z.string(),
+  z.object({ date: DateOnly, sets: z.array(z.object({ reps: z.string(), load: z.string(), rpe: z.number().nullable() })) }),
+);
+export type LastSets = z.infer<typeof LastSets>;

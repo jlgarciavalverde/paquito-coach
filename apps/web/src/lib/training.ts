@@ -1,5 +1,5 @@
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { ActivityItem, AssignInput, Exercise, ExerciseInput, Muscle, Routine, RoutineBlock, RoutineBody, Workout, WorkoutLog } from "@coach/shared";
+import type { ActivityItem, AttentionItem, AssignInput, Exercise, ExerciseInput, Muscle, Routine, RoutineBlock, RoutineBody, Workout, WorkoutLog } from "@coach/shared";
 import { api } from "./api";
 
 export const exercisesQuery = (p: { q?: string; muscle?: Muscle | ""; own?: boolean; limit?: number }) => {
@@ -121,3 +121,13 @@ export function itemLabels(blocks: RoutineBlock[]) {
 }
 
 export const newId = () => Math.random().toString(36).slice(2, 10);
+
+export const attentionQuery = queryOptions({ queryKey: ["attention"], queryFn: () => api<AttentionItem[]>("/attention"), staleTime: 0 });
+export function useMarkAllSeen() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api("/activity/seen", { body: {} }),
+    onMutate: () => qc.setQueryData<(ActivityItem & { unseen: boolean; records: string[] })[]>(["activity"], (old) => old?.map((a) => ({ ...a, unseen: false }))),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["activity"] }),
+  });
+}

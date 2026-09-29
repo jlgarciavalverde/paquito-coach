@@ -74,6 +74,11 @@ test("Lucía la registra en el móvil", async ({ browser }) => {
   await lucia.reload();
   await expect(lucia.getByLabel("Kilos, serie 1").first()).toHaveValue("70");
 
+  // Marcar la serie 2 sin escribir nada la da por hecha con lo de la serie anterior
+  await lucia.getByRole("button", { name: /^Serie 2 hecha/ }).first().click();
+  await expect(lucia.getByLabel("Kilos, serie 2").first()).toHaveValue("70");
+  await expect(lucia.getByText("2 de 6 series")).toBeVisible();
+
   await lucia.getByRole("button", { name: "Terminar" }).click();
   await lucia.getByRole("radio", { name: /^8,/ }).click();
   await lucia.getByLabel("Comentario").fill("Rodilla bien");

@@ -1,5 +1,5 @@
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { BodyMetric, BodyMetricInput, ProgressExercise, ProgressPoint } from "@coach/shared";
+import type { BodyMetric, BodyMetricInput, LastSets, ProgressExercise, ProgressPoint } from "@coach/shared";
 import { api } from "./api";
 
 /** «me» = el propio cliente; si no, el id del cliente (lado del entrenador). */
@@ -26,3 +26,11 @@ export function useDeleteMetric(w: Who) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["metrics", w] }),
   });
 }
+
+/** Lo que el cliente hizo la última vez en estos ejercicios (sin contar el entreno que está haciendo). */
+export const lastSetsQuery = (exerciseIds: string[], excludeWorkoutId: string) =>
+  queryOptions({
+    queryKey: ["progress", "me", "last", excludeWorkoutId],
+    queryFn: () => api<LastSets>(`/me/progress/last?exerciseIds=${[...new Set(exerciseIds)].join(",")}&excludeWorkoutId=${excludeWorkoutId}`),
+    staleTime: 5 * 60_000,
+  });
