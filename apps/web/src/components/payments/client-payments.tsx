@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { WhatsappLogo } from "@phosphor-icons/react";
+import { WhatsAppLink } from "../clients/share-invite";
 import { PAYMENT_STATUS_LABEL, formatEuros, type Client, type Payment } from "@coach/shared";
 import { Button } from "../ui/button";
 import { SidePanel } from "../ui/dialog";
@@ -128,14 +128,7 @@ function SharePanel({ client, payment, onClose }: { client: Client; payment: Pay
       <div className="flex flex-col gap-4">
         {payment.url && <CopyField value={payment.url} label="Enlace de pago" />}
         <div className="flex flex-wrap gap-2">
-          <a
-            href={`https://wa.me/?text=${encodeURIComponent(text)}`}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="inline-flex h-10 items-center gap-2 rounded-[var(--radius-control)] bg-[#1b7348] px-3.5 text-sm font-medium text-white hover:bg-[#155f3b]"
-          >
-            <WhatsappLogo size={18} weight="fill" /> Enviar por WhatsApp
-          </a>
+          <WhatsAppLink text={text} />
           {client.userId && (
             <Button variant="secondary" loading={send.isPending} onClick={() => send.mutate({ body: text, mediaId: null }, { onSuccess: () => (toast("Enviado por el chat"), onClose()) })}>
               Enviar por el chat
