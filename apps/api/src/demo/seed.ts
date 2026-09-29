@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 import type { MealDay, RoutineBlock, WorkoutLog } from "@coach/shared";
 import { questionnaireAlerts } from "@coach/shared";
 import type { DB } from "../db/client";
-import { appointments, bodyMetrics, checkinAssignments, checkinForms, checkinResponses, clientProfiles, exercises, sessionPacks, mealChecks, mealPlans, messages, metricDefs, metricValues, questionnaires, routines, studios, users, workouts } from "../db/schema";
+import { appointments, bodyMetrics, bookingSettings, checkinAssignments, checkinForms, checkinResponses, clientProfiles, exercises, sessionPacks, mealChecks, mealPlans, messages, metricDefs, metricValues, questionnaires, routines, studios, users, workouts } from "../db/schema";
 import { hashPassword } from "../lib/passwords";
 import { newJoinCode } from "../lib/tokens";
 
@@ -152,6 +152,12 @@ export async function resetDemo(db: DB) {
   await db.insert(questionnaires).values({ studioId, clientId: active[2]!.id, answers, alerts: questionnaireAlerts(answers) });
   const ok = { parq: Array(7).fill(false), anamnesis: { ...answers.anamnesis, painNow: 0, pastInjuries: "", medication: "", painArea: "" } };
   for (const c of [active[0]!, active[1]!, active[3]!]) await db.insert(questionnaires).values({ studioId, clientId: c.id, answers: ok, alerts: [], reviewedAt: new Date(), reviewedBy: coach!.id });
+
+  // Reservas abiertas de lunes a viernes, mañanas y tardes
+  await db.insert(bookingSettings).values({
+    studioId, enabled: true, slotMinutes: 60, capacity: 1, noticeHours: 12, cancelHours: 24, location: "Estudio",
+    windows: [1, 2, 3, 4, 5].flatMap((weekday) => [{ weekday, start: "09:00", end: "13:00" }, { weekday, start: "17:00", end: "20:00" }]),
+  });
 
   // Bonos: Lucía con un bono de 10 (pagado) y las sesiones pasadas descontadas; Iker a punto de agotarlo
   const [pl] = await db.insert(sessionPacks).values({ studioId, clientId: lucia.id, name: "Bono 10 sesiones", total: 10, price: 300, paid: true }).returning();

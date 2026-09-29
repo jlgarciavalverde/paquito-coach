@@ -1,4 +1,4 @@
-import { and, eq, gte, isNull, lt, sql } from "drizzle-orm";
+import { and, eq, gte, isNull, lt, sql, ne } from "drizzle-orm";
 import type { DB } from "../db/client";
 import { appointments, checkinAssignments, checkinForms, clientProfiles, reminderLog, users, workouts } from "../db/schema";
 import type { PushSender } from "./push";
@@ -69,7 +69,7 @@ export async function runReminders(db: DB, push: PushSender, now = new Date()) {
       const start = new Date(`${date}T00:00:00Z`);
       const end = new Date(start.getTime() + 36 * 3600000); // margen de zona horaria; se filtra por fecha local abajo
       const appts = (
-        await db.select({ startsAt: appointments.startsAt }).from(appointments).where(and(eq(appointments.studioId, c.studioId), gte(appointments.startsAt, new Date(start.getTime() - 12 * 3600000)), lt(appointments.startsAt, end)))
+        await db.select({ startsAt: appointments.startsAt }).from(appointments).where(and(eq(appointments.studioId, c.studioId), ne(appointments.status, "cancelled"), gte(appointments.startsAt, new Date(start.getTime() - 12 * 3600000)), lt(appointments.startsAt, end)))
       ).filter((a) => madridClock(a.startsAt).date === date).length;
       const [{ n: wo } = { n: 0 }] = await db.select({ n: sql<number>`count(*)::int` }).from(workouts).where(and(eq(workouts.studioId, c.studioId), eq(workouts.date, date)));
       if (appts + wo === 0) continue;

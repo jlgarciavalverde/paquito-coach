@@ -8,6 +8,11 @@ import { hhmm, localDate, myAppointmentsQuery } from "../../lib/agenda";
 import { myWorkoutsQuery } from "../../lib/training";
 import { dayShort, plusDays, today } from "../../lib/dates";
 import { cn } from "../../lib/cn";
+import { buttonClass } from "../../components/ui/button";
+import { useToast } from "../../components/ui/toast";
+import { useConfirm } from "../../components/ui/confirm";
+import { myBookingQuery, useCancelMine } from "../../lib/booking";
+import { errorMessage } from "../../lib/api";
 import { myPacksQuery } from "../../lib/packs";
 import { packUsable } from "@coach/shared";
 
@@ -22,13 +27,21 @@ function MyAgenda() {
   const appts = useQuery(myAppointmentsQuery(t, plusDays(to, 1)));
   const workouts = useQuery(myWorkoutsQuery(t, to));
   const days = Array.from({ length: 14 }, (_, i) => plusDays(t, i));
+  const booking = useQuery(myBookingQuery(t, 1));
+  const cancel = useCancelMine();
+  const toast = useToast();
+  const ask = useConfirm();
   if (appts.isPending || workouts.isPending) return <Skeleton className="h-64" />;
   const rows = days
     .map((d) => ({ d, a: (appts.data ?? []).filter((x) => localDate(x.startsAt) === d), w: (workouts.data ?? []).filter((x) => x.date === d) }))
     .filter((r) => r.a.length || r.w.length || r.d === t);
   return (
     <>
-      <PageTitle title="Agenda" lead="Tus sesiones y entrenos de las próximas dos semanas." />
+      <PageTitle
+        title="Agenda"
+        lead="Tus sesiones y entrenos de las próximas dos semanas."
+        actions={booking.data?.enabled ? <Link to="/app/reservar" className={buttonClass("primary")}>Reservar sesión</Link> : undefined}
+      />
       <MyPacks />
       <div className="border-t border-rule">
         {rows.map(({ d, a, w }) => (
@@ -41,10 +54,24 @@ function MyAgenda() {
                   <span className="font-narrow w-24 shrink-0 text-[15px]">
                     {hhmm(x.startsAt)}–{hhmm(x.endsAt)}
                   </span>
-                  <span className="min-w-0 text-sm">
+                  <span className={cn("min-w-0 flex-1 text-sm", x.status === "cancelled" && "text-ink-3 line-through")}>
                     <span className="block font-medium">{x.title || appointmentLabel({ ...x, clientName: null })}</span>
                     {x.location && <span className="block text-ink-2">{x.location}</span>}
                   </span>
+                  {x.status === "scheduled" && new Date(x.startsAt) > new Date() && booking.data && (
+                    <button
+                      type="button"
+                      className="shrink-0 text-[13px] text-ink-2 underline underline-offset-2 hover:text-plate-red"
+                      onClick={async () =>
+                        new Date(x.startsAt).getTime() - Date.now() < booking.data!.cancelHours * 3600_000
+                          ? toast(`Faltan menos de ${booking.data!.cancelHours} h: escribe a tu entrenador para cambiarla.`, "error")
+                          : (await ask({ title: "Cancelar la sesión", body: `${dayShort(localDate(x.startsAt))} a las ${hhmm(x.startsAt)}. Tu entrenador recibirá un aviso.`, confirm: "Cancelar sesión", danger: true })) &&
+                            cancel.mutate(x.id, { onSuccess: () => toast("Sesión cancelada"), onError: (e) => toast(errorMessage(e), "error") })
+                      }
+                    >
+                      Cancelar
+                    </button>
+                  )}
                 </li>
               ))}
               {w.map((x) => (

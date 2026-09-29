@@ -41,7 +41,7 @@ function CoachToday() {
   const [onlyUnseen, setOnlyUnseen] = useState(false);
   const markAll = useMarkAllSeen();
   const appts = useQuery(appointmentsQuery(t, plusDays(t, 1)));
-  const apptList = appts.data ?? [];
+  const apptList = (appts.data ?? []).filter((a) => a.status !== "cancelled");
 
   const list = todays.data ?? [];
   const doneToday = list.filter((w) => w.status === "done").length;

@@ -83,6 +83,7 @@ deploy/             docker-compose.yml y .env.example de producción · tools/ s
 - **Horas de la BD vs. de la app**: Postgres corre en la VM de Colima y su reloj puede diferir del Mac. Para comparar con `created_at` (p. ej. «leído hasta») usar siempre `now()` de Postgres, no `new Date()`.
 - **WebSocket**: `/ws` exige cookie de sesión y `Origin` permitido (si no, 4401). En tests se usa `app.injectWS`; el `keyGenerator` del rate-limit tolera peticiones sin socket.
 - La semilla de ejercicios (`apps/api/src/db/exercise-seed.json`, ~2.500) solo se carga si la biblioteca común está vacía. Los tests la desactivan (`seedExercises: false`) salvo `training.test.ts`.
+- `cn()` solo concatena (sin tailwind-merge): una clase de anchura no sustituye al `w-full` de `controlClass`; da la anchura con el contenedor (rejilla).
 - Fastify 5: `disableRequestLogging` está obsoleto → `logController: new LogController(...)`.
 - VPS: Docker **rootless**, sin compilar allí (temperatura), Cloudflare cachea por extensión (HTML y `/health` van con `no-store`).
 

@@ -62,5 +62,5 @@ export type Appointment = z.infer<typeof Appointment>;
 export const TimeRange = z.object({ from: IsoDateTime, to: IsoDateTime });
 
 /** Título que se muestra: el propio, o el tipo + cliente. */
-export const appointmentLabel = (a: Pick<Appointment, "title" | "kind" | "clientName">) =>
-  a.title || (a.clientName ? `${APPOINTMENT_KIND_LABEL[a.kind]} con ${a.clientName}` : APPOINTMENT_KIND_LABEL[a.kind]);
+export const appointmentLabel = (a: Pick<Appointment, "title" | "kind" | "clientName"> & { status?: Appointment["status"] }) =>
+  (a.title || (a.clientName ? `${APPOINTMENT_KIND_LABEL[a.kind]} con ${a.clientName}` : APPOINTMENT_KIND_LABEL[a.kind])) + (a.status === "cancelled" ? " (cancelada)" : "");

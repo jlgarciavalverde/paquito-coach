@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { type AnyPgColumn, bigserial, boolean, date, index, integer, jsonb, pgEnum, pgTable, primaryKey, real, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import type { CheckinAnswers, CheckinQuestion, MealDay, Progression, ProgramSlot, RoutineBlock, Targets, WorkoutLog } from "@coach/shared";
+import type { BookingWindow, CheckinAnswers, CheckinQuestion, MealDay, Progression, ProgramSlot, RoutineBlock, Targets, WorkoutLog } from "@coach/shared";
 
 /**
  * Esquema de la base de datos. Regla de oro: toda tabla con datos de un estudio lleva `studio_id`
@@ -245,6 +245,8 @@ export const appointments = pgTable(
     notes: text("notes").notNull().default(""),
     /** H3: asistencia y bono del que descuenta. */
     status: text("status").$type<"scheduled" | "done" | "no_show" | "cancelled">().notNull().default("scheduled"),
+    /** Reservada por el propio cliente (H3b). */
+    bookedByClient: boolean("booked_by_client").notNull().default(false),
     packId: uuid("pack_id").references((): AnyPgColumn => sessionPacks.id, { onDelete: "set null" }),
     createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
     createdAt: createdAt(),
@@ -491,3 +493,16 @@ export const sessionPacks = pgTable(
   },
   (t) => [index("session_packs_client_idx").on(t.clientId)],
 );
+
+/** H3b: reservas por el cliente. Una fila por estudio. */
+export const bookingSettings = pgTable("booking_settings", {
+  studioId: uuid("studio_id").primaryKey().references(() => studios.id, { onDelete: "cascade" }),
+  enabled: boolean("enabled").notNull().default(false),
+  slotMinutes: integer("slot_minutes").notNull().default(60),
+  capacity: integer("capacity").notNull().default(1),
+  noticeHours: integer("notice_hours").notNull().default(12),
+  cancelHours: integer("cancel_hours").notNull().default(24),
+  location: text("location").notNull().default(""),
+  windows: jsonb("windows").$type<BookingWindow[]>().notNull().default(sql`'[]'::jsonb`),
+  updatedAt: ts("updated_at").notNull().defaultNow(),
+});

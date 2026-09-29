@@ -88,4 +88,7 @@
 | PUT · DELETE | `/packs/:id` | entrenador | editar (o `archived`) · borrar si no se ha usado (409 si sí) |
 | POST | `/appointments/:id/attendance` | entrenador | `status`: scheduled/done/no_show/cancelled; descuenta o devuelve del bono |
 | GET | `/me/packs` | cliente activo | sus bonos en uso |
+| GET · PUT | `/studio/booking` | entrenador | ajustes de reservas (franjas, duración, plazas, antelación, cancelación) |
+| GET · POST | `/me/booking?from&days` · `/me/booking` | cliente activo | huecos libres · reservar (`startsAt`; 409 si ya no está libre) |
+| POST | `/me/appointments/:id/cancel` | cliente activo | cancelar dentro del plazo (409 `too_late` si no) |
 | GET | `/health` | público | versión, uptime, BD |

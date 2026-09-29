@@ -146,7 +146,7 @@ function TodayMeals() {
 function NextAppointment() {
   const t = today();
   const q = useQuery(myAppointmentsQuery(t, plusDays(t, 15)));
-  const next = (q.data ?? []).find((a) => new Date(a.endsAt) > new Date());
+  const next = (q.data ?? []).find((a) => a.status !== "cancelled" && new Date(a.endsAt) > new Date());
   if (!next) return null;
   const d = localDate(next.startsAt);
   return (

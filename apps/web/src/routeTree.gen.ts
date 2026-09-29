@@ -24,6 +24,7 @@ import { Route as AppChatRouteImport } from './routes/app/chat'
 import { Route as AppComidasRouteImport } from './routes/app/comidas'
 import { Route as AppPerfilRouteImport } from './routes/app/perfil'
 import { Route as AppProgresoRouteImport } from './routes/app/progreso'
+import { Route as AppReservarRouteImport } from './routes/app/reservar'
 import { Route as AppSaludRouteImport } from './routes/app/salud'
 import { Route as CoachIndexRouteImport } from './routes/coach/index'
 import { Route as CoachAjustesRouteImport } from './routes/coach/ajustes'
@@ -116,6 +117,11 @@ const AppPerfilRoute = AppPerfilRouteImport.update({
 const AppProgresoRoute = AppProgresoRouteImport.update({
   id: '/progreso',
   path: '/progreso',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReservarRoute = AppReservarRouteImport.update({
+  id: '/reservar',
+  path: '/reservar',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSaludRoute = AppSaludRouteImport.update({
@@ -225,6 +231,7 @@ export interface FileRoutesByFullPath {
   '/app/comidas': typeof AppComidasRoute
   '/app/perfil': typeof AppPerfilRoute
   '/app/progreso': typeof AppProgresoRoute
+  '/app/reservar': typeof AppReservarRoute
   '/app/salud': typeof AppSaludRoute
   '/coach/ajustes': typeof CoachAjustesRoute
   '/coach/calendario': typeof CoachCalendarioRoute
@@ -258,6 +265,7 @@ export interface FileRoutesByTo {
   '/app/comidas': typeof AppComidasRoute
   '/app/perfil': typeof AppPerfilRoute
   '/app/progreso': typeof AppProgresoRoute
+  '/app/reservar': typeof AppReservarRoute
   '/app/salud': typeof AppSaludRoute
   '/coach/ajustes': typeof CoachAjustesRoute
   '/coach/calendario': typeof CoachCalendarioRoute
@@ -293,6 +301,7 @@ export interface FileRoutesById {
   '/app/comidas': typeof AppComidasRoute
   '/app/perfil': typeof AppPerfilRoute
   '/app/progreso': typeof AppProgresoRoute
+  '/app/reservar': typeof AppReservarRoute
   '/app/salud': typeof AppSaludRoute
   '/coach/ajustes': typeof CoachAjustesRoute
   '/coach/calendario': typeof CoachCalendarioRoute
@@ -330,6 +339,7 @@ export interface FileRouteTypes {
     | '/app/comidas'
     | '/app/perfil'
     | '/app/progreso'
+    | '/app/reservar'
     | '/app/salud'
     | '/coach/ajustes'
     | '/coach/calendario'
@@ -363,6 +373,7 @@ export interface FileRouteTypes {
     | '/app/comidas'
     | '/app/perfil'
     | '/app/progreso'
+    | '/app/reservar'
     | '/app/salud'
     | '/coach/ajustes'
     | '/coach/calendario'
@@ -397,6 +408,7 @@ export interface FileRouteTypes {
     | '/app/comidas'
     | '/app/perfil'
     | '/app/progreso'
+    | '/app/reservar'
     | '/app/salud'
     | '/coach/ajustes'
     | '/coach/calendario'
@@ -537,6 +549,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProgresoRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/reservar': {
+      id: '/app/reservar'
+      path: '/reservar'
+      fullPath: '/app/reservar'
+      preLoaderRoute: typeof AppReservarRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/salud': {
       id: '/app/salud'
       path: '/salud'
@@ -672,6 +691,7 @@ interface AppRouteChildren {
   AppComidasRoute: typeof AppComidasRoute
   AppPerfilRoute: typeof AppPerfilRoute
   AppProgresoRoute: typeof AppProgresoRoute
+  AppReservarRoute: typeof AppReservarRoute
   AppSaludRoute: typeof AppSaludRoute
   AppIndexRoute: typeof AppIndexRoute
   AppCheckinAssignmentIdRoute: typeof AppCheckinAssignmentIdRoute
@@ -685,6 +705,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppComidasRoute: AppComidasRoute,
   AppPerfilRoute: AppPerfilRoute,
   AppProgresoRoute: AppProgresoRoute,
+  AppReservarRoute: AppReservarRoute,
   AppSaludRoute: AppSaludRoute,
   AppIndexRoute: AppIndexRoute,
   AppCheckinAssignmentIdRoute: AppCheckinAssignmentIdRoute,

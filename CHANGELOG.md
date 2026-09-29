@@ -1,6 +1,13 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [1.6.0] — 2026-09-29 · Reservas desde la app
+### Añadido
+- **Reservas**: en Ajustes, Paquito abre franjas semanales (p. ej. lunes a viernes de 9 a 13), duración de cada sesión, plazas por hueco (grupos reducidos), antelación mínima para reservar y hasta cuándo se puede cancelar. El cliente ve los huecos libres en «Reservar sesión» (Agenda), reserva en dos toques y puede cancelar desde su agenda dentro del plazo; Paquito recibe un aviso con cada reserva o cancelación.
+- Las citas sin cliente (médico, formación…) bloquean esos huecos. Un cerrojo por estudio impide que dos personas se queden con la última plaza.
+- Las citas canceladas se marcan «(cancelada)» y no cuentan en Hoy ni en el resumen de la mañana.
+- Demo con reservas abiertas.
+
 ## [1.5.0] — 2026-09-29 · Bonos de sesiones
 ### Añadido
 - **Bonos** (ficha → Agenda): sesiones, precio, caducidad y si está pagado. Cada cita con cliente marcada «Hecha» o «No vino» descuenta del bono más antiguo que siga valiendo; «Cancelada» no descuenta y volver a «Programada» la devuelve.
