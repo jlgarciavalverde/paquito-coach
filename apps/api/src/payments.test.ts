@@ -37,14 +37,14 @@ afterAll(() => app.close());
 
 describe("cobros con Stripe", () => {
   let bonoId: string;
-  it("tarifas: el entrenador las crea; el cliente ve las activas (sin cuotas)", async () => {
+  it("tarifas: el entrenador las crea; el cliente ve las activas", async () => {
     const b = await coach.post("/api/v1/prices", { name: "Bono 10 sesiones", kind: "pack", amount: 300, sessions: 10, validDays: 90 });
     expect(b.body).toMatchObject({ amount: 300, sessions: 10 });
     bonoId = b.body.id;
     await coach.post("/api/v1/prices", { name: "Sesión suelta", kind: "session", amount: 35 });
     await coach.post("/api/v1/prices", { name: "Cuota online", kind: "subscription", amount: 60 });
     await coach.post("/api/v1/prices", { name: "Oculta", kind: "session", amount: 1, active: false });
-    expect((await lucia.get("/api/v1/me/prices")).body.map((p: { name: string }) => p.name).sort()).toEqual(["Bono 10 sesiones", "Sesión suelta"]);
+    expect((await lucia.get("/api/v1/me/prices")).body.map((p: { name: string }) => p.name).sort()).toEqual(["Bono 10 sesiones", "Cuota online", "Sesión suelta"]);
     expect((await lucia.post("/api/v1/prices", { name: "x", kind: "session", amount: 1 })).status).toBe(403);
     expect((await coach.post("/api/v1/prices", { name: "x", kind: "pack", amount: 10 })).status).toBe(400); // sin sesiones
   });

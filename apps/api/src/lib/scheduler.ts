@@ -82,9 +82,19 @@ export async function runReminders(db: DB, push: PushSender, now = new Date()) {
   return sent;
 }
 
+/** Reservas retenidas para pagar cuya retención ha caducado sin pago: se cancelan y el hueco vuelve a estar libre. */
+export async function releaseHolds(db: DB) {
+  const r = await db
+    .update(appointments)
+    .set({ status: "cancelled", holdExpiresAt: null })
+    .where(and(eq(appointments.paymentStatus, "pending"), eq(appointments.status, "scheduled"), lt(appointments.holdExpiresAt, sql`now()`)))
+    .returning({ id: appointments.id });
+  return r.length;
+}
+
 /** Comprueba cada 5 minutos si toca mandar algo (sin cron externo). */
 export function startReminders(db: DB, push: PushSender, log: (e: unknown) => void) {
-  const tick = () => void runReminders(db, push).catch(log);
+  const tick = () => void Promise.all([runReminders(db, push), releaseHolds(db)]).catch(log);
   const id = setInterval(tick, 5 * 60_000);
   id.unref();
   setTimeout(tick, 30_000).unref();

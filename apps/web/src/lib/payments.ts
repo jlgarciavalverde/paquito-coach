@@ -1,5 +1,5 @@
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Payment, PaymentLinkInput, PaymentsInfo, Price, PriceInput } from "@coach/shared";
+import type { Payment, PaymentLinkInput, PaymentsInfo, Price, PriceInput, Subscription } from "@coach/shared";
 import { api } from "./api";
 
 export const paymentsInfoQuery = queryOptions({ queryKey: ["payments", "info"], queryFn: () => api<PaymentsInfo>("/payments/info"), staleTime: 5 * 60_000 });
@@ -28,4 +28,13 @@ export function useRenewPayment() {
 }
 export function useCheckout() {
   return useMutation({ mutationFn: (priceId: string) => api<Payment>("/me/checkout", { body: { priceId } }) });
+}
+
+export const mySubscriptionsQuery = queryOptions({ queryKey: ["subscriptions", "me"], queryFn: () => api<Subscription[]>("/me/subscriptions"), staleTime: 0 });
+export const clientSubscriptionsQuery = (clientId: string) => queryOptions({ queryKey: ["subscriptions", clientId], queryFn: () => api<Subscription[]>(`/clients/${clientId}/subscriptions`), staleTime: 0 });
+export function useSubscribe() {
+  return useMutation({ mutationFn: (priceId: string) => api<{ url: string }>("/me/subscribe", { body: { priceId } }) });
+}
+export function usePortal() {
+  return useMutation({ mutationFn: () => api<{ url: string }>("/me/billing-portal", { body: {} }) });
 }

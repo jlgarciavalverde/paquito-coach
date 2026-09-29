@@ -191,6 +191,6 @@ export const RPE_SCALE: { value: number; label: string; tone: "green" | "yellow"
 export const AttentionItem = z.object({
   clientId: z.string(),
   clientName: z.string(),
-  reasons: z.array(z.object({ kind: z.enum(["missed", "inactive", "health", "unanswered", "checkin", "pack"]), text: z.string() })),
+  reasons: z.array(z.object({ kind: z.enum(["missed", "inactive", "health", "unanswered", "checkin", "pack", "payment"]), text: z.string() })),
 });
 export type AttentionItem = z.infer<typeof AttentionItem>;

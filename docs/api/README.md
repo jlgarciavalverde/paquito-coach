@@ -103,5 +103,7 @@
 | POST | `/me/checkout` | cliente activo | cobro de una tarifa: devuelve la URL de Stripe Checkout |
 | POST | `/clients/:id/payment-links` · `/payments/:id/renew` | entrenador | enlace de pago (tarifa o concepto+importe) · enlace nuevo |
 | GET | `/payments` · `/clients/:id/payments` · `/me/payments` · `/payments.csv` | entrenador · cliente | cobros · CSV para el gestor |
-| POST | `/stripe/webhook` | Stripe (firma) | eventos de Checkout y devoluciones; idempotente |
+| POST | `/me/subscribe` · `/me/billing-portal` | cliente activo | alta en cuota mensual (Checkout en modo suscripción) · portal de Stripe |
+| GET | `/me/subscriptions` · `/clients/:id/subscriptions` | cliente · entrenador | cuotas y su estado |
+| POST | `/stripe/webhook` | Stripe (firma) | Checkout, facturas de cuotas, cambios de suscripción y devoluciones; idempotente |
 | GET | `/health` | público | versión, uptime, BD |

@@ -10231,7 +10231,8 @@
                                 "health",
                                 "unanswered",
                                 "checkin",
-                                "pack"
+                                "pack",
+                                "payment"
                               ]
                             },
                             "text": {
@@ -13699,478 +13700,6 @@
         }
       }
     },
-    "/api/v1/studio/booking": {
-      "get": {
-        "tags": [
-          "agenda"
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "enabled": {
-                      "type": "boolean"
-                    },
-                    "slotMinutes": {
-                      "type": "integer",
-                      "minimum": -9007199254740991,
-                      "maximum": 9007199254740991
-                    },
-                    "capacity": {
-                      "type": "integer",
-                      "minimum": 1,
-                      "maximum": 20
-                    },
-                    "noticeHours": {
-                      "type": "integer",
-                      "minimum": 0,
-                      "maximum": 72
-                    },
-                    "cancelHours": {
-                      "type": "integer",
-                      "minimum": 0,
-                      "maximum": 72
-                    },
-                    "location": {
-                      "default": "",
-                      "type": "string",
-                      "maxLength": 120
-                    },
-                    "windows": {
-                      "maxItems": 50,
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "weekday": {
-                            "type": "integer",
-                            "minimum": 1,
-                            "maximum": 7
-                          },
-                          "start": {
-                            "type": "string",
-                            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
-                          },
-                          "end": {
-                            "type": "string",
-                            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
-                          }
-                        },
-                        "required": [
-                          "weekday",
-                          "start",
-                          "end"
-                        ],
-                        "additionalProperties": false
-                      }
-                    }
-                  },
-                  "required": [
-                    "enabled",
-                    "slotMinutes",
-                    "capacity",
-                    "noticeHours",
-                    "cancelHours",
-                    "location",
-                    "windows"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "agenda"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "enabled": {
-                    "type": "boolean"
-                  },
-                  "slotMinutes": {
-                    "type": "integer",
-                    "minimum": -9007199254740991,
-                    "maximum": 9007199254740991
-                  },
-                  "capacity": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 20
-                  },
-                  "noticeHours": {
-                    "type": "integer",
-                    "minimum": 0,
-                    "maximum": 72
-                  },
-                  "cancelHours": {
-                    "type": "integer",
-                    "minimum": 0,
-                    "maximum": 72
-                  },
-                  "location": {
-                    "default": "",
-                    "type": "string",
-                    "maxLength": 120
-                  },
-                  "windows": {
-                    "maxItems": 50,
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "weekday": {
-                          "type": "integer",
-                          "minimum": 1,
-                          "maximum": 7
-                        },
-                        "start": {
-                          "type": "string",
-                          "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
-                        },
-                        "end": {
-                          "type": "string",
-                          "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
-                        }
-                      },
-                      "required": [
-                        "weekday",
-                        "start",
-                        "end"
-                      ]
-                    }
-                  }
-                },
-                "required": [
-                  "enabled",
-                  "slotMinutes",
-                  "capacity",
-                  "noticeHours",
-                  "cancelHours",
-                  "windows"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "enabled": {
-                      "type": "boolean"
-                    },
-                    "slotMinutes": {
-                      "type": "integer",
-                      "minimum": -9007199254740991,
-                      "maximum": 9007199254740991
-                    },
-                    "capacity": {
-                      "type": "integer",
-                      "minimum": 1,
-                      "maximum": 20
-                    },
-                    "noticeHours": {
-                      "type": "integer",
-                      "minimum": 0,
-                      "maximum": 72
-                    },
-                    "cancelHours": {
-                      "type": "integer",
-                      "minimum": 0,
-                      "maximum": 72
-                    },
-                    "location": {
-                      "default": "",
-                      "type": "string",
-                      "maxLength": 120
-                    },
-                    "windows": {
-                      "maxItems": 50,
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "weekday": {
-                            "type": "integer",
-                            "minimum": 1,
-                            "maximum": 7
-                          },
-                          "start": {
-                            "type": "string",
-                            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
-                          },
-                          "end": {
-                            "type": "string",
-                            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
-                          }
-                        },
-                        "required": [
-                          "weekday",
-                          "start",
-                          "end"
-                        ],
-                        "additionalProperties": false
-                      }
-                    }
-                  },
-                  "required": [
-                    "enabled",
-                    "slotMinutes",
-                    "capacity",
-                    "noticeHours",
-                    "cancelHours",
-                    "location",
-                    "windows"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/me/booking": {
-      "get": {
-        "tags": [
-          "agenda"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
-            },
-            "in": "query",
-            "name": "from",
-            "required": true
-          },
-          {
-            "schema": {
-              "default": 14,
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 28
-            },
-            "in": "query",
-            "name": "days",
-            "required": false
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "enabled": {
-                      "type": "boolean"
-                    },
-                    "cancelHours": {
-                      "type": "number"
-                    },
-                    "location": {
-                      "type": "string"
-                    },
-                    "slots": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "startsAt": {
-                            "type": "string"
-                          },
-                          "endsAt": {
-                            "type": "string"
-                          },
-                          "free": {
-                            "type": "number"
-                          }
-                        },
-                        "required": [
-                          "startsAt",
-                          "endsAt",
-                          "free"
-                        ],
-                        "additionalProperties": false
-                      }
-                    }
-                  },
-                  "required": [
-                    "enabled",
-                    "cancelHours",
-                    "location",
-                    "slots"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "agenda"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "startsAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  }
-                },
-                "required": [
-                  "startsAt"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string"
-                    },
-                    "status": {
-                      "type": "string",
-                      "enum": [
-                        "scheduled",
-                        "done",
-                        "no_show",
-                        "cancelled"
-                      ]
-                    },
-                    "packId": {
-                      "nullable": true,
-                      "type": "string"
-                    },
-                    "clientId": {
-                      "nullable": true,
-                      "type": "string"
-                    },
-                    "clientName": {
-                      "nullable": true,
-                      "type": "string"
-                    },
-                    "kind": {
-                      "type": "string",
-                      "enum": [
-                        "session",
-                        "assessment",
-                        "other"
-                      ]
-                    },
-                    "title": {
-                      "type": "string"
-                    },
-                    "startsAt": {
-                      "type": "string"
-                    },
-                    "endsAt": {
-                      "type": "string"
-                    },
-                    "location": {
-                      "type": "string"
-                    },
-                    "notes": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "id",
-                    "status",
-                    "packId",
-                    "clientId",
-                    "clientName",
-                    "kind",
-                    "title",
-                    "startsAt",
-                    "endsAt",
-                    "location",
-                    "notes"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/me/appointments/{id}/cancel": {
-      "post": {
-        "tags": [
-          "agenda"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-            },
-            "in": "path",
-            "name": "id",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "ok": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
-                    }
-                  },
-                  "required": [
-                    "ok"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/resources/upload": {
       "post": {
         "tags": [
@@ -16915,6 +16444,739 @@
         "responses": {
           "200": {
             "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/v1/me/subscribe": {
+      "post": {
+        "tags": [
+          "cobros"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "priceId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  }
+                },
+                "required": [
+                  "priceId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/billing-portal": {
+      "post": {
+        "tags": [
+          "cobros"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/subscriptions": {
+      "get": {
+        "tags": [
+          "cobros"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "clientId": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "incomplete",
+                          "active",
+                          "past_due",
+                          "canceled",
+                          "unpaid"
+                        ]
+                      },
+                      "currentPeriodEnd": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "cancelAtPeriodEnd": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "clientId",
+                      "name",
+                      "amount",
+                      "status",
+                      "currentPeriodEnd",
+                      "cancelAtPeriodEnd"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/clients/{id}/subscriptions": {
+      "get": {
+        "tags": [
+          "cobros"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "clientId": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "incomplete",
+                          "active",
+                          "past_due",
+                          "canceled",
+                          "unpaid"
+                        ]
+                      },
+                      "currentPeriodEnd": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "cancelAtPeriodEnd": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "clientId",
+                      "name",
+                      "amount",
+                      "status",
+                      "currentPeriodEnd",
+                      "cancelAtPeriodEnd"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/studio/booking": {
+      "get": {
+        "tags": [
+          "agenda"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "slotMinutes": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "capacity": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 20
+                    },
+                    "noticeHours": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 72
+                    },
+                    "cancelHours": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 72
+                    },
+                    "location": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 120
+                    },
+                    "windows": {
+                      "maxItems": 50,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "weekday": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 7
+                          },
+                          "start": {
+                            "type": "string",
+                            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                          },
+                          "end": {
+                            "type": "string",
+                            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                          }
+                        },
+                        "required": [
+                          "weekday",
+                          "start",
+                          "end"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "payAtBooking": {
+                      "default": false,
+                      "type": "boolean"
+                    },
+                    "sessionPriceId": {
+                      "default": null,
+                      "nullable": true,
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    }
+                  },
+                  "required": [
+                    "enabled",
+                    "slotMinutes",
+                    "capacity",
+                    "noticeHours",
+                    "cancelHours",
+                    "location",
+                    "windows",
+                    "payAtBooking",
+                    "sessionPriceId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "agenda"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "slotMinutes": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "capacity": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 20
+                  },
+                  "noticeHours": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 72
+                  },
+                  "cancelHours": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 72
+                  },
+                  "location": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "windows": {
+                    "maxItems": 50,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "weekday": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 7
+                        },
+                        "start": {
+                          "type": "string",
+                          "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                        },
+                        "end": {
+                          "type": "string",
+                          "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                        }
+                      },
+                      "required": [
+                        "weekday",
+                        "start",
+                        "end"
+                      ]
+                    }
+                  },
+                  "payAtBooking": {
+                    "default": false,
+                    "type": "boolean"
+                  },
+                  "sessionPriceId": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  }
+                },
+                "required": [
+                  "enabled",
+                  "slotMinutes",
+                  "capacity",
+                  "noticeHours",
+                  "cancelHours",
+                  "windows"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "slotMinutes": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "capacity": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 20
+                    },
+                    "noticeHours": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 72
+                    },
+                    "cancelHours": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 72
+                    },
+                    "location": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 120
+                    },
+                    "windows": {
+                      "maxItems": 50,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "weekday": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 7
+                          },
+                          "start": {
+                            "type": "string",
+                            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                          },
+                          "end": {
+                            "type": "string",
+                            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+                          }
+                        },
+                        "required": [
+                          "weekday",
+                          "start",
+                          "end"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "payAtBooking": {
+                      "default": false,
+                      "type": "boolean"
+                    },
+                    "sessionPriceId": {
+                      "default": null,
+                      "nullable": true,
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    }
+                  },
+                  "required": [
+                    "enabled",
+                    "slotMinutes",
+                    "capacity",
+                    "noticeHours",
+                    "cancelHours",
+                    "location",
+                    "windows",
+                    "payAtBooking",
+                    "sessionPriceId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/booking": {
+      "get": {
+        "tags": [
+          "agenda"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "in": "query",
+            "name": "from",
+            "required": true
+          },
+          {
+            "schema": {
+              "default": 14,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 28
+            },
+            "in": "query",
+            "name": "days",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "payAmount": {
+                      "nullable": true,
+                      "type": "number"
+                    },
+                    "cancelHours": {
+                      "type": "number"
+                    },
+                    "location": {
+                      "type": "string"
+                    },
+                    "slots": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "startsAt": {
+                            "type": "string"
+                          },
+                          "endsAt": {
+                            "type": "string"
+                          },
+                          "free": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "startsAt",
+                          "endsAt",
+                          "free"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "enabled",
+                    "payAmount",
+                    "cancelHours",
+                    "location",
+                    "slots"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "agenda"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "startsAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  }
+                },
+                "required": [
+                  "startsAt"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "scheduled",
+                        "done",
+                        "no_show",
+                        "cancelled"
+                      ]
+                    },
+                    "packId": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "clientId": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "clientName": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "session",
+                        "assessment",
+                        "other"
+                      ]
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "startsAt": {
+                      "type": "string"
+                    },
+                    "endsAt": {
+                      "type": "string"
+                    },
+                    "location": {
+                      "type": "string"
+                    },
+                    "notes": {
+                      "type": "string"
+                    },
+                    "checkoutUrl": {
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "status",
+                    "packId",
+                    "clientId",
+                    "clientName",
+                    "kind",
+                    "title",
+                    "startsAt",
+                    "endsAt",
+                    "location",
+                    "notes",
+                    "checkoutUrl"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/appointments/{id}/cancel": {
+      "post": {
+        "tags": [
+          "agenda"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }

@@ -1,9 +1,9 @@
 import type { FastifyInstance, FastifyReply } from "fastify";
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import type Stripe from "stripe";
-import { Payment, PaymentLinkInput, PaymentsInfo, Price, PriceInput, fromCents, toCents } from "@coach/shared";
-import { clientProfiles, payments, prices, sessionPacks, stripeEvents, users } from "../db/schema";
+import { Payment, PaymentLinkInput, PaymentsInfo, Price, PriceInput, Subscription, fromCents, toCents } from "@coach/shared";
+import { appointments, clientProfiles, payments, prices, sessionPacks, stripeEvents, subscriptions, users } from "../db/schema";
 import { HttpError, notFound } from "../lib/errors";
 import { audit } from "../lib/audit";
 import type { PaymentGateway } from "../lib/stripe";
@@ -39,7 +39,23 @@ const addDays = (date: string, n: number) => {
  * C1: cobros con Stripe Checkout. La app nunca ve una tarjeta: crea el cobro con el importe que fija el servidor, manda al
  * cliente a la página de Stripe y da el pago por hecho solo cuando llega el webhook firmado.
  */
-export function registerPayments(app: FastifyInstance, { db, cfg }: Ctx, deps: { gateway: PaymentGateway | null; push: PushSender }) {
+export type Billing = {
+  enabled: boolean;
+  startPayment: (o: { studioId: string; clientId: string; kind: "pack" | "session" | "link" | "subscription"; description: string; amountCents: number; priceId: string | null; createdBy: string; returnPath: string; appointmentId?: string }) => Promise<Payment>;
+};
+
+type SubRow = typeof subscriptions.$inferSelect;
+const toSub = (s: SubRow): Subscription => ({
+  id: s.id,
+  clientId: s.clientId,
+  name: s.name,
+  amount: fromCents(s.amountCents),
+  status: s.status,
+  currentPeriodEnd: s.currentPeriodEnd?.toISOString() ?? null,
+  cancelAtPeriodEnd: s.cancelAtPeriodEnd,
+});
+
+export function registerPayments(app: FastifyInstance, { db, cfg }: Ctx, deps: { gateway: PaymentGateway | null; push: PushSender }): Billing {
   const api = typed(app);
   const gw = deps.gateway;
   const need = () => {
@@ -61,10 +77,13 @@ export function registerPayments(app: FastifyInstance, { db, cfg }: Ctx, deps: {
   }
 
   /** Crea el cobro pendiente y su página de pago. */
-  async function startPayment(o: { studioId: string; clientId: string; kind: PayRow["kind"]; description: string; amountCents: number; priceId: string | null; createdBy: string; returnPath: string }) {
+  async function startPayment(o: Parameters<Billing["startPayment"]>[0]) {
     const g = need();
     const c = await customerOf(o.clientId);
-    const [p] = await db.insert(payments).values({ studioId: o.studioId, clientId: o.clientId, priceId: o.priceId, kind: o.kind, description: o.description, amountCents: o.amountCents, createdBy: o.createdBy }).returning();
+    const [p] = await db
+      .insert(payments)
+      .values({ studioId: o.studioId, clientId: o.clientId, priceId: o.priceId, kind: o.kind, description: o.description, amountCents: o.amountCents, createdBy: o.createdBy, appointmentId: o.appointmentId ?? null })
+      .returning();
     const back = `${cfg.publicUrl}${o.returnPath}`;
     const s = await g.createCheckout({
       customerId: c.customer,
@@ -126,7 +145,7 @@ export function registerPayments(app: FastifyInstance, { db, cfg }: Ctx, deps: {
   api.get("/me/prices", { schema: { tags: ["cobros"], response: { 200: z.array(Price) } } }, async (req) => {
     const c = requireActiveClient(req);
     if (!gw) return [];
-    return (await db.select().from(prices).where(and(eq(prices.studioId, c.studioId), eq(prices.active, true)))).filter((p) => p.kind !== "subscription").map(toPrice);
+    return (await db.select().from(prices).where(and(eq(prices.studioId, c.studioId), eq(prices.active, true)))).map(toPrice);
   });
 
   // ── Cobrar ──
@@ -198,6 +217,49 @@ export function registerPayments(app: FastifyInstance, { db, cfg }: Ctx, deps: {
       .send("﻿" + csv);
   });
 
+  // ── Cuotas mensuales ──
+  api.post(
+    "/me/subscribe",
+    { schema: { tags: ["cobros"], body: z.object({ priceId: z.string().uuid() }), response: { 200: z.object({ url: z.string() }) } }, config: { rateLimit: { max: 10, timeWindow: "1 minute" } } },
+    async (req) => {
+      const c = requireActiveClient(req);
+      const g = need();
+      const p = await ownedPrice(c.studioId, req.body.priceId);
+      if (!p.active || p.kind !== "subscription") throw notFound("Tarifa");
+      const [already] = await db.select().from(subscriptions).where(and(eq(subscriptions.clientId, c.clientId), sql`${subscriptions.status} in ('active', 'past_due')`));
+      if (already) throw new HttpError(409, "already_subscribed", "Ya tienes una cuota activa. Puedes gestionarla desde «Gestionar mi cuota».");
+      const cust = await customerOf(c.clientId);
+      const [row] = await db.insert(subscriptions).values({ studioId: c.studioId, clientId: c.clientId, priceId: p.id, name: p.name, amountCents: p.amountCents }).returning();
+      const back = `${cfg.publicUrl}/app/pagos`;
+      const s = await g.createSubscriptionCheckout({
+        customerId: cust.customer,
+        description: p.name,
+        amountCents: p.amountCents,
+        successUrl: `${back}?pago=ok`,
+        cancelUrl: back,
+        metadata: { subscriptionRowId: row!.id, studioId: c.studioId, clientId: c.clientId },
+      });
+      await db.update(subscriptions).set({ checkoutId: s.id }).where(eq(subscriptions.id, row!.id));
+      return { url: s.url };
+    },
+  );
+  api.post("/me/billing-portal", { schema: { tags: ["cobros"], response: { 200: z.object({ url: z.string() }) } } }, async (req) => {
+    const c = requireActiveClient(req);
+    const g = need();
+    const [cp] = await db.select({ customer: clientProfiles.stripeCustomerId }).from(clientProfiles).where(eq(clientProfiles.id, c.clientId));
+    if (!cp?.customer) throw new HttpError(409, "no_customer", "Todavía no tienes pagos en la app");
+    return { url: await g.portalUrl(cp.customer, `${cfg.publicUrl}/app/pagos`) };
+  });
+  const subsOf = async (clientId: string) =>
+    (await db.select().from(subscriptions).where(and(eq(subscriptions.clientId, clientId), sql`${subscriptions.status} <> 'incomplete'`)).orderBy(desc(subscriptions.createdAt))).map(toSub);
+  api.get("/me/subscriptions", { schema: { tags: ["cobros"], response: { 200: z.array(Subscription) } } }, async (req) => subsOf(requireActiveClient(req).clientId));
+  api.get("/clients/:id/subscriptions", { schema: { tags: ["cobros"], params: IdParams, response: { 200: z.array(Subscription) } } }, async (req) => {
+    const u = requireCoach(req);
+    const [c] = await db.select({ id: clientProfiles.id }).from(clientProfiles).where(and(eq(clientProfiles.id, req.params.id), eq(clientProfiles.studioId, u.studioId)));
+    if (!c) throw notFound("Cliente");
+    return subsOf(c.id);
+  });
+
   // ── Webhook de Stripe ──
   async function markPaid(p: PayRow, paymentIntentId: string | null) {
     if (p.status === "paid") return;
@@ -224,6 +286,8 @@ export function registerPayments(app: FastifyInstance, { db, cfg }: Ctx, deps: {
         }
       }
       await tx.update(payments).set({ status: "paid", paidAt: new Date(), paymentIntentId, packId }).where(eq(payments.id, p.id));
+      // Reserva pagada: se confirma (si la retención había caducado, se recupera y el entrenador lo ve en la agenda).
+      if (p.appointmentId) await tx.update(appointments).set({ paymentStatus: "paid", holdExpiresAt: null, status: "scheduled" }).where(eq(appointments.id, p.appointmentId));
     });
     if (paymentIntentId && gw) {
       const url = await gw.receiptUrl(paymentIntentId).catch(() => null);
@@ -241,10 +305,23 @@ export function registerPayments(app: FastifyInstance, { db, cfg }: Ctx, deps: {
       return p ?? null;
     };
     const pi = (x: string | Stripe.PaymentIntent | null) => (typeof x === "string" ? x : (x?.id ?? null));
+    const subId = (x: unknown) => (typeof x === "string" ? x : ((x as { id?: string } | null)?.id ?? null));
+    /** La suscripción de Stripe de una factura (la API la ha movido de sitio con los años). */
+    const invoiceSub = (inv: Record<string, any>) => subId(inv.subscription) ?? subId(inv.parent?.subscription_details?.subscription) ?? null;
+    const periodEnd = (sub: Record<string, any>) => {
+      const t = sub.current_period_end ?? sub.items?.data?.[0]?.current_period_end;
+      return typeof t === "number" ? new Date(t * 1000) : null;
+    };
     switch (ev.type) {
       case "checkout.session.completed":
       case "checkout.session.async_payment_succeeded": {
         const s = ev.data.object;
+        if (s.mode === "subscription") {
+          const rowId = s.metadata?.subscriptionRowId;
+          if (!rowId) return;
+          await db.update(subscriptions).set({ stripeSubscriptionId: subId(s.subscription), status: "active" }).where(and(eq(subscriptions.id, rowId), eq(subscriptions.checkoutId, s.id)));
+          return;
+        }
         const p = await byCheckout(s);
         if (!p) return;
         // El importe cobrado tiene que ser el que fijó el servidor.
@@ -263,6 +340,42 @@ export function registerPayments(app: FastifyInstance, { db, cfg }: Ctx, deps: {
       case "checkout.session.expired": {
         const p = await byCheckout(ev.data.object);
         if (p && p.status === "pending") await db.update(payments).set({ status: "expired" }).where(eq(payments.id, p.id));
+        return;
+      }
+      case "invoice.paid":
+      case "invoice.payment_failed": {
+        const inv = ev.data.object as unknown as Record<string, any>;
+        const sid = invoiceSub(inv);
+        if (!sid) return;
+        const [sub] = await db.select().from(subscriptions).where(eq(subscriptions.stripeSubscriptionId, sid));
+        if (!sub) return;
+        const paid = ev.type === "invoice.paid";
+        const [dup] = await db.select({ id: payments.id }).from(payments).where(eq(payments.stripeInvoiceId, String(inv.id)));
+        const values = {
+          status: (paid ? "paid" : "failed") as "paid" | "failed",
+          paidAt: paid ? new Date() : null,
+          receiptUrl: (inv.hosted_invoice_url as string | undefined) ?? null,
+        };
+        if (dup) await db.update(payments).set(values).where(eq(payments.id, dup.id));
+        else
+          await db.insert(payments).values({
+            studioId: sub.studioId, clientId: sub.clientId, priceId: sub.priceId, kind: "subscription", description: `${sub.name} (cuota)`,
+            amountCents: Number(inv.amount_paid || inv.amount_due || sub.amountCents), subscriptionId: sub.id, stripeInvoiceId: String(inv.id), ...values,
+          });
+        await db.update(subscriptions).set({ status: paid ? "active" : "past_due" }).where(eq(subscriptions.id, sub.id));
+        if (!paid) {
+          const coaches = await db.select({ id: users.id }).from(users).where(and(eq(users.studioId, sub.studioId), eq(users.role, "coach"), isNull(users.deletedAt)));
+          const [c] = await db.select({ name: clientProfiles.name }).from(clientProfiles).where(eq(clientProfiles.id, sub.clientId));
+          void deps.push(coaches.map((x) => x.id), { title: "Cuota sin cobrar", body: `No se ha podido cobrar la cuota de ${c?.name ?? "un cliente"}.`, url: "/coach", tag: "pago" }).catch(() => {});
+        }
+        return;
+      }
+      case "customer.subscription.updated":
+      case "customer.subscription.deleted": {
+        const sub = ev.data.object as unknown as Record<string, any>;
+        const status = ev.type === "customer.subscription.deleted" ? "canceled" : (sub.status as string);
+        const mapped = (["active", "past_due", "canceled", "unpaid", "incomplete"].includes(status) ? status : status === "trialing" ? "active" : "past_due") as SubRow["status"];
+        await db.update(subscriptions).set({ status: mapped, cancelAtPeriodEnd: Boolean(sub.cancel_at_period_end), currentPeriodEnd: periodEnd(sub) }).where(eq(subscriptions.stripeSubscriptionId, String(sub.id)));
         return;
       }
       case "charge.refunded": {
@@ -301,4 +414,6 @@ export function registerPayments(app: FastifyInstance, { db, cfg }: Ctx, deps: {
     });
   });
 
+
+  return { enabled: Boolean(gw), startPayment };
 }

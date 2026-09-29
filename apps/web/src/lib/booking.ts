@@ -15,7 +15,7 @@ export const myBookingQuery = (from: string, days = 14) =>
 export function useBook() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (startsAt: string) => api<Appointment>("/me/booking", { body: { startsAt } }),
+    mutationFn: (startsAt: string) => api<Appointment & { checkoutUrl: string | null }>("/me/booking", { body: { startsAt } }),
     onSettled: () => (qc.invalidateQueries({ queryKey: ["booking"] }), qc.invalidateQueries({ queryKey: ["appointments"] })),
   });
 }

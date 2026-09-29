@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Trash } from "@phosphor-icons/react";
-import type { BookingSettings, BookingWindow } from "@coach/shared";
+import { formatEuros, type BookingSettings, type BookingWindow } from "@coach/shared";
+import { paymentsInfoQuery, pricesQuery } from "../../lib/payments";
 import { Button, IconButton } from "../ui/button";
 import { Checkbox, Select, TextField, controlClass } from "../ui/field";
 import { BlockTitle } from "../ui/layout";
@@ -31,7 +32,9 @@ function Form({ initial }: { initial: BookingSettings }) {
     const last = f.windows.at(-1);
     setF((s) => ({ ...s, windows: [...s.windows, last ? { ...last, weekday: (last.weekday % 7) + 1 } : { weekday: 1, start: "09:00", end: "13:00" }] }));
   };
-  const invalid = f.windows.some((w) => w.end <= w.start);
+  const invalid = f.windows.some((w) => w.end <= w.start) || (f.payAtBooking && !f.sessionPriceId);
+  const paymentsOn = useQuery(paymentsInfoQuery).data?.enabled ?? false;
+  const sessionPrices = (useQuery({ ...pricesQuery, enabled: paymentsOn }).data ?? []).filter((p) => p.kind === "session" && p.active);
   return (
     <section aria-labelledby="bk-title">
       <BlockTitle id="bk-title">Reservas</BlockTitle>
@@ -76,9 +79,30 @@ function Form({ initial }: { initial: BookingSettings }) {
             <TextField label="Reservar con" aside="h antes" type="number" min={0} max={72} value={f.noticeHours} onChange={(e) => setF({ ...f, noticeHours: Math.max(0, Math.min(72, Number(e.target.value) || 0)) })} />
             <TextField label="Cancelar hasta" aside="h antes" type="number" min={0} max={72} value={f.cancelHours} onChange={(e) => setF({ ...f, cancelHours: Math.max(0, Math.min(72, Number(e.target.value) || 0)) })} />
           </div>
+          {paymentsOn && (
+            <div className="flex flex-col gap-3">
+              <Checkbox
+                label="Si no tiene bono, que pague la sesión al reservar"
+                description="El hueco se le guarda 15 minutos mientras paga; si no paga, se libera."
+                checked={f.payAtBooking}
+                onChange={(e) => setF({ ...f, payAtBooking: e.target.checked })}
+              />
+              {f.payAtBooking && (
+                <Select label="Tarifa de la sesión" value={f.sessionPriceId ?? ""} onChange={(e) => setF({ ...f, sessionPriceId: e.target.value || null })} className="max-w-[320px]">
+                  <option value="">Elige una tarifa…</option>
+                  {sessionPrices.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} ({formatEuros(p.amount)})
+                    </option>
+                  ))}
+                </Select>
+              )}
+              {f.payAtBooking && sessionPrices.length === 0 && <p className="text-[13px] text-ink-2">Crea antes una tarifa de «Sesión suelta» en Cobros.</p>}
+            </div>
+          )}
           <TextField label="Lugar" aside="opcional" value={f.location} onChange={(e) => setF({ ...f, location: e.target.value })} placeholder="Estudio, calle Mayor 3" />
         </fieldset>
-        <FormError message={save.isError ? errorMessage(save.error) : invalid ? "Alguna franja termina antes de empezar." : null} />
+        <FormError message={save.isError ? errorMessage(save.error) : f.windows.some((w) => w.end <= w.start) ? "Alguna franja termina antes de empezar." : invalid ? "Elige la tarifa de la sesión." : null} />
         <Button className="self-start" disabled={!dirty || invalid} loading={save.isPending} onClick={() => save.mutate(f, { onSuccess: () => toast("Reservas guardadas") })}>
           Guardar reservas
         </Button>

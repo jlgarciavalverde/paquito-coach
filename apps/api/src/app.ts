@@ -220,19 +220,26 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
       registerFollowup(api, ctx);
       registerPrograms(api, ctx);
       registerPacks(api, ctx);
-      registerBooking(api, ctx, { push });
       registerLibrary(api, ctx);
       registerAi(api, ctx, { ai });
-      registerPayments(api, ctx, { gateway, push });
+      const billing = registerPayments(api, ctx, { gateway, push });
+      registerBooking(api, ctx, { push, billing });
       if (fakeGateway) {
         // Solo e2e: simula que Stripe confirma el pago de un checkout (evento firmado que entra por el webhook real).
         api.post("/stripe/simulate", async (req) => {
           const { checkoutId } = z.object({ checkoutId: z.string() }).parse(req.body);
           const c = fakeGateway.checkouts.find((x) => x.id === checkoutId);
           if (!c) throw notFound("Pago");
-          const payload = JSON.stringify({ id: `evt_${checkoutId}`, object: "event", type: "checkout.session.completed", data: { object: { id: c.id, object: "checkout.session", amount_total: c.amountCents, currency: "eur", payment_status: "paid", payment_intent: `pi_${checkoutId}`, metadata: c.metadata } } });
-          const r = await api.inject({ method: "POST", url: "/api/v1/stripe/webhook", payload, headers: { "content-type": "application/json", "stripe-signature": fakeGateway.sign(payload) } });
-          return { status: r.statusCode };
+          const send = async (ev: Record<string, unknown>) => {
+            const payload = JSON.stringify({ object: "event", ...ev });
+            return (await api.inject({ method: "POST", url: "/api/v1/stripe/webhook", payload, headers: { "content-type": "application/json", "stripe-signature": fakeGateway.sign(payload) } })).statusCode;
+          };
+          if (c.metadata.subscriptionRowId) {
+            const sub = `sub_${checkoutId}`;
+            await send({ id: `evt_${checkoutId}`, type: "checkout.session.completed", data: { object: { id: c.id, object: "checkout.session", mode: "subscription", subscription: sub, payment_status: "paid", metadata: c.metadata } } });
+            return { status: await send({ id: `evt_in_${checkoutId}`, type: "invoice.paid", data: { object: { id: `in_${checkoutId}`, object: "invoice", amount_paid: c.amountCents, subscription: sub } } }) };
+          }
+          return { status: await send({ id: `evt_${checkoutId}`, type: "checkout.session.completed", data: { object: { id: c.id, object: "checkout.session", mode: "payment", amount_total: c.amountCents, currency: "eur", payment_status: "paid", payment_intent: `pi_${checkoutId}`, metadata: c.metadata } } }) };
         });
       }
       registerChat(api, ctx, { hub, push, mediaDir: join(cfg.dataDir, "media"), vapidPublicKey: cfg.vapidPublicKey });

@@ -249,6 +249,9 @@ export const appointments = pgTable(
     status: text("status").$type<"scheduled" | "done" | "no_show" | "cancelled">().notNull().default("scheduled"),
     /** Reservada por el propio cliente (H3b). */
     bookedByClient: boolean("booked_by_client").notNull().default(false),
+    /** C2: reserva pagada al reservar. `pending` = retenida hasta `hold_expires_at` mientras paga. */
+    paymentStatus: text("payment_status").$type<"pending" | "paid">(),
+    holdExpiresAt: ts("hold_expires_at"),
     packId: uuid("pack_id").references((): AnyPgColumn => sessionPacks.id, { onDelete: "set null" }),
     createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
     createdAt: createdAt(),
@@ -506,6 +509,8 @@ export const bookingSettings = pgTable("booking_settings", {
   cancelHours: integer("cancel_hours").notNull().default(24),
   location: text("location").notNull().default(""),
   windows: jsonb("windows").$type<BookingWindow[]>().notNull().default(sql`'[]'::jsonb`),
+  payAtBooking: boolean("pay_at_booking").notNull().default(false),
+  sessionPriceId: uuid("session_price_id"),
   updatedAt: ts("updated_at").notNull().defaultNow(),
 });
 
@@ -597,6 +602,9 @@ export const payments = pgTable(
     paymentIntentId: text("payment_intent_id"),
     receiptUrl: text("receipt_url"),
     packId: uuid("pack_id").references(() => sessionPacks.id, { onDelete: "set null" }),
+    appointmentId: uuid("appointment_id").references(() => appointments.id, { onDelete: "set null" }),
+    subscriptionId: uuid("subscription_id"),
+    stripeInvoiceId: text("stripe_invoice_id"),
     createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
     createdAt: createdAt(),
     paidAt: ts("paid_at"),
@@ -610,3 +618,23 @@ export const stripeEvents = pgTable("stripe_events", {
   type: text("type").notNull(),
   receivedAt: ts("received_at").notNull().defaultNow(),
 });
+
+/** C2: cuotas mensuales (suscripciones de Stripe). */
+export const subscriptions = pgTable(
+  "subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id").notNull().references(() => clientProfiles.id, { onDelete: "cascade" }),
+    priceId: uuid("price_id").references(() => prices.id, { onDelete: "set null" }),
+    name: text("name").notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    status: text("status").$type<"incomplete" | "active" | "past_due" | "canceled" | "unpaid">().notNull().default("incomplete"),
+    checkoutId: text("checkout_id"),
+    stripeSubscriptionId: text("stripe_subscription_id"),
+    currentPeriodEnd: ts("current_period_end"),
+    cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
+    createdAt: createdAt(),
+  },
+  (t) => [index("subscriptions_client_idx").on(t.clientId), uniqueIndex("subscriptions_stripe_uq").on(t.stripeSubscriptionId)],
+);

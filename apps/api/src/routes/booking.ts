@@ -1,8 +1,10 @@
 import type { FastifyInstance } from "fastify";
 import { and, eq, gt, lt, ne, sql } from "drizzle-orm";
 import { z } from "zod";
-import { Appointment, BookingInfo, BookingSettings, DEFAULT_BOOKING, DateOnly, Ok, isoWeekday, slotStartsFor, type BookingSlot } from "@coach/shared";
-import { appointments, bookingSettings, users } from "../db/schema";
+import { Appointment, BookingInfo, BookingSettings, DEFAULT_BOOKING, DateOnly, Ok, fromCents, isoWeekday, packUsable, slotStartsFor, type BookingSlot } from "@coach/shared";
+import { appointments, bookingSettings, prices, users } from "../db/schema";
+import { packsOf } from "../lib/packs";
+import type { Billing } from "./payments";
 import { HttpError, notFound } from "../lib/errors";
 import type { PushSender } from "../lib/push";
 import { madridClock } from "../lib/scheduler";
@@ -16,18 +18,20 @@ const addDays = (date: string, n: number) => {
   return d.toISOString().slice(0, 10);
 };
 const MAX_DAYS = 28;
+/** Minutos que se guarda el hueco mientras el cliente paga. */
+export const HOLD_MINUTES = 15;
 
 /**
  * Reservas por el cliente (H3b): el entrenador publica franjas semanales; el cliente ve los huecos libres y reserva o cancela
  * con la antelación marcada. Un hueco está ocupado por citas que se solapan (las citas sin cliente lo bloquean entero).
  */
-export function registerBooking(app: FastifyInstance, { db }: Ctx, deps: { push: PushSender }) {
+export function registerBooking(app: FastifyInstance, { db }: Ctx, deps: { push: PushSender; billing: Billing }) {
   const api = typed(app);
 
   async function settingsOf(studioId: string): Promise<BookingSettings> {
     const [s] = await db.select().from(bookingSettings).where(eq(bookingSettings.studioId, studioId));
     if (!s) return DEFAULT_BOOKING;
-    return { enabled: s.enabled, slotMinutes: s.slotMinutes, capacity: s.capacity, noticeHours: s.noticeHours, cancelHours: s.cancelHours, location: s.location, windows: s.windows };
+    return { enabled: s.enabled, slotMinutes: s.slotMinutes, capacity: s.capacity, noticeHours: s.noticeHours, cancelHours: s.cancelHours, location: s.location, windows: s.windows, payAtBooking: s.payAtBooking, sessionPriceId: s.sessionPriceId };
   }
 
   /** Huecos libres de `from` durante `days` días para `clientId` (sin los que ya tiene él ocupados). */
@@ -38,7 +42,16 @@ export function registerBooking(app: FastifyInstance, { db }: Ctx, deps: { push:
     const busy = await db
       .select({ clientId: appointments.clientId, startsAt: appointments.startsAt, endsAt: appointments.endsAt })
       .from(appointments)
-      .where(and(eq(appointments.studioId, studioId), ne(appointments.status, "cancelled"), lt(appointments.startsAt, end), gt(appointments.endsAt, start)));
+      .where(
+        and(
+          eq(appointments.studioId, studioId),
+          ne(appointments.status, "cancelled"),
+          lt(appointments.startsAt, end),
+          gt(appointments.endsAt, start),
+          // Una reserva retenida mientras se paga ocupa el hueco solo hasta que caduca la retención.
+          sql`(${appointments.paymentStatus} is distinct from 'pending' or ${appointments.holdExpiresAt} > now())`,
+        ),
+      );
     const earliest = Date.now() + s.noticeHours * 3600_000;
     const out: BookingSlot[] = [];
     for (let i = 0; i < days; i++) {
@@ -56,6 +69,15 @@ export function registerBooking(app: FastifyInstance, { db }: Ctx, deps: { push:
     return out;
   }
 
+  /** Tarifa a pagar al reservar, si el entrenador cobra al reservar y el cliente no tiene bono utilizable. */
+  async function payFor(studioId: string, clientId: string, s: BookingSettings) {
+    if (!s.payAtBooking || !s.sessionPriceId || !deps.billing.enabled) return null;
+    const today = madridClock(new Date()).date;
+    if ((await packsOf(db, clientId)).some((p) => packUsable(p, today))) return null;
+    const [p] = await db.select().from(prices).where(and(eq(prices.id, s.sessionPriceId), eq(prices.studioId, studioId), eq(prices.active, true)));
+    return p ?? null;
+  }
+
   // ── Entrenador ──
   api.get("/studio/booking", { schema: { tags: ["agenda"], response: { 200: BookingSettings } } }, async (req) => settingsOf(requireCoach(req).studioId));
   api.put("/studio/booking", { schema: { tags: ["agenda"], body: BookingSettings, response: { 200: BookingSettings } } }, async (req) => {
@@ -69,18 +91,20 @@ export function registerBooking(app: FastifyInstance, { db }: Ctx, deps: { push:
   api.get("/me/booking", { schema: { tags: ["agenda"], querystring: z.object({ from: DateOnly, days: z.coerce.number().int().min(1).max(MAX_DAYS).default(14) }), response: { 200: BookingInfo } } }, async (req) => {
     const c = requireActiveClient(req);
     const s = await settingsOf(c.studioId);
-    return { enabled: s.enabled, cancelHours: s.cancelHours, location: s.location, slots: await freeSlots(c.studioId, c.clientId, s, req.query.from, req.query.days) };
+    const pay = await payFor(c.studioId, c.clientId, s);
+    return { enabled: s.enabled, payAmount: pay ? fromCents(pay.amountCents) : null, cancelHours: s.cancelHours, location: s.location, slots: await freeSlots(c.studioId, c.clientId, s, req.query.from, req.query.days) };
   });
 
   api.post(
     "/me/booking",
-    { schema: { tags: ["agenda"], body: z.object({ startsAt: z.string().datetime({ offset: true }) }), response: { 200: Appointment } }, config: { rateLimit: { max: 20, timeWindow: "1 minute" } } },
+    { schema: { tags: ["agenda"], body: z.object({ startsAt: z.string().datetime({ offset: true }) }), response: { 200: Appointment.extend({ checkoutUrl: z.string().nullable() }) } }, config: { rateLimit: { max: 20, timeWindow: "1 minute" } } },
     async (req) => {
       const c = requireActiveClient(req);
       const s = await settingsOf(c.studioId);
       if (!s.enabled) throw new HttpError(409, "booking_off", "Tu entrenador no tiene activadas las reservas");
       const at = new Date(req.body.startsAt);
       const date = madridClock(at).date;
+      const pay = await payFor(c.studioId, c.clientId, s);
       const row = await db.transaction(async (tx) => {
         // Un cerrojo por estudio: dos reservas a la vez no pueden quedarse con la última plaza.
         await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${c.studioId}))`);
@@ -88,14 +112,27 @@ export function registerBooking(app: FastifyInstance, { db }: Ctx, deps: { push:
         if (!slot) throw new HttpError(409, "slot_taken", "Ese hueco ya no está libre. Elige otro.");
         const [a] = await tx
           .insert(appointments)
-          .values({ studioId: c.studioId, clientId: c.clientId, kind: "session", startsAt: at, endsAt: new Date(slot.endsAt), location: s.location, bookedByClient: true, createdBy: c.id })
+          .values({
+            studioId: c.studioId, clientId: c.clientId, kind: "session", startsAt: at, endsAt: new Date(slot.endsAt), location: s.location, bookedByClient: true, createdBy: c.id,
+            ...(pay ? { paymentStatus: "pending" as const, holdExpiresAt: new Date(Date.now() + HOLD_MINUTES * 60_000) } : {}),
+          })
           .returning();
         return a!;
       });
+      let checkoutUrl: string | null = null;
+      if (pay) {
+        try {
+          const p = await deps.billing.startPayment({ studioId: c.studioId, clientId: c.clientId, kind: "session", description: `${pay.name}: ${new Intl.DateTimeFormat("es-ES", { timeZone: "Europe/Madrid", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(at)}`, amountCents: pay.amountCents, priceId: pay.id, createdBy: c.id, returnPath: "/app/agenda", appointmentId: row.id });
+          checkoutUrl = p.url;
+        } catch (e) {
+          await db.update(appointments).set({ status: "cancelled" }).where(eq(appointments.id, row.id));
+          throw e;
+        }
+      }
       const coaches = await db.select({ id: users.id }).from(users).where(and(eq(users.studioId, c.studioId), eq(users.role, "coach")));
       const when = new Intl.DateTimeFormat("es-ES", { timeZone: "Europe/Madrid", weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }).format(at);
-      void deps.push(coaches.map((x) => x.id), { title: "Nueva reserva", body: `${c.name} ha reservado el ${when}.`, url: "/coach/calendario", tag: "reserva" }).catch(() => {});
-      return { id: row.id, status: row.status, packId: row.packId, clientId: row.clientId, clientName: c.name, kind: row.kind, title: row.title, startsAt: row.startsAt.toISOString(), endsAt: row.endsAt.toISOString(), location: row.location, notes: "" };
+      void deps.push(coaches.map((x) => x.id), { title: "Nueva reserva", body: `${c.name} ha reservado el ${when}${pay ? " (pendiente de pago)" : ""}.`, url: "/coach/calendario", tag: "reserva" }).catch(() => {});
+      return { id: row.id, status: row.status, packId: row.packId, clientId: row.clientId, clientName: c.name, kind: row.kind, title: row.title, startsAt: row.startsAt.toISOString(), endsAt: row.endsAt.toISOString(), location: row.location, notes: "", checkoutUrl };
     },
   );
 

@@ -20,15 +20,20 @@ export const BookingSettings = z.object({
   cancelHours: z.number().int().min(0).max(72),
   location: z.string().trim().max(120).default(""),
   windows: z.array(BookingWindow).max(50),
+  /** Si el cliente no tiene bono, pagar la sesión al reservar (tarifa de sesión suelta). */
+  payAtBooking: z.boolean().default(false),
+  sessionPriceId: z.string().uuid().nullable().default(null),
 });
 export type BookingSettings = z.infer<typeof BookingSettings>;
-export const DEFAULT_BOOKING: BookingSettings = { enabled: false, slotMinutes: 60, capacity: 1, noticeHours: 12, cancelHours: 24, location: "", windows: [] };
+export const DEFAULT_BOOKING: BookingSettings = { enabled: false, slotMinutes: 60, capacity: 1, noticeHours: 12, cancelHours: 24, location: "", windows: [], payAtBooking: false, sessionPriceId: null };
 
 export const BookingSlot = z.object({ startsAt: z.string(), endsAt: z.string(), free: z.number() });
 export type BookingSlot = z.infer<typeof BookingSlot>;
 
 export const BookingInfo = z.object({
   enabled: z.boolean(),
+  /** Si al reservar tendrá que pagar (no tiene bono y el entrenador cobra al reservar), el precio. */
+  payAmount: z.number().nullable(),
   cancelHours: z.number(),
   location: z.string(),
   slots: z.array(BookingSlot),
@@ -43,3 +48,7 @@ export function slotStartsFor(weekday: number, windows: BookingWindow[], slotMin
   }
   return [...out].sort((a, b) => a - b);
 }
+
+/** Resultado de reservar: si hay que pagar, la cita queda retenida y se va a la página de pago. */
+export const BookingResult = z.object({ appointmentId: z.string(), checkoutUrl: z.string().nullable() });
+export type BookingResult = z.infer<typeof BookingResult>;

@@ -12,6 +12,10 @@ export interface PaymentGateway {
     cancelUrl: string;
     metadata: Record<string, string>;
   }): Promise<{ id: string; url: string; expiresAt: Date }>;
+  /** Cuota mensual: Checkout en modo suscripción. */
+  createSubscriptionCheckout(o: { customerId: string; description: string; amountCents: number; successUrl: string; cancelUrl: string; metadata: Record<string, string> }): Promise<{ id: string; url: string }>;
+  /** Portal de Stripe para que el cliente cambie la tarjeta o se dé de baja. */
+  portalUrl(customerId: string, returnUrl: string): Promise<string>;
   /** Recibo de un pago (URL de Stripe), si existe. */
   receiptUrl(paymentIntentId: string): Promise<string | null>;
   /** Verifica la firma del webhook y devuelve el evento. Lanza si no es válida. */
@@ -41,6 +45,23 @@ export function createStripeGateway(o: { secretKey: string; webhookSecret: strin
       });
       return { id: s.id, url: s.url!, expiresAt };
     },
+    async createSubscriptionCheckout({ customerId, description, amountCents, successUrl, cancelUrl, metadata }) {
+      const s = await stripe.checkout.sessions.create({
+        mode: "subscription",
+        customer: customerId,
+        locale: "es",
+        line_items: [{ quantity: 1, price_data: { currency: "eur", unit_amount: amountCents, recurring: { interval: "month" }, product_data: { name: description } } }],
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+        metadata,
+        subscription_data: { metadata, description },
+      });
+      return { id: s.id, url: s.url! };
+    },
+    async portalUrl(customerId, returnUrl) {
+      const s = await stripe.billingPortal.sessions.create({ customer: customerId, return_url: returnUrl, locale: "es" });
+      return s.url;
+    },
     async receiptUrl(paymentIntentId) {
       const pi = await stripe.paymentIntents.retrieve(paymentIntentId, { expand: ["latest_charge"] });
       const ch = pi.latest_charge as Stripe.Charge | null;
@@ -68,6 +89,14 @@ export function createFakeGateway(webhookSecret = "whsec_test_fake"): PaymentGat
       checkouts.push({ id, metadata, amountCents });
       // En e2e se «paga» con un botón de la propia app de prueba: la URL vuelve a la app con el id.
       return { id, url: `${successUrl}${successUrl.includes("?") ? "&" : "?"}simulado=${id}`, expiresAt: new Date(Date.now() + 23 * 3600_000) };
+    },
+    async createSubscriptionCheckout({ amountCents, metadata, successUrl }) {
+      const id = `cs_test_fake_sub_${++n}`;
+      checkouts.push({ id, metadata, amountCents });
+      return { id, url: `${successUrl}${successUrl.includes("?") ? "&" : "?"}simulado=${id}` };
+    },
+    async portalUrl() {
+      return "https://billing.stripe.com/p/session/fake";
     },
     async receiptUrl() {
       return "https://pay.stripe.com/receipts/fake";

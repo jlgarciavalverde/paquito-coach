@@ -7,6 +7,7 @@ import { EmptyNote } from "../../components/ui/layout";
 import { Skeleton } from "../../components/ui/spinner";
 import { useToast } from "../../components/ui/toast";
 import { FormError } from "../../components/form-error";
+import { formatEuros } from "@coach/shared";
 import { myBookingQuery, useBook } from "../../lib/booking";
 import { hhmm, localDate } from "../../lib/agenda";
 import { dayLong, dayShort, today } from "../../lib/dates";
@@ -89,12 +90,20 @@ function Book() {
               onClick={() =>
                 chosen &&
                 book.mutate(chosen.startsAt, {
-                  onSuccess: () => (toast(`Reservada: ${dayShort(localDate(chosen.startsAt))} a las ${hhmm(chosen.startsAt)}`), navigate({ to: "/app/agenda" })),
+                  onSuccess: (r) =>
+                    r.checkoutUrl
+                      ? window.location.assign(r.checkoutUrl)
+                      : (toast(`Reservada: ${dayShort(localDate(chosen.startsAt))} a las ${hhmm(chosen.startsAt)}`), navigate({ to: "/app/agenda" })),
                 })
               }
             >
-              {chosen ? `Reservar ${dayShort(localDate(chosen.startsAt))} a las ${hhmm(chosen.startsAt)}` : "Elige una hora"}
+              {chosen ? `${q.data.payAmount ? "Pagar y reservar" : "Reservar"} ${dayShort(localDate(chosen.startsAt))} a las ${hhmm(chosen.startsAt)}` : "Elige una hora"}
             </Button>
+            {q.data.payAmount != null && (
+              <p className="text-[13.5px] text-ink">
+                No tienes bono: la sesión se paga al reservar ({formatEuros(q.data.payAmount)}). Te guardamos el hueco 15 minutos mientras pagas.
+              </p>
+            )}
             <p className="text-[13px] text-ink-3">Puedes cancelarla desde tu agenda hasta {q.data.cancelHours} horas antes.</p>
           </div>
         </>

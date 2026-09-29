@@ -8,6 +8,8 @@ import { hhmm, localDate, myAppointmentsQuery } from "../../lib/agenda";
 import { myWorkoutsQuery } from "../../lib/training";
 import { dayShort, plusDays, today } from "../../lib/dates";
 import { cn } from "../../lib/cn";
+import { z } from "zod";
+import { Simulated } from "../../components/payments/simulated";
 import { buttonClass } from "../../components/ui/button";
 import { useToast } from "../../components/ui/toast";
 import { useConfirm } from "../../components/ui/confirm";
@@ -17,6 +19,7 @@ import { myPacksQuery } from "../../lib/packs";
 import { packUsable } from "@coach/shared";
 
 export const Route = createFileRoute("/app/agenda")({
+  validateSearch: z.object({ pago: z.string().optional(), simulado: z.string().optional() }),
   component: MyAgenda,
 });
 
@@ -27,6 +30,7 @@ function MyAgenda() {
   const appts = useQuery(myAppointmentsQuery(t, plusDays(to, 1)));
   const workouts = useQuery(myWorkoutsQuery(t, to));
   const days = Array.from({ length: 14 }, (_, i) => plusDays(t, i));
+  const { pago, simulado } = Route.useSearch();
   const booking = useQuery(myBookingQuery(t, 1));
   const cancel = useCancelMine();
   const toast = useToast();
@@ -42,6 +46,8 @@ function MyAgenda() {
         lead="Tus sesiones y entrenos de las próximas dos semanas."
         actions={booking.data?.enabled ? <Link to="/app/reservar" className={buttonClass("primary")}>Reservar sesión</Link> : undefined}
       />
+      {simulado && <Simulated checkoutId={simulado} />}
+      {pago === "ok" && !simulado && <p className="mb-6 border-l-[5px] border-plate-green bg-tray px-4 py-3 text-sm">Pago hecho: tu sesión queda reservada.</p>}
       <MyPacks />
       <div className="border-t border-rule">
         {rows.map(({ d, a, w }) => (

@@ -1,6 +1,12 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [1.10.0] — 2026-09-29 · Cuotas mensuales y pagar al reservar
+### Añadido
+- **Cuota mensual**: el cliente se suscribe desde Pagos (se cobra sola cada mes) y la gestiona él mismo en el portal de Stripe («Gestionar mi cuota»: cambiar tarjeta o darse de baja). Cada mes aparece el cobro con su factura; si falla, aviso al entrenador y en «Necesitan atención».
+- **Pagar al reservar**: si el cliente no tiene bono, la sesión se paga al reservar (tarifa de sesión suelta); el hueco se le guarda 15 minutos y, si no paga, se libera solo.
+- La ficha muestra la cuota del cliente con su estado y próximo cobro.
+
 ## [1.9.0] — 2026-09-29 · Cobros con Stripe
 ### Añadido
 - **Tarifas** (Ajustes → Cobros): bonos (sesiones y días de validez), sesión suelta y cuota mensual (esta, preparada para la próxima versión).

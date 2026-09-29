@@ -210,7 +210,7 @@ function CoachToday() {
 function NeedsAttention() {
   const q = useQuery(attentionQuery);
   if (!q.data?.length) return null;
-  const tone = { health: "red", missed: "red", unanswered: "blue", checkin: "blue", pack: "yellow", inactive: "yellow" } as const;
+  const tone = { health: "red", missed: "red", unanswered: "blue", checkin: "blue", pack: "yellow", payment: "red", inactive: "yellow" } as const;
   return (
     <section aria-labelledby="att-title">
       <BlockTitle id="att-title">Necesitan atención</BlockTitle>

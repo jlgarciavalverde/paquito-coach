@@ -68,3 +68,23 @@ export type PaymentsInfo = z.infer<typeof PaymentsInfo>;
 export const toCents = (euros: number) => Math.round(euros * 100);
 export const fromCents = (cents: number) => cents / 100;
 export const formatEuros = (n: number) => n.toLocaleString("es-ES", { style: "currency", currency: "EUR", minimumFractionDigits: Number.isInteger(n) ? 0 : 2 });
+
+export const SubscriptionStatus = z.enum(["incomplete", "active", "past_due", "canceled", "unpaid"]);
+export type SubscriptionStatus = z.infer<typeof SubscriptionStatus>;
+export const SUBSCRIPTION_STATUS_LABEL: Record<SubscriptionStatus, string> = {
+  incomplete: "Sin completar",
+  active: "Activa",
+  past_due: "Pago pendiente",
+  canceled: "Cancelada",
+  unpaid: "Impagada",
+};
+export const Subscription = z.object({
+  id: z.string(),
+  clientId: z.string(),
+  name: z.string(),
+  amount: z.number(),
+  status: SubscriptionStatus,
+  currentPeriodEnd: z.string().nullable(),
+  cancelAtPeriodEnd: z.boolean(),
+});
+export type Subscription = z.infer<typeof Subscription>;

@@ -72,10 +72,12 @@ re-sembrarla a mano: `docker restart coach-demo`. No tiene copias de seguridad (
 Requisito: la app accesible en `https://paquito.redgarverde.com` (ruta de Cloudflare), porque Stripe avisa de los pagos por webhook.
 1. Paquito crea su cuenta en <https://dashboard.stripe.com/register> (datos de autónomo y cuenta bancaria). Empezar en **modo de prueba**.
 2. **Clave restringida** (Desarrolladores → Claves de API → Crear clave restringida) con permisos: *Customers: escritura*,
-   *Checkout Sessions: escritura*, *PaymentIntents: lectura*, *Charges: lectura*. El resto, ninguno.
+   *Checkout Sessions: escritura*, *PaymentIntents: lectura*, *Charges: lectura*, *Customer portal: escritura*. El resto, ninguno.
+   Para las cuotas: Configuración → Facturación → **Portal de clientes** → activar (cambiar tarjeta, cancelar) y guardar.
 3. **Webhook** (Desarrolladores → Webhooks → Añadir destino): URL `https://paquito.redgarverde.com/api/v1/stripe/webhook`, eventos
    `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`,
-   `checkout.session.expired`, `charge.refunded`. Copiar su «secreto de firma» (`whsec_…`).
+   `checkout.session.expired`, `charge.refunded`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.updated`,
+   `customer.subscription.deleted`. Copiar su «secreto de firma» (`whsec_…`).
 4. En el VPS, sin pegarlas en ningún chat:
    ```sh
    cd ~/servicios/coach && read -rsp "Clave restringida de Stripe: " K && echo && read -rsp "Secreto del webhook: " W && echo && \
@@ -85,6 +87,7 @@ Requisito: la app accesible en `https://paquito.redgarverde.com` (ruta de Cloudf
 5. Ajustes → Cobros dirá «modo de prueba». Probar una compra con la tarjeta `4242 4242 4242 4242`. Para cobrar de verdad, repetir 2–4
    con las claves *live* (el modo lo decide la clave).
 - Probar en el Mac sin URL pública: `stripe listen --forward-to localhost:3000/api/v1/stripe/webhook` (Stripe CLI) da un `whsec_` temporal.
+- Pagar al reservar: Ajustes → Reservas → «Si no tiene bono, que pague la sesión al reservar» + tarifa de sesión. El hueco se retiene 15 min; el planificador libera los no pagados.
 - Devoluciones: desde el panel de Stripe; la app marca el cobro como «Devuelto» y archiva el bono asociado.
 - Facturas: los recibos de Stripe no son facturas. Informes → «Descargar los cobros (CSV)» para su gestor.
 

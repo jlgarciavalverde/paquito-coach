@@ -119,7 +119,7 @@ function PricePanel({ price, onClose }: { price: Price | null; onClose: () => vo
           {f.kind === "pack" && <TextField label="Sesiones" type="number" min={1} max={200} value={f.sessions} onChange={(e) => setF({ ...f, sessions: e.target.value })} />}
           {f.kind !== "subscription" && <TextField label="Vale durante" aside="días" type="number" min={1} max={730} value={f.validDays} onChange={(e) => setF({ ...f, validDays: e.target.value })} />}
         </div>
-        {f.kind === "subscription" && <p className="text-[13px] text-ink-2">Las cuotas mensuales llegan en la próxima versión; puedes dejarla preparada.</p>}
+        {f.kind === "subscription" && <p className="text-[13px] text-ink-2">Se cobra sola cada mes con la tarjeta del cliente; puede darse de baja desde su app.</p>}
         <Checkbox label="Visible para que los clientes la compren desde su app" checked={f.active} onChange={(e) => setF({ ...f, active: e.target.checked })} />
         <FormError message={m.isError ? errorMessage(m.error) : null} />
       </div>

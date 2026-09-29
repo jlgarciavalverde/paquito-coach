@@ -2,7 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { and, desc, eq, gte, inArray, isNotNull, isNull, lt, sql } from "drizzle-orm";
 import { z } from "zod";
 import { AttentionItem, Ok } from "@coach/shared";
-import { checkinAssignments, checkinResponses, clientProfiles, messages, questionnaires, workouts } from "../db/schema";
+import { checkinAssignments, checkinResponses, clientProfiles, messages, questionnaires, subscriptions, workouts } from "../db/schema";
 import { madridClock } from "../lib/scheduler";
 import { packAlerts } from "../lib/packs";
 import { requireCoach } from "../lib/session";
@@ -76,8 +76,13 @@ export function registerAttention(app: FastifyInstance, { db }: Ctx) {
       if (!newCheckins.some((c) => c.clientId === id)) add(id, { kind: "checkin", text: "Check-in sin contestar" });
 
     for (const [id, text] of await packAlerts(db, u.studioId, ids)) add(id, { kind: "pack", text });
+    const unpaid = await db
+      .select({ clientId: subscriptions.clientId, name: subscriptions.name })
+      .from(subscriptions)
+      .where(and(inArray(subscriptions.clientId, ids), sql`${subscriptions.status} in ('past_due', 'unpaid')`));
+    for (const s of unpaid) add(s.clientId, { kind: "payment", text: `Cuota sin cobrar (${s.name})` });
 
-    const order: Record<string, number> = { health: 0, missed: 1, unanswered: 2, checkin: 3, pack: 4, inactive: 5 };
+    const order: Record<string, number> = { health: 0, payment: 1, missed: 2, unanswered: 3, checkin: 4, pack: 5, inactive: 6 };
     return clients
       .filter((c) => reasons.has(c.id))
       .map((c) => ({ clientId: c.id, clientName: c.name, reasons: reasons.get(c.id)!.sort((a, b) => order[a.kind]! - order[b.kind]!) }))

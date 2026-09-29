@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { WhatsAppLink } from "../clients/share-invite";
-import { PAYMENT_STATUS_LABEL, formatEuros, type Client, type Payment } from "@coach/shared";
+import { PAYMENT_STATUS_LABEL, SUBSCRIPTION_STATUS_LABEL, formatEuros, type Client, type Payment } from "@coach/shared";
 import { Button } from "../ui/button";
 import { SidePanel } from "../ui/dialog";
 import { Select, TextField } from "../ui/field";
@@ -10,7 +10,7 @@ import { Skeleton } from "../ui/spinner";
 import { useToast } from "../ui/toast";
 import { CopyField } from "../ui/copy-field";
 import { FormError } from "../form-error";
-import { clientPaymentsQuery, paymentsInfoQuery, pricesQuery, usePaymentLink, useRenewPayment } from "../../lib/payments";
+import { clientPaymentsQuery, clientSubscriptionsQuery, paymentsInfoQuery, pricesQuery, usePaymentLink, useRenewPayment } from "../../lib/payments";
 import { useSendMessage } from "../../lib/chat";
 import { dayMonth } from "../../lib/dates";
 import { errorMessage } from "../../lib/api";
@@ -22,6 +22,8 @@ export function ClientPayments({ client }: { client: Client }) {
   const info = useQuery(paymentsInfoQuery);
   const q = useQuery(clientPaymentsQuery(client.id));
   const renew = useRenewPayment();
+  const subs = useQuery(clientSubscriptionsQuery(client.id));
+  const current = (subs.data ?? []).find((s) => s.status !== "canceled");
   const [open, setOpen] = useState(false);
   const [shared, setShared] = useState<Payment | null>(null);
   if (!info.data?.enabled) return null;
@@ -30,6 +32,18 @@ export function ClientPayments({ client }: { client: Client }) {
       <BlockTitle id="cp-title" action={<Button size="sm" variant="secondary" onClick={() => setOpen(true)}>Nuevo cobro</Button>}>
         Cobros
       </BlockTitle>
+      {current && (
+        <p className="mb-3 flex flex-wrap items-center gap-3 text-sm">
+          <span className="font-medium">{current.name}</span>
+          <span className="font-narrow text-[16px]">{formatEuros(current.amount)}/mes</span>
+          <PlateMark tone={current.status === "active" ? "green" : "red"}>{SUBSCRIPTION_STATUS_LABEL[current.status]}</PlateMark>
+          {current.currentPeriodEnd && (
+            <span className="text-[13px] text-ink-2">
+              {current.cancelAtPeriodEnd ? "Se da de baja el" : "Próximo cobro el"} {dayMonth(current.currentPeriodEnd.slice(0, 10))}
+            </span>
+          )}
+        </p>
+      )}
       {q.isPending ? (
         <Skeleton className="h-16" />
       ) : (q.data ?? []).length === 0 ? (
