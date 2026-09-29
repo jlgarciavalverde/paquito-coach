@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/server.ts"],
+  entry: { server: "src/server.ts", "reset-link": "src/cli/reset-link.ts" },
   format: ["esm"],
   target: "node22",
   clean: true,

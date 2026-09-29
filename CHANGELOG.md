@@ -1,6 +1,15 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [0.6.0] — 2026-09-29 · MVP completo
+### Añadido
+- **Protección de datos (RGPD)**: el cliente descarga todos sus datos en JSON y puede borrar su cuenta (con su contraseña); el entrenador exporta los datos de un cliente y lo borra definitivamente (solo archivados, escribiendo su nombre), fotos incluidas. Aviso de privacidad en `/privacidad`, enlazado desde el registro y el perfil.
+- «Para empezar» en «Hoy»: cuatro pasos guiados para la primera vez.
+- Título de pestaña en cada pantalla.
+- Operaciones: enlace de recuperación para la cuenta del entrenador (`reset-link.js`), copia diaria de las fotos del chat.
+### Cambiado
+- Guardarraíl de diseño (`design.test.ts`): impide colores sueltos, clases antiguas y sobretítulos en mayúsculas.
+
 ## [0.5.0] — 2026-09-29
 ### Añadido
 - **Mensajes**: conversación privada entre el entrenador y cada cliente, en tiempo real; fotos; no leídos en la barra y en la bandeja; «visto».

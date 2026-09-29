@@ -59,7 +59,7 @@ export function LoadedBarbell({ className }: { className?: string }) {
         const el = (
           <g key={i}>
             <rect x={x} y={260 - h / 2} width={p.w} height={h} rx="7" fill={p.c} stroke={p.c === "var(--paper)" ? "var(--rule-strong)" : "none"} strokeWidth="2" />
-            <text x={x + p.w / 2} y={260 + h / 2 - 22} textAnchor="middle" className="font-narrow" fontSize="18" fill={p.c === "var(--plate-yellow)" || p.c === "var(--paper)" ? "var(--ink)" : "#fff"}>
+            <text x={x + p.w / 2} y={260 + h / 2 - 22} textAnchor="middle" className="font-narrow" fontSize="18" fill={p.c === "var(--plate-yellow)" || p.c === "var(--paper)" ? "var(--ink)" : "var(--primary-ink)"}>
               {p.label}
             </text>
           </g>

@@ -10,6 +10,7 @@ import { conversationsQuery } from "../../lib/chat";
 import { hhmm, localDate } from "../../lib/agenda";
 import { dayShort, today } from "../../lib/dates";
 import { cn } from "../../lib/cn";
+import { useDocumentTitle } from "../../lib/title";
 
 export const Route = createFileRoute("/coach/chat")({
   validateSearch: z.object({ cliente: z.string().uuid().optional() }),
@@ -24,6 +25,7 @@ function Inbox() {
   const [filter, setFilter] = useState("");
   const list = useMemo(() => (q.data ?? []).filter((c) => c.clientName.toLowerCase().includes(filter.trim().toLowerCase())), [q.data, filter]);
   const current = q.data?.find((c) => c.clientId === cliente);
+  useDocumentTitle(current ? `Mensajes con ${current.clientName}` : "Mensajes");
 
   return (
     <div className="grid h-[calc(100dvh-10rem)] min-h-[480px] grid-cols-1 gap-8 md:h-[calc(100dvh-8rem)] lg:grid-cols-[320px_minmax(0,1fr)]">

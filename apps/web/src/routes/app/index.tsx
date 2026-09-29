@@ -6,6 +6,7 @@ import { Skeleton } from "../../components/ui/spinner";
 import { ItemSpec } from "../../components/training/prescription";
 import { WorkoutStatusMark } from "../../components/training/workout-status";
 import { useMe } from "../../lib/auth";
+import { useDocumentTitle } from "../../lib/title";
 import { myWorkoutsQuery } from "../../lib/training";
 import { dayLong, dayShort, plusDays, today } from "../../lib/dates";
 import { firstName } from "../../lib/format";
@@ -24,6 +25,7 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 function Today() {
   const me = useMe()!;
   const t = today();
+  useDocumentTitle("Hoy");
   const q = useQuery(myWorkoutsQuery(t, plusDays(t, 14)));
   const todays = (q.data ?? []).filter((w) => w.date === t);
   const next = (q.data ?? []).filter((w) => w.date > t).slice(0, 3);

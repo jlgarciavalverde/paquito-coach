@@ -4,9 +4,9 @@
 > Formato: fecha · quién (modelo/herramienta) · qué. Lo más reciente arriba.
 
 ## Ahora mismo
-- **Versión**: 0.5.0 (F5 Mensajes) **desplegada en joseluis-vps** (`~/servicios/coach`: `coach`, `coach-db`, `coach-backup`), sana (`/health` ok, `db: ok`, primer backup escrito). `.env` creado en el VPS con secretos generados allí.
+- **Versión**: 0.6.0 — **MVP completo** (F0–F6) **desplegado en joseluis-vps** (`~/servicios/coach`: `coach`, `coach-db`, `coach-backup`; volumen `data/` para fotos; claves VAPID en `.env`).
 - **Aún no es pública**: falta la ruta en Cloudflare (bloqueo 3). Después, alta inicial en `/instalar` con el `SETUP_CODE` del `.env` del VPS.
-- **Siguiente tarea**: **F6 — RGPD, seguridad y pulido final**.
+- **Siguiente tarea**: que Paquito lo use (bloqueos 3–5). Después, lo que pida tras probarlo (ideas en «Después del MVP»).
 - **Plan aprobado**: `~/.claude/plans/mighty-splashing-widget.md` (resumen en `docs/producto/mvp.md`).
 
 ## Fases
@@ -19,7 +19,7 @@
 | F3 | Nutrición: plantillas, plan activo por cliente (igual todos los días o por día), objetivos kcal/macros, alternativas, el cliente marca comidas, cumplimiento 7 días en la ficha | ✅ hecho |
 | F4 | Agenda: citas (con o sin cliente), calendario propio semana/mes/lista con capas (citas, entrenos, comidas por cliente), arrastrar para mover, crear pulsando un hueco; agenda del cliente; citas en «Hoy» | ✅ hecho |
 | F5 | Mensajes: chat en tiempo real (WebSocket con comprobación de Origin), fotos (tipo real por bytes, acceso solo de participantes), no leídos y «visto», avisos push VAPID, app instalable (manifest + sw) | ✅ hecho |
-| F6 | RGPD (exportar/borrar), revisión de seguridad, rendimiento, entrega | ⏳ siguiente |
+| F6 | RGPD (exportar/borrar, aviso de privacidad), revisión de seguridad, recuperación de la cuenta del entrenador, primeros pasos, títulos, guardarraíl de diseño | ✅ hecho |
 
 ## Bloqueos (necesitan al humano)
 1. ~~SSH al VPS~~ (funciona).
@@ -27,6 +27,9 @@
 3. **Cloudflare**: añadir en el panel del túnel el hostname público (propuesto `paquito.redgarverde.com`) → `http://coach:3000`.
 4. **Alta inicial**: `ssh joseluis@192.168.18.7 'grep SETUP_CODE ~/servicios/coach/.env'` y usarlo en `https://<subdominio>/instalar` (una sola vez; lo hace Paquito con su correo o tú y luego le cambias los datos).
 5. **Paquito decide**: nombre de la app (hoy «Paquito Coach», se cambia en `packages/shared/src/brand.ts` + `apps/web/index.html`), subdominio, si quiere anamnesis/PAR-Q en el MVP, y vídeos propios o YouTube.
+
+## Después del MVP (ideas, sin priorizar con Paquito)
+Anamnesis/PAR-Q inicial · fotos y medidas de progreso con gráficas · histórico de cargas por ejercicio · programas de varias semanas (periodización) · cobros con Stripe · reservas autoservicio · vídeos propios subidos (hoy: YouTube/Vimeo) · recordatorios push de entreno/comidas · nombre y marca definitivos.
 
 ## Herramientas de agente recomendadas (instalar una vez, las ejecuta el humano)
 ```
@@ -45,6 +48,7 @@ claude mcp add shadcn -- npx -y shadcn@latest mcp
 - Imagen de producción probada en local: `/health` ok, CSP/HSTS, `/api/docs` 404, POST sin Origin → 403, backup diario escrito.
 
 ## Historial
+- **2026-09-29 · Claude (Opus 5.5)** · F6: `routes/privacy.ts` (exportar/borrar), `/privacidad`, `reset-link.js`, copia de fotos, primeros pasos, títulos, `design.test.ts`. Revisión visual completa (escritorio claro y móvil oscuro, sin errores de consola). API 53 tests, web 15, e2e 26/26. `pnpm audit --prod` limpio.
 - **2026-09-29 · Claude (Opus 5.5)** · F5 Mensajes: `routes/chat.ts`, `lib/realtime.ts` (Hub), `lib/push.ts`, `lib/sniff.ts`; web `components/chat/thread.tsx`, bandeja `/coach/chat`, `/app/chat`, `public/sw.js`, manifest e iconos. Trampa: la hora de «leído» la pone Postgres (reloj de la VM distinto del Mac). Producción: volumen `./data` para fotos, claves VAPID generadas por `tools/deploy.mjs` en el VPS. Remote Control preparado (`.claude/settings.json`). API 49 tests, e2e 24/24.
 - **2026-09-29 · Claude (Opus 5.5)** · F4 Agenda: `routes/agenda.ts` (citas por solapamiento de rango, máx. 2 meses; el cliente no recibe las notas internas), calendario propio con @dnd-kit (`components/agenda/calendar.tsx`, botón arrastrable único para no anidar controles), movimientos optimistas. Corregidos desbordamientos horizontales en móvil (rejillas sin `min-w-0`) y añadido e2e que lo vigila. API 43 tests, e2e 20/20.
 - **2026-09-29 · Claude (Opus 5.5)** · F3 Nutrición: `routes/nutrition.ts` (planes en JSONB como las rutinas, índice único parcial «un plan activo por cliente», `meal_checks` con upsert), editor de planes, plantillas y aplicar a varios, pestaña de la ficha con cumplimiento, pantalla «Comidas» del cliente y resumen en «Hoy». API 38 tests, e2e 16/16.

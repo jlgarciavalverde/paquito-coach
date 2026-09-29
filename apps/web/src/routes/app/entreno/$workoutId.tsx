@@ -15,6 +15,7 @@ import { exerciseQuery, itemLabels, saveLog, useCompleteWorkout, workoutQuery } 
 import { dayLong, fmtRest } from "../../../lib/dates";
 import { errorMessage } from "../../../lib/api";
 import { cn } from "../../../lib/cn";
+import { useDocumentTitle } from "../../../lib/title";
 
 export const Route = createFileRoute("/app/entreno/$workoutId")({
   component: WorkoutPage,
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/app/entreno/$workoutId")({
 function WorkoutPage() {
   const { workoutId } = Route.useParams();
   const q = useQuery(workoutQuery(workoutId));
+  useDocumentTitle(q.data?.title ?? "Entreno");
   if (q.isPending) return <Skeleton className="h-96" />;
   if (q.isError) return <p className="text-plate-red">{errorMessage(q.error)}</p>;
   return q.data.status === "planned" ? <Logbook key={q.data.id} w={q.data} /> : <Finished w={q.data} />;

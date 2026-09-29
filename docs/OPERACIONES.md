@@ -33,12 +33,20 @@ Si no responde, **vuelve sola a la versión anterior**. Las migraciones se aplic
 `cd ~/servicios/coach && sed -i "s|image: paquito-coach:.*|image: paquito-coach:<anterior>|" docker-compose.yml && docker compose up -d`
 (las imágenes anteriores siguen cargadas; si la versión nueva migró la BD, restaurar la copia `pre-`).
 
-## Contraseña del entrenador olvidada (hasta F6)
-Genera un hash con la propia app y actualízalo por SQL:
+## Contraseña olvidada (entrenador o cualquier cuenta)
+Los clientes: el entrenador les genera el enlace desde su ficha («Recuperar acceso»). El entrenador, en el VPS:
 ```sh
-docker exec coach node -e "const c=require('node:crypto');const s=c.randomBytes(16);c.scrypt(process.argv[1].normalize('NFKC'),s,64,{N:32768,r:8,p:1,maxmem:67108864},(e,k)=>console.log('scrypt\$32768\$8\$1\$'+s.toString('base64')+'\$'+k.toString('base64')))" 'contraseña-nueva-larga'
-docker exec -it coach-db psql -U coach -d coach -c "update users set password_hash='<hash>' where role='coach' and lower(email)='<correo>'"
+docker exec coach node dist/reset-link.js paquito@correo.com
 ```
+Imprime un enlace de un solo uso (24 h). Abrirlo, poner contraseña nueva y listo (se cierran sus demás sesiones).
+
+## Fotos del chat
+Viven en `~/servicios/coach/data/media/` (volumen `./data`). El servicio `coach-backup` guarda cada día
+`backups/media-AAAA-MM-DD.tar.gz` junto al volcado de la base de datos. Restaurar: `tar -xzf backups/media-….tar.gz -C data`.
+
+## Avisos push
+Las claves VAPID las genera `tools/deploy.mjs` en el `.env` del VPS la primera vez. **No cambiarlas**: invalidarían
+las suscripciones de todos los dispositivos (habría que volver a activar los avisos en cada uno).
 
 ## Salud y logs
 `docker ps --filter name=coach` · `docker logs coach --tail 100` · `curl -s https://paquito.redgarverde.com/health`

@@ -12,6 +12,7 @@ import { NewClientPanel } from "../../components/clients/new-client-panel";
 import { PendingRequests } from "../../components/clients/pending-requests";
 import { clientsQuery } from "../../lib/queries";
 import { cn } from "../../lib/cn";
+import { useDocumentTitle } from "../../lib/title";
 
 const FILTERS: { value: "current" | ClientStatus; label: string }[] = [
   { value: "current", label: "Todos" },
@@ -31,6 +32,7 @@ function ClientsLayout() {
   const { nuevo } = Route.useSearch();
   const { clientId } = useParams({ strict: false }) as { clientId?: string };
   const [open, setOpen] = useState(Boolean(nuevo));
+  useDocumentTitle(clientId ? null : "Clientes");
   return (
     <div className="grid gap-8 lg:grid-cols-[340px_minmax(0,1fr)] lg:gap-10">
       <aside className={cn("lg:sticky lg:top-24 lg:self-start", clientId && "hidden lg:block")}>

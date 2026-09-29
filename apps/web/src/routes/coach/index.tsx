@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMe } from "../../lib/auth";
+import { useDocumentTitle } from "../../lib/title";
 import { clientsQuery } from "../../lib/queries";
 import { activityQuery, todayWorkoutsQuery } from "../../lib/training";
 import { dayLong, dayShort, today } from "../../lib/dates";
@@ -13,6 +14,7 @@ import { PendingRequests } from "../../components/clients/pending-requests";
 import { WorkoutPanel } from "../../components/training/workout-panel";
 import { WorkoutStatusMark } from "../../components/training/workout-status";
 import { WeekMatrix } from "../../components/training/week-matrix";
+import { FirstSteps } from "../../components/first-steps";
 import { appointmentsQuery, hhmm } from "../../lib/agenda";
 import { appointmentLabel } from "@coach/shared";
 import { plusDays } from "../../lib/dates";
@@ -28,6 +30,7 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 function CoachToday() {
   const me = useMe()!;
   const t = today();
+  useDocumentTitle("Hoy");
   const todays = useQuery(todayWorkoutsQuery(t));
   const activity = useQuery(activityQuery);
   const clients = useQuery(clientsQuery());
@@ -54,6 +57,8 @@ function CoachToday() {
         <h1 className="font-wide mt-1 text-[30px] leading-[1.1] sm:text-[38px]">{cap(dayLong(t))}</h1>
         <p className="mt-2 max-w-[70ch] text-ink-2">{sentences.join(" ") || " "}</p>
       </header>
+
+      <FirstSteps />
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] [&>*]:min-w-0">
         <section aria-labelledby="today-title">

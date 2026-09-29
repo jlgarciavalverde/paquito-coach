@@ -33,7 +33,7 @@ function Register() {
   const footer = (
     <>
       ¿Ya tienes cuenta?{" "}
-      <Link to="/acceso" className="font-medium text-accent underline-offset-4 hover:underline">
+      <Link to="/acceso" className="font-medium text-primary underline-offset-4 hover:underline">
         Entra aquí
       </Link>
     </>
@@ -83,7 +83,7 @@ function Register() {
   if (preview.isError) {
     return (
       <AuthLayout title="Invitación no válida" subtitle={errorMessage(preview.error)} footer={footer}>
-        <Link to="/registro" search={{}} className="font-medium text-accent underline-offset-4 hover:underline">
+        <Link to="/registro" search={{}} className="font-medium text-primary underline-offset-4 hover:underline">
           Tengo un código de estudio
         </Link>
       </AuthLayout>
@@ -127,7 +127,14 @@ function RegisterForm({ preview, inviteToken, joinCode, footer }: { preview: Inv
           checked={consent}
           onChange={(e) => setConsent(e.target.checked)}
           label={`Doy mi consentimiento para que ${coach} guarde y trate mis datos de salud (lesiones, medidas, entrenos y alimentación) para planificar mi entrenamiento.`}
-          description="Puedes descargar o borrar tus datos cuando quieras desde tu perfil."
+          description={
+            <>
+              Puedes descargar o borrar tus datos cuando quieras desde tu perfil.{" "}
+              <Link to="/privacidad" target="_blank" className="font-medium text-primary underline-offset-4 hover:underline">
+                Más información
+              </Link>
+            </>
+          }
         />
         <FormError message={error} />
         <Button type="submit" size="lg" loading={pending} disabled={!consent} className="mt-2">

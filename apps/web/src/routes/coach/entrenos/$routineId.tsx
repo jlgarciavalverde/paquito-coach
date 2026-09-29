@@ -13,6 +13,7 @@ import { AssignPanel } from "../../../components/training/assign-panel";
 import { itemLabels, newId, routineQuery, useRoutineAction, useSaveRoutine } from "../../../lib/training";
 import { errorMessage } from "../../../lib/api";
 import { cn } from "../../../lib/cn";
+import { useDocumentTitle } from "../../../lib/title";
 
 export const Route = createFileRoute("/coach/entrenos/$routineId")({
   component: RoutinePage,
@@ -40,6 +41,7 @@ function Editor({ id, initial }: { id?: string; initial: RoutineBody }) {
   const [pickerFor, setPickerFor] = useState<string | null>(null);
   const [assignOpen, setAssignOpen] = useState(false);
   const dirty = JSON.stringify(doc) !== saved;
+  useDocumentTitle(doc.name || "Nueva rutina");
   const labels = itemLabels(doc.blocks);
   const routine = useQuery({ ...routineQuery(id ?? ""), enabled: Boolean(id) }).data;
 

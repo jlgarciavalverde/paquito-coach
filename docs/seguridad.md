@@ -17,10 +17,15 @@
 | Secretos en el repo | `.env` ignorado, `gitleaks` en pre-commit, secretos del VPS generados allí con `read -rsp`/`openssl` | `.githooks/` | — |
 | Exposición de red | Sin `ports:`; Postgres en red `internal`; contenedor `read_only`, `cap_drop: ALL`, `no-new-privileges` | `deploy/docker-compose.yml` | smoke test local |
 | Documentación de API expuesta | `/api/docs` solo en desarrollo (`EXPOSE_API_DOCS=1` para forzar) | `config.ts` | smoke: 404 en producción |
+| Secuestro del WebSocket desde otra web (CSWSH) | `/ws` exige cookie de sesión **y** `Origin` permitido; canal solo de bajada | `app.ts` | `chat.test.ts` «otro origen no puede abrirlo» |
+| Fotos maliciosas (HTML/SVG disfrazado) | Tipo real por los primeros bytes (JPG/PNG/WEBP/GIF), 8 MB, se sirven con su tipo y `nosniff`; nombre = UUID | `lib/sniff.ts`, `routes/chat.ts` | «tipo real por los bytes» |
+| Ver fotos ajenas | Solo participantes de la conversación (entrenador del estudio o ese cliente) | `GET /media/:id` | «solo la ve quien participa» |
+| Spam de mensajes | 60 mensajes/min por usuario, 30 subidas/min | `routes/chat.ts` | — |
+| Derecho de acceso y supresión (RGPD) | Exportar JSON (cliente y entrenador), borrar cuenta con contraseña, borrado definitivo de ficha archivada escribiendo el nombre; borra también las fotos del disco; auditado sin datos personales | `routes/privacy.ts` | `privacy.test.ts` |
 | Caché de Cloudflare sirviendo HTML viejo o datos privados | `Cache-Control: no-store` en HTML, `/health`, `/me` | `app.ts`, rutas | smoke |
 
-## Pendiente (F6)
-- `GET /me/export` y `DELETE /me` (derechos RGPD), aviso de privacidad y registro de actividades de tratamiento.
-- Copias cifradas fuera del VPS (hoy: `pg_dump` diario + `tools/pull-backups.sh` al Mac).
-- Recuperación de la contraseña **del entrenador** (hoy: por SQL en el VPS, ver OPERACIONES).
-- Revisión con `/security-review` y `pnpm audit --prod` antes de la entrega.
+## Revisión F6 (2026-09-29)
+- `pnpm audit --prod`: sin vulnerabilidades conocidas.
+- Aviso de privacidad en `/privacidad` (texto base: Paquito debe revisar y completar sus datos de responsable).
+- Recuperación de la contraseña del entrenador con `reset-link.js` (sin contraseñas en la terminal).
+- Pendiente fuera del código: copia de las copias de seguridad fuera del VPS (programar `tools/pull-backups.sh` en el Mac con launchd) y registro de actividades de tratamiento (documento de Paquito como responsable).

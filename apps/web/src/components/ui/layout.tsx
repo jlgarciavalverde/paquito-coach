@@ -1,9 +1,11 @@
 import type { HTMLAttributes, ReactNode } from "react";
 import { WarningDiamond } from "@phosphor-icons/react";
+import { useDocumentTitle } from "../../lib/title";
 import { cn } from "../../lib/cn";
 
 /** Título de pantalla: titular ancho, una frase opcional con datos y las acciones a la derecha. */
-export function PageTitle({ title, lead, actions, className }: { title: ReactNode; lead?: ReactNode; actions?: ReactNode; className?: string }) {
+export function PageTitle({ title, lead, actions, className, docTitle }: { title: ReactNode; lead?: ReactNode; actions?: ReactNode; className?: string; docTitle?: string }) {
+  useDocumentTitle(docTitle ?? (typeof title === "string" ? title : undefined));
   return (
     <header className={cn("flex flex-col gap-4 pb-7 sm:flex-row sm:items-end sm:justify-between", className)}>
       <div className="min-w-0">

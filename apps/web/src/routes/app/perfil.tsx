@@ -1,8 +1,16 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Button } from "../../components/ui/button";
+import { useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Dialog } from "../../components/ui/dialog";
+import { TextField } from "../../components/ui/field";
+import { BlockTitle } from "../../components/ui/layout";
+import { FormError } from "../../components/form-error";
+import { api } from "../../lib/api";
+import { useSubmit } from "../../lib/use-form";
+import { Button, buttonClass } from "../../components/ui/button";
 import { Monogram } from "../../components/ui/layout";
 import { PasswordSetting, PushSetting, SessionsSetting, ThemeSetting } from "../../components/account-settings";
 import { useLogout, useMe } from "../../lib/auth";
+import { useDocumentTitle } from "../../lib/title";
 
 export const Route = createFileRoute("/app/perfil")({
   component: Profile,
@@ -11,6 +19,7 @@ export const Route = createFileRoute("/app/perfil")({
 function Profile() {
   const me = useMe()!;
   const logout = useLogout();
+  useDocumentTitle("Perfil");
   return (
     <>
       <div className="mb-10 flex items-center gap-4">
@@ -27,10 +36,60 @@ function Profile() {
         <ThemeSetting />
         <PasswordSetting />
         <SessionsSetting />
+        <MyData />
         <Button variant="secondary" onClick={logout} className="self-start">
           Cerrar sesión
         </Button>
       </div>
     </>
+  );
+}
+
+function MyData() {
+  const [open, setOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const { pending, error, onSubmit } = useSubmit(
+    () => api("/me/delete", { body: { password } }),
+    () => window.location.assign("/acceso"),
+  );
+  return (
+    <section>
+      <BlockTitle>Tus datos</BlockTitle>
+      <p className="max-w-[56ch] text-sm text-ink-2">
+        Puedes descargar una copia de todo lo que la app guarda sobre ti o borrar tu cuenta.{" "}
+        <Link to="/privacidad" className="font-medium text-primary hover:underline">
+          Cómo tratamos tus datos
+        </Link>
+      </p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <a href="/api/v1/me/export" download className={buttonClass("secondary")}>
+          Descargar mis datos
+        </a>
+        <Button variant="danger" onClick={() => setOpen(true)}>
+          Borrar mi cuenta
+        </Button>
+      </div>
+      <Dialog
+        open={open}
+        onOpenChange={setOpen}
+        title="Borrar tu cuenta"
+        description="Se borran al momento tu cuenta, tus entrenos, tu plan de comidas, tus citas, los mensajes y las fotos. No se puede deshacer."
+        footer={
+          <>
+            <Button variant="quiet" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+            <Button variant="danger" type="submit" form="del-account" loading={pending} disabled={!password}>
+              Borrar todo
+            </Button>
+          </>
+        }
+      >
+        <form id="del-account" onSubmit={onSubmit} className="flex flex-col gap-3">
+          <TextField label="Escribe tu contraseña para confirmar" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <FormError message={error} />
+        </form>
+      </Dialog>
+    </section>
   );
 }

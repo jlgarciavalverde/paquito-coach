@@ -12,11 +12,11 @@
 | 401 `unauthorized`, `invalid_credentials` | sin sesión / credenciales |
 | 403 `forbidden`, `bad_origin`, `bad_setup_code` | sin permiso |
 | 404 `not_found`, `join_code_invalid` | no existe **o no es de tu estudio** |
-| 409 `email_taken`, `already_setup`, `has_account`, `not_pending`, `no_account` | conflicto de estado |
+| 409 `email_taken`, `already_setup`, `has_account`, `not_pending`, `no_account`, `not_archived`, `no_plan` | conflicto de estado |
 | 410 `invite_used`, `invite_invalid`, `reset_invalid` | enlace caducado o usado |
 | 429 `rate_limited`, `locked` | límite por IP o bloqueo por cuenta |
 
-## Endpoints (v0.5)
+## Endpoints (v0.6)
 | Método | Ruta | Quién | Qué |
 |---|---|---|---|
 | GET | `/auth/setup-status` | público | ¿falta el alta inicial? |
@@ -60,4 +60,6 @@
 | POST | `/media?clientId=` (multipart, 8 MB, JPG/PNG/WEBP/GIF por bytes) · GET `/media/:id` | participantes | fotos del chat |
 | GET · POST · DELETE | `/push/key` · `/push/subscriptions` | con sesión | avisos push (VAPID) |
 | WS | `/ws` | con sesión + Origin permitido | eventos `message.new`, `message.read`, `workout.completed` |
+| GET · POST | `/me/export` · `/me/delete` (`password`) | cliente | RGPD: copia JSON · borrar cuenta y datos |
+| GET · POST | `/clients/:id/export` · `/clients/:id/delete` (`confirmName`, solo archivados) | entrenador | RGPD de un cliente |
 | GET | `/health` | público | versión, uptime, BD |

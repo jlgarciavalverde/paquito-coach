@@ -18,6 +18,7 @@ import { clientPlanQuery } from "../../lib/nutrition";
 import { fromIso, isoDate, mondayOf, plusDays, today, weekLabel } from "../../lib/dates";
 import { api, errorMessage } from "../../lib/api";
 import { cn } from "../../lib/cn";
+import { useDocumentTitle } from "../../lib/title";
 
 const View = z.enum(["semana", "mes", "lista"]);
 export const Route = createFileRoute("/coach/calendario")({
@@ -91,6 +92,7 @@ function Agenda() {
     view === "mes" ? format(monthStart, "MMMM 'de' yyyy", { locale: es }) : view === "semana" ? weekLabel(monday) : `Del ${format(fromIso(from), "d 'de' MMMM", { locale: es })} al ${format(fromIso(to), "d 'de' MMMM", { locale: es })}`;
   const weeks = useMemo(() => (view === "mes" ? Array.from({ length: days.length / 7 }, (_, i) => days.slice(i * 7, i * 7 + 7)) : []), [view, days]);
   const client = clients.find((c) => c.id === clientId);
+  useDocumentTitle("Agenda");
 
   return (
     <>

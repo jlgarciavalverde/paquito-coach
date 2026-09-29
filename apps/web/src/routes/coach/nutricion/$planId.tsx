@@ -13,6 +13,7 @@ import { clientQuery } from "../../../lib/queries";
 import { newId } from "../../../lib/training";
 import { errorMessage } from "../../../lib/api";
 import { cn } from "../../../lib/cn";
+import { useDocumentTitle } from "../../../lib/title";
 
 export const Route = createFileRoute("/coach/nutricion/$planId")({
   component: PlanPage,
@@ -40,6 +41,7 @@ function PlanEditor({ plan }: { plan: MealPlan }) {
   const [saved, setSaved] = useState(() => JSON.stringify(toBody(plan)));
   const [day, setDay] = useState(doc.days[0]!.weekday);
   const dirty = JSON.stringify(doc) !== saved;
+  useDocumentTitle(doc.name || "Plan de comidas");
   const leaving = useRef(false);
   useBlocker({ shouldBlockFn: () => !leaving.current && dirty && !confirm("Hay cambios sin guardar. ¿Salir igualmente?"), enableBeforeUnload: () => !leaving.current && dirty });
 

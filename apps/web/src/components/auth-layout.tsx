@@ -1,11 +1,13 @@
 import type { ReactNode } from "react";
 import { Brand, LoadedBarbell } from "./brand";
+import { useDocumentTitle } from "../lib/title";
 
 /**
  * Pantallas de acceso. En escritorio, a la izquierda la barra cargada (el elemento memorable de la app);
  * a la derecha, el formulario. En móvil, solo la marca y el formulario.
  */
 export function AuthLayout({ title, subtitle, children, footer }: { title: string; subtitle?: ReactNode; children: ReactNode; footer?: ReactNode }) {
+  useDocumentTitle(title);
   return (
     <div className="grid min-h-dvh lg:grid-cols-[1.1fr_1fr]">
       <aside className="relative hidden flex-col justify-between overflow-hidden bg-tray p-12 lg:flex">

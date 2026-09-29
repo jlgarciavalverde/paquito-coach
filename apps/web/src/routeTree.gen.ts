@@ -15,6 +15,7 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as CoachRouteImport } from './routes/coach'
 import { Route as GaleriaRouteImport } from './routes/galeria'
 import { Route as InstalarRouteImport } from './routes/instalar'
+import { Route as PrivacidadRouteImport } from './routes/privacidad'
 import { Route as RegistroRouteImport } from './routes/registro'
 import { Route as RestablecerRouteImport } from './routes/restablecer'
 import { Route as AppIndexRouteImport } from './routes/app/index'
@@ -64,6 +65,11 @@ const GaleriaRoute = GaleriaRouteImport.update({
 const InstalarRoute = InstalarRouteImport.update({
   id: '/instalar',
   path: '/instalar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadRoute = PrivacidadRouteImport.update({
+  id: '/privacidad',
+  path: '/privacidad',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegistroRoute = RegistroRouteImport.update({
@@ -174,6 +180,7 @@ export interface FileRoutesByFullPath {
   '/coach': typeof CoachRouteWithChildren
   '/galeria': typeof GaleriaRoute
   '/instalar': typeof InstalarRoute
+  '/privacidad': typeof PrivacidadRoute
   '/registro': typeof RegistroRoute
   '/restablecer': typeof RestablecerRoute
   '/app/agenda': typeof AppAgendaRoute
@@ -200,6 +207,7 @@ export interface FileRoutesByTo {
   '/acceso': typeof AccesoRoute
   '/galeria': typeof GaleriaRoute
   '/instalar': typeof InstalarRoute
+  '/privacidad': typeof PrivacidadRoute
   '/registro': typeof RegistroRoute
   '/restablecer': typeof RestablecerRoute
   '/app/agenda': typeof AppAgendaRoute
@@ -228,6 +236,7 @@ export interface FileRoutesById {
   '/coach': typeof CoachRouteWithChildren
   '/galeria': typeof GaleriaRoute
   '/instalar': typeof InstalarRoute
+  '/privacidad': typeof PrivacidadRoute
   '/registro': typeof RegistroRoute
   '/restablecer': typeof RestablecerRoute
   '/app/agenda': typeof AppAgendaRoute
@@ -258,6 +267,7 @@ export interface FileRouteTypes {
     | '/coach'
     | '/galeria'
     | '/instalar'
+    | '/privacidad'
     | '/registro'
     | '/restablecer'
     | '/app/agenda'
@@ -284,6 +294,7 @@ export interface FileRouteTypes {
     | '/acceso'
     | '/galeria'
     | '/instalar'
+    | '/privacidad'
     | '/registro'
     | '/restablecer'
     | '/app/agenda'
@@ -311,6 +322,7 @@ export interface FileRouteTypes {
     | '/coach'
     | '/galeria'
     | '/instalar'
+    | '/privacidad'
     | '/registro'
     | '/restablecer'
     | '/app/agenda'
@@ -340,6 +352,7 @@ export interface RootRouteChildren {
   CoachRoute: typeof CoachRouteWithChildren
   GaleriaRoute: typeof GaleriaRoute
   InstalarRoute: typeof InstalarRoute
+  PrivacidadRoute: typeof PrivacidadRoute
   RegistroRoute: typeof RegistroRoute
   RestablecerRoute: typeof RestablecerRoute
 }
@@ -386,6 +399,13 @@ declare module '@tanstack/react-router' {
       path: '/instalar'
       fullPath: '/instalar'
       preLoaderRoute: typeof InstalarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidad': {
+      id: '/privacidad'
+      path: '/privacidad'
+      fullPath: '/privacidad'
+      preLoaderRoute: typeof PrivacidadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/registro': {
@@ -600,6 +620,7 @@ const rootRouteChildren: RootRouteChildren = {
   CoachRoute: CoachRouteWithChildren,
   GaleriaRoute: GaleriaRoute,
   InstalarRoute: InstalarRoute,
+  PrivacidadRoute: PrivacidadRoute,
   RegistroRoute: RegistroRoute,
   RestablecerRoute: RestablecerRoute,
 }

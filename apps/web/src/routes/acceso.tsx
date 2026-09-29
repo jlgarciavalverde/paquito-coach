@@ -40,7 +40,7 @@ function Login() {
       footer={
         <>
           ¿Tu entrenador te ha dado un código?{" "}
-          <Link to="/registro" className="font-medium text-accent underline-offset-4 hover:underline">
+          <Link to="/registro" className="font-medium text-primary underline-offset-4 hover:underline">
             Crea tu cuenta
           </Link>
         </>

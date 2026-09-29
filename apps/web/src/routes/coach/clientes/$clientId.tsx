@@ -1,11 +1,11 @@
 import { useEffect, useId, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CaretLeft } from "@phosphor-icons/react";
 import type { Client, InviteLink } from "@coach/shared";
-import { Button } from "../../../components/ui/button";
+import { Button, buttonClass } from "../../../components/ui/button";
 import { Dialog } from "../../../components/ui/dialog";
-import { controlClass } from "../../../components/ui/field";
+import { TextField, controlClass } from "../../../components/ui/field";
 import { HealthAlert, Monogram, RecordRow, RecordSheet } from "../../../components/ui/layout";
 import { Skeleton } from "../../../components/ui/spinner";
 import { TabPanel, Tabs } from "../../../components/ui/tabs";
@@ -21,8 +21,10 @@ import { ClientAgenda } from "../../../components/agenda/client-agenda";
 import { clientQuery, useClientAction, useInvite, useResetLink, useUpdateClient } from "../../../lib/queries";
 import { useMe } from "../../../lib/auth";
 import { age, fmtDate } from "../../../lib/format";
-import { errorMessage } from "../../../lib/api";
+import { api, errorMessage } from "../../../lib/api";
+import { useSubmit } from "../../../lib/use-form";
 import { cn } from "../../../lib/cn";
+import { useDocumentTitle } from "../../../lib/title";
 
 export const Route = createFileRoute("/coach/clientes/$clientId")({
   component: ClientPage,
@@ -32,6 +34,7 @@ function ClientPage() {
   const { clientId } = Route.useParams();
   const q = useQuery(clientQuery(clientId));
   const [tab, setTab] = useState("entreno");
+  useDocumentTitle(q.data?.name ?? "Cliente");
 
   if (q.isPending) {
     return (
@@ -104,6 +107,7 @@ function ClientHeader({ client: c }: { client: Client }) {
   const [link, setLink] = useState<InviteLink | null>(null);
   const [resetLink, setResetLink] = useState<InviteLink | null>(null);
   const [confirmArchive, setConfirmArchive] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const years = age(c.birthDate);
 
   const facts: [string, React.ReactNode][] = [
@@ -136,10 +140,18 @@ function ClientHeader({ client: c }: { client: Client }) {
               Recuperar acceso
             </Button>
           )}
+          <a href={`/api/v1/clients/${c.id}/export`} download className={buttonClass("quiet")}>
+            Descargar datos
+          </a>
           {c.status === "archived" ? (
-            <Button variant="secondary" loading={act.isPending} onClick={() => act.mutate("unarchive", { onSuccess: () => toast("Cliente recuperado") })}>
-              Recuperar cliente
-            </Button>
+            <>
+              <Button variant="secondary" loading={act.isPending} onClick={() => act.mutate("unarchive", { onSuccess: () => toast("Cliente recuperado") })}>
+                Recuperar cliente
+              </Button>
+              <Button variant="danger" onClick={() => setConfirmDelete(true)}>
+                Borrar definitivamente
+              </Button>
+            </>
           ) : (
             c.status !== "pending" && (
               <Button variant="quiet" onClick={() => setConfirmArchive(true)}>
@@ -164,6 +176,7 @@ function ClientHeader({ client: c }: { client: Client }) {
       <Dialog open={Boolean(resetLink)} onOpenChange={(o) => !o && setResetLink(null)} title="Recuperar acceso" description={`Si ${c.name} ha olvidado su contraseña, mándale este enlace. Vale 24 horas y un solo uso.`}>
         {resetLink && <CopyField value={resetLink.url} label="Enlace para nueva contraseña" />}
       </Dialog>
+      {confirmDelete && <DeleteClientDialog client={c} onClose={() => setConfirmDelete(false)} />}
       <Dialog
         open={confirmArchive}
         onOpenChange={setConfirmArchive}
@@ -250,7 +263,7 @@ function ClientForm({ client }: { client: Client }) {
         <RecordRow label="Lesiones y limitaciones" htmlFor={ids.health} hint="Dato de salud. Solo lo ves tú y queda registro de cada consulta.">
           <textarea id={ids.health} rows={4} className={area} value={f.healthNotes} onChange={set("healthNotes")} placeholder="Tendinopatía rotuliana derecha (2025). Evitar impacto." />
         </RecordRow>
-        <RecordRow label="Notas privadas" htmlFor={ids.notes} hint="El cliente nunca las ve.">
+        <RecordRow label="Notas privadas" htmlFor={ids.notes} hint="El cliente no las ve en la app (sí en la copia de sus datos si la pide, por ley).">
           <textarea id={ids.notes} rows={3} className={area} value={f.privateNotes} onChange={set("privateNotes")} />
         </RecordRow>
         <RecordRow label="Etiquetas" htmlFor={ids.tags} hint="Separadas por comas.">
@@ -271,5 +284,43 @@ function ClientForm({ client }: { client: Client }) {
         )}
       </div>
     </form>
+  );
+}
+
+function DeleteClientDialog({ client, onClose }: { client: Client; onClose: () => void }) {
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const toast = useToast();
+  const [name, setName] = useState("");
+  const { pending, error, onSubmit } = useSubmit(
+    () => api(`/clients/${client.id}/delete`, { body: { confirmName: name } }),
+    () => {
+      void qc.invalidateQueries({ queryKey: ["clients"] });
+      toast(`${client.name} y todos sus datos se han borrado`);
+      void navigate({ to: "/coach/clientes" });
+    },
+  );
+  return (
+    <Dialog
+      open
+      onOpenChange={(o) => !o && onClose()}
+      title="Borrar definitivamente"
+      description={`Se borran la ficha de ${client.name}, su cuenta, entrenos, planes, citas, mensajes y fotos. No se puede deshacer. Si te lo ha pedido el cliente, descarga antes sus datos para dárselos.`}
+      footer={
+        <>
+          <Button variant="quiet" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button variant="danger" type="submit" form="del-client" loading={pending} disabled={name.trim().toLowerCase() !== client.name.trim().toLowerCase()}>
+            Borrar todo
+          </Button>
+        </>
+      }
+    >
+      <form id="del-client" onSubmit={onSubmit} className="flex flex-col gap-3">
+        <TextField label={`Escribe «${client.name}» para confirmar`} value={name} onChange={(e) => setName(e.target.value)} autoComplete="off" />
+        <FormError message={error} />
+      </form>
+    </Dialog>
   );
 }
