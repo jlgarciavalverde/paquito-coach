@@ -1,4 +1,3 @@
-import { assertQuota } from "../lib/quota";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { createReadStream, existsSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -13,6 +12,7 @@ import { requireActiveClient, requireCoach, requireUser, type AuthUser } from ".
 import { sniffImage } from "../lib/sniff";
 import type { Hub } from "../lib/realtime";
 import type { PushSender } from "../lib/push";
+import { assertQuota } from "../lib/quota";
 import { typed, type Ctx } from "./ctx";
 
 const ClientParams = z.object({ clientId: z.string().uuid() });
@@ -122,16 +122,23 @@ export function registerChat(app: FastifyInstance, { db }: Ctx, deps: ChatDeps) 
       .select()
       .from(clientProfiles)
       .where(and(eq(clientProfiles.studioId, u.studioId), inArray(clientProfiles.status, ["active", "no_account", "invited"])));
-    const last = await db.execute<{ client_id: string; id: string }>(sql`
-      select distinct on (client_id) client_id, id from messages where studio_id = ${u.studioId} order by client_id, created_at desc`);
-    const lastIds = Array.from(last as unknown as { client_id: string; id: string }[]).map((r) => r.id);
+    // Por cliente, con el índice (client_id, created_at): el último mensaje y los no leídos, sin recorrer todo el historial.
+    const perClient = clients.length
+      ? await db.execute<{ client_id: string; last_id: string | null; unread: number }>(sql`
+          select c.id as client_id, l.id as last_id, coalesce(n.unread, 0)::int as unread
+          from client_profiles c
+          left join conversation_reads r on r.client_id = c.id and r.user_id = ${u.id}
+          left join lateral (select m.id from messages m where m.client_id = c.id order by m.created_at desc limit 1) l on true
+          left join lateral (
+            select count(*)::int as unread from messages m
+            where m.client_id = c.id and m.from_coach = false and m.created_at > coalesce(r.last_read_at, '-infinity')
+          ) n on true
+          where c.studio_id = ${u.studioId} and c.status in ('active', 'no_account', 'invited')`)
+      : [];
+    const rows = Array.from(perClient as unknown as { client_id: string; last_id: string | null; unread: number }[]);
+    const lastIds = rows.flatMap((r) => (r.last_id ? [r.last_id] : []));
     const lastRows = lastIds.length ? await db.select({ m: messages, name: users.name }).from(messages).leftJoin(users, eq(users.id, messages.senderId)).where(inArray(messages.id, lastIds)) : [];
-    const unread = await db.execute<{ client_id: string; n: number }>(sql`
-      select m.client_id, count(*)::int as n from messages m
-      left join conversation_reads r on r.client_id = m.client_id and r.user_id = ${u.id}
-      where m.studio_id = ${u.studioId} and m.from_coach = false and (r.last_read_at is null or m.created_at > r.last_read_at)
-      group by m.client_id`);
-    const unreadBy = new Map(Array.from(unread as unknown as { client_id: string; n: number }[]).map((r) => [r.client_id, r.n]));
+    const unreadBy = new Map(rows.map((r) => [r.client_id, r.unread]));
     const lastBy = new Map(lastRows.map((r) => [r.m.clientId, toMessage(r.m, r.name ?? "")]));
     return clients
       .map((c) => ({ clientId: c.id, clientName: c.name, hasAccount: Boolean(c.userId), lastMessage: lastBy.get(c.id) ?? null, unread: unreadBy.get(c.id) ?? 0 }))

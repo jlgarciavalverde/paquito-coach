@@ -161,8 +161,8 @@ function ClientHeader({ client: c }: { client: Client }) {
         >
           {c.status === "active" && <MenuItem onSelect={() => reset.mutate(undefined, { onSuccess: setResetLink, onError: (e) => toast(errorMessage(e), "error") })}>Recuperar acceso</MenuItem>}
           <MenuItem asChild>
-            <a href={`/api/v1/clients/${c.id}/export`} download>
-              Descargar datos
+            <a href={`/api/v1/clients/${c.id}/export.zip`} download>
+              Descargar datos y fotos
             </a>
           </MenuItem>
           {c.status !== "archived" && c.status !== "pending" && <MenuItem onSelect={() => setConfirmArchive(true)}>Archivar</MenuItem>}

@@ -77,13 +77,13 @@ function MyData() {
     <section>
       <BlockTitle>Tus datos</BlockTitle>
       <p className="max-w-[56ch] text-sm text-ink-2">
-        Puedes descargar una copia de todo lo que la app guarda sobre ti o borrar tu cuenta.{" "}
+        Puedes descargar una copia de todo lo que la app guarda sobre ti (con tus fotos, en un ZIP) o borrar tu cuenta.{" "}
         <Link to="/privacidad" className="font-medium text-primary hover:underline">
           Cómo tratamos tus datos
         </Link>
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
-        <a href="/api/v1/me/export" download className={buttonClass("secondary")}>
+        <a href="/api/v1/me/export.zip" download className={buttonClass("secondary")}>
           Descargar mis datos
         </a>
         <Button variant="danger" onClick={() => setOpen(true)}>

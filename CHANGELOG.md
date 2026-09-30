@@ -1,6 +1,21 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [1.15.0] — 2026-09-30 · Auditoría profunda A2: datos, RGPD y rendimiento
+### Añadido
+- **Descargar mis datos** ahora es un ZIP con todas las fotos (chat, progreso, check-ins) y el JSON completo: añade cuotas, programas, check-ins programados, notas de citas, sesiones abiertas, dispositivos con avisos, avisos enviados, preferencias y el registro de accesos a su ficha. El entrenador lo descarga desde la ficha.
+### Corregido
+- Enviar un check-in dos veces a la vez guardaba dos respuestas; marcar dos citas a la vez podía gastar dos veces la última sesión de un bono.
+- Asignar un check-in o aplicar un plan de comidas a varios clientes es todo o nada; terminar un programa no queda a medias.
+- Recordatorio de la mañana: solo de 8:00 a 11:00 (antes, si el servidor arrancaba a mediodía, llegaba «Hoy toca entrenar» a las 14:00) y nombra todos los entrenos del día, no solo el primero.
+- Con la IA, un ejercicio sin nombre ya no se empareja con uno cualquiera.
+### Rendimiento
+- Índice en cada clave ajena (41 nuevos; una prueba lo vigila para las tablas futuras); conversaciones, bonos en «Necesitan atención» e informes sin una consulta por cliente; la IA empareja los ejercicios en memoria (antes, hasta cientos de consultas por rutina).
+### Seguridad y privacidad
+- Registro de auditoría conservado 2 años; archivos subidos que nadie usa se borran al día siguiente.
+### Pruebas
+- `privacy.export.test.ts` (generado desde el catálogo: toda tabla con datos de una persona se exporta y queda vacía al borrarla), `data.a2.test.ts`, `db/indexes.test.ts`, `lib/ai/match.test.ts`. API: 228 tests.
+
 ## [1.14.0] — 2026-09-30 · Auditoría profunda A1: seguridad y dinero
 ### Seguridad
 - El límite de peticiones, el `no-store` y los bloqueos de la demo ya no se saltan con rutas codificadas (`/%61pi/…`); la IP no se falsea con `X-Forwarded-For`.

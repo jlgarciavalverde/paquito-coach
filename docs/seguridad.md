@@ -21,7 +21,7 @@
 | Fotos maliciosas (HTML/SVG disfrazado) | Tipo real por los primeros bytes (JPG/PNG/WEBP/GIF), 8 MB, se sirven con su tipo y `nosniff`; nombre = UUID | `lib/sniff.ts`, `routes/chat.ts` | «tipo real por los bytes» |
 | Ver fotos ajenas | Solo participantes de la conversación (entrenador del estudio o ese cliente) | `GET /media/:id` | «solo la ve quien participa» |
 | Spam de mensajes | 60 mensajes/min por usuario, 30 subidas/min | `routes/chat.ts` | — |
-| Derecho de acceso y supresión (RGPD) | Exportar JSON (cliente y entrenador), borrar cuenta con contraseña, borrado definitivo de ficha archivada escribiendo el nombre; borra también las fotos del disco; auditado sin datos personales | `routes/privacy.ts` | `privacy.test.ts` |
+| Derecho de acceso y supresión (RGPD) | Exportar en ZIP con sus fotos (o JSON), cliente y entrenador; cobertura de **todas** las tablas con `client_id`/`user_id` (`EXPORT_COVERAGE`); borrar cuenta con contraseña, borrado definitivo de ficha archivada escribiendo el nombre; borra también las fotos del disco; auditado sin datos personales | `routes/privacy.ts` | `privacy.test.ts`, `privacy.export.test.ts` (generado desde el catálogo) |
 | Caché de Cloudflare sirviendo HTML viejo o datos privados | `Cache-Control: no-store` en HTML, `/health`, `/me` | `app.ts`, rutas | smoke |
 
 ## Revisión F6 (2026-09-29)
@@ -46,6 +46,15 @@
 | Asignación masiva | Esquemas Zod que descartan campos desconocidos | idem → asignación masiva |
 | Webhook falso o repetido | Firma de Stripe, tolerancia de 5 min, eventos idempotentes | idem → webhook + `robustness.test.ts` (tres a la vez) |
 | Carreras | Cerrojo por estudio en reservas, invitación atómica | `robustness.test.ts` → carreras |
+
+## Conservación de datos
+| Qué | Cuánto | Dónde |
+|---|---|---|
+| Sesiones | 60 días sin uso o 180 de edad | `purgeExpired` (cada 5 min) |
+| Enlaces de restablecer | 1 día tras caducar | idem |
+| Registro de auditoría (accesos a fichas, altas, bajas, IP) | 2 años | idem |
+| Archivos subidos sin usar (foto que no llegó a enviarse…) | 1 día | `purgeOrphanMedia` |
+| Cobros de un cliente borrado | Los que exige la ley fiscal, anonimizados (solo su nombre) | ADR 0015 |
 
 ## Auditoría profunda A1 — 1.14.0 (2026-09-30) — ver ADR 0015
 Tres auditorías de solo lectura (API handler a handler, datos y rendimiento, web). Sin IDOR entre estudios ni XSS. Arreglado

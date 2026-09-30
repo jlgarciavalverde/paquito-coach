@@ -27,8 +27,10 @@ const toPlan = (p: PlanRow): MealPlan => ({
 
 const BLANK = { name: "Plan de comidas", notes: "", targets: { kcal: null, protein: null, carbs: null, fat: null }, mode: "same" as const, days: [{ weekday: 0, meals: [] }] };
 
-/** Deja un único plan activo por cliente (desactiva los anteriores). */
-async function activateFor(db: DB, studioId: string, clientId: string, values: Omit<typeof mealPlans.$inferInsert, "studioId" | "clientId" | "active">) {
+type Tx = Parameters<Parameters<DB["transaction"]>[0]>[0];
+
+/** Deja un único plan activo por cliente (desactiva los anteriores). Dentro de otra transacción, va como punto de guardado. */
+async function activateFor(db: DB | Tx, studioId: string, clientId: string, values: Omit<typeof mealPlans.$inferInsert, "studioId" | "clientId" | "active">) {
   return db.transaction(async (tx) => {
     await tx.update(mealPlans).set({ active: false }).where(and(eq(mealPlans.clientId, clientId), eq(mealPlans.active, true)));
     const [p] = await tx.insert(mealPlans).values({ ...values, studioId, clientId, active: true }).returning();
@@ -108,7 +110,10 @@ export function registerNutrition(app: FastifyInstance, { db }: Ctx) {
       const ids = [...new Set(req.body.clientIds)];
       const found = await db.select({ id: clientProfiles.id }).from(clientProfiles).where(and(eq(clientProfiles.studioId, u.studioId), inArray(clientProfiles.id, ids)));
       if (found.length !== ids.length) throw notFound("Cliente");
-      for (const c of found) await activateFor(db, u.studioId, c.id, { name: src.name, notes: src.notes, targets: src.targets, mode: src.mode, days: src.days });
+      // Todo o nada: si falla uno, nadie se queda con el plan a medias.
+      await db.transaction(async (tx) => {
+        for (const c of found) await activateFor(tx, u.studioId, c.id, { name: src.name, notes: src.notes, targets: src.targets, mode: src.mode, days: src.days });
+      });
       await audit(db, req, "meal_plan.apply", { type: "meal_plan", id: src.id }, { clients: found.length });
       return { applied: found.length };
     },

@@ -1,6 +1,8 @@
+import { rm } from "node:fs/promises";
+import { join } from "node:path";
 import { and, eq, gte, isNull, lt, or, sql, ne } from "drizzle-orm";
 import type { DB } from "../db/client";
-import { appointments, checkinAssignments, checkinForms, clientProfiles, passwordResets, reminderLog, sessions, users, workouts } from "../db/schema";
+import { appointments, auditLog, checkinAssignments, checkinForms, clientProfiles, passwordResets, reminderLog, sessions, users, workouts } from "../db/schema";
 import type { PushSender } from "./push";
 
 /** Hora y fecha en Madrid (el estudio está en España; ver docs/ESTADO.md si algún día hay estudios en otras zonas). */
@@ -20,14 +22,15 @@ async function claim(db: DB, kind: string, userId: string, date: string) {
 }
 
 /**
- * Recordatorios del día. Mañana (desde las 8:00): al cliente, el entreno que le toca; al entrenador, el resumen del día.
+ * Recordatorios del día. Mañana (de 8:00 a 11:00): al cliente, lo que le toca; al entrenador, el resumen del día.
  * Tarde (desde las 20:00): al cliente que aún no ha registrado el entreno de hoy. Cada uno como mucho una vez al día.
+ * Fuera de esas franjas no se manda nada (si el servidor arranca a mediodía, no llega «Hoy toca entrenar» a las 14:00).
  */
 export async function runReminders(db: DB, push: PushSender, now = new Date()) {
   const { date, hour } = madridClock(now);
   const sent: string[] = [];
-  if (hour < 8) return sent;
   const evening = hour >= 20;
+  if (hour < 8 || (hour >= 11 && !evening)) return sent;
 
   // Clientes con entreno hoy (sin hacer) y cuenta activa con recordatorios
   const todays = await db
@@ -36,14 +39,17 @@ export async function runReminders(db: DB, push: PushSender, now = new Date()) {
     .innerJoin(clientProfiles, eq(clientProfiles.id, workouts.clientId))
     .innerJoin(users, eq(users.id, clientProfiles.userId))
     .where(and(eq(workouts.date, date), eq(clientProfiles.status, "active"), eq(users.reminders, true), isNull(users.deletedAt)));
-  const planned = todays.filter((w) => w.status === "planned");
-  for (const w of planned) {
+  // Un aviso por cliente con todos sus entrenos pendientes de hoy (antes solo se nombraba el primero)
+  const byUser = new Map<string, string[]>();
+  for (const w of todays) if (w.status === "planned") byUser.set(w.userId, [...(byUser.get(w.userId) ?? []), w.title]);
+  for (const [userId, titles] of byUser) {
     const kind = evening ? "client-evening" : "client-morning";
-    if (!(await claim(db, kind, w.userId, date))) continue;
-    await push([w.userId], evening
-      ? { title: "¿Has entrenado hoy?", body: `Te falta anotar «${w.title}». Si no has podido, márcalo también: tu entrenador lo verá.`, url: "/app/entreno", tag: "recordatorio" }
-      : { title: "Hoy toca entrenar", body: `Tienes «${w.title}». Ábrelo para ver los ejercicios.`, url: "/app", tag: "recordatorio" });
-    sent.push(`${kind}:${w.userId}`);
+    if (!(await claim(db, kind, userId, date))) continue;
+    const list = titles.map((t) => `«${t}»`).join(" y ");
+    await push([userId], evening
+      ? { title: "¿Has entrenado hoy?", body: `Te falta anotar ${list}. Si no has podido, márcalo también: tu entrenador lo verá.`, url: "/app/entreno", tag: "recordatorio" }
+      : { title: "Hoy toca entrenar", body: `Tienes ${list}. Ábrelo para ver los ejercicios.`, url: "/app", tag: "recordatorio" });
+    sent.push(`${kind}:${userId}`);
   }
 
   // Check-ins que tocan hoy (por la mañana; uno por cliente y día)
@@ -93,16 +99,40 @@ export async function releaseHolds(db: DB, onReleased?: (appointmentIds: string[
   return r.length;
 }
 
-/** Limpieza: sesiones caducadas (60 días sin uso o 180 de edad) y enlaces de restablecer caducados hace más de un día. */
-export async function purgeExpired(db: DB) {
-  const s = await db.delete(sessions).where(or(lt(sessions.lastUsedAt, sql`now() - interval '60 days'`), lt(sessions.createdAt, sql`now() - interval '180 days'`))).returning({ id: sessions.id });
-  const r = await db.delete(passwordResets).where(lt(passwordResets.expiresAt, sql`now() - interval '1 day'`)).returning({ id: passwordResets.id });
-  return { sessions: s.length, resets: r.length };
+/**
+ * Archivos subidos que nadie usa tras un día: una foto que el cliente subió y no llegó a enviar, un PDF que no acabó en el
+ * material… Se buscan referencias en mensajes, fotos de progreso, material y respuestas de check-in (guardan el id en JSON).
+ */
+export async function purgeOrphanMedia(db: DB, mediaDir?: string) {
+  const rows = await db.execute<{ id: string }>(sql`
+    delete from media m
+    where m.created_at < now() - interval '1 day'
+      and not exists (select 1 from messages x where x.media_id = m.id)
+      and not exists (select 1 from progress_photos x where x.media_id = m.id)
+      and not exists (select 1 from resources x where x.media_id = m.id)
+      and not exists (select 1 from checkin_responses r, jsonb_each_text(r.answers) a where r.client_id = m.client_id and a.value = m.id::text)
+    returning m.id`);
+  if (mediaDir) await Promise.all(rows.map((r) => rm(join(mediaDir, r.id), { force: true })));
+  return rows.length;
 }
 
+/**
+ * Limpieza: sesiones caducadas (60 días sin uso o 180 de edad), enlaces de restablecer caducados hace más de un día,
+ * registro de auditoría de más de 2 años (plazo de conservación, ver `docs/seguridad.md`) y archivos huérfanos.
+ */
+export async function purgeExpired(db: DB, mediaDir?: string) {
+  const s = await db.delete(sessions).where(or(lt(sessions.lastUsedAt, sql`now() - interval '60 days'`), lt(sessions.createdAt, sql`now() - interval '180 days'`))).returning({ id: sessions.id });
+  const r = await db.delete(passwordResets).where(lt(passwordResets.expiresAt, sql`now() - interval '1 day'`)).returning({ id: passwordResets.id });
+  const a = await db.delete(auditLog).where(lt(auditLog.createdAt, sql`now() - interval '2 years'`)).returning({ id: auditLog.id });
+  const media = await purgeOrphanMedia(db, mediaDir);
+  return { sessions: s.length, resets: r.length, audit: a.length, media };
+}
+
+type SchedulerOpts = { onHoldsReleased?: (appointmentIds: string[]) => Promise<void>; mediaDir?: string };
+
 /** Comprueba cada 5 minutos si toca mandar algo (sin cron externo). */
-export function startReminders(db: DB, push: PushSender, log: (e: unknown) => void, onHoldsReleased?: (appointmentIds: string[]) => Promise<void>) {
-  const tick = () => void Promise.all([runReminders(db, push), releaseHolds(db, onHoldsReleased), purgeExpired(db)]).catch(log);
+export function startReminders(db: DB, push: PushSender, log: (e: unknown) => void, opts: SchedulerOpts = {}) {
+  const tick = () => void Promise.all([runReminders(db, push), releaseHolds(db, opts.onHoldsReleased), purgeExpired(db, opts.mediaDir)]).catch(log);
   const id = setInterval(tick, 5 * 60_000);
   id.unref();
   setTimeout(tick, 30_000).unref();

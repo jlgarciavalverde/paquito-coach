@@ -35,7 +35,7 @@ describe("RGPD", () => {
     expect(r.status).toBe(200);
     expect(String(r.headers["content-disposition"])).toContain("mis-datos.json");
     expect(r.body.ficha).toMatchObject({ nombre: "Lucía", lesionesYLimitaciones: "LCA", notasDelEntrenador: "Motivar" });
-    expect(r.body.cuenta.email).toBe("lucia@example.com");
+    expect(r.body.cuenta.correo).toBe("lucia@example.com");
     expect(r.body.mensajes[0].texto).toBe("Hola");
     expect((await coach.req("GET", "/api/v1/me/export")).status).toBe(403);
   });

@@ -239,10 +239,11 @@ export function registerFollowup(app: FastifyInstance, { db, cfg }: Ctx) {
       .from(clientProfiles)
       .where(and(eq(clientProfiles.studioId, u.studioId), inArray(clientProfiles.id, req.body.clientIds)));
     if (clients.length !== new Set(req.body.clientIds).size) throw notFound("Cliente");
-    for (const c of clients)
+    // Una sola sentencia: o se asigna a todos o a ninguno (antes, un fallo a mitad dejaba la mitad asignada).
+    if (clients.length)
       await db
         .insert(checkinAssignments)
-        .values({ studioId: u.studioId, clientId: c.id, formId: f.id, everyDays: req.body.everyDays, nextDue: req.body.start })
+        .values(clients.map((c) => ({ studioId: u.studioId, clientId: c.id, formId: f.id, everyDays: req.body.everyDays, nextDue: req.body.start })))
         .onConflictDoUpdate({ target: [checkinAssignments.clientId, checkinAssignments.formId], set: { everyDays: req.body.everyDays, nextDue: req.body.start } });
     await audit(db, req, "checkin.assign", { type: "checkin_form", id: f.id }, { clients: clients.length });
     return { assigned: clients.length };
@@ -313,13 +314,18 @@ export function registerFollowup(app: FastifyInstance, { db, cfg }: Ctx) {
         const ok = await db.select({ id: media.id }).from(media).where(and(inArray(media.id, photoIds), eq(media.clientId, clientId), eq(media.studioId, user.studioId)));
         if (ok.length !== new Set(photoIds).size) throw new HttpError(400, "bad_media", "La foto no es válida");
       }
+      // Se avanza la fecha solo si sigue siendo la que se leyó: un doble toque (o dos pestañas) no guarda dos respuestas.
       const [resp] = await db.transaction(async (tx) => {
-        const r = await tx
+        const moved = await tx
+          .update(checkinAssignments)
+          .set({ nextDue: nextDueAfter(row.a.nextDue, row.a.everyDays, t) })
+          .where(and(eq(checkinAssignments.id, row.a.id), eq(checkinAssignments.nextDue, row.a.nextDue)))
+          .returning({ id: checkinAssignments.id });
+        if (moved.length === 0) throw new HttpError(409, "already_sent", "Este check-in ya se ha enviado");
+        return tx
           .insert(checkinResponses)
           .values({ studioId: user.studioId, clientId, assignmentId: row.a.id, formName: row.f.name, questions: qs, dueDate: row.a.nextDue, answers })
           .returning();
-        await tx.update(checkinAssignments).set({ nextDue: nextDueAfter(row.a.nextDue, row.a.everyDays, t) }).where(eq(checkinAssignments.id, row.a.id));
-        return r;
       });
       return toResponse(resp!);
     },

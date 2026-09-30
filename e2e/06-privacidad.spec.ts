@@ -12,8 +12,10 @@ test("el cliente descarga sus datos y ve el aviso de privacidad", async ({ brows
   await expect(p.getByRole("heading", { name: "Tus datos" })).toBeVisible();
   await expectAccessible(p, "perfil con tus datos");
   const [download] = await Promise.all([p.waitForEvent("download"), p.getByRole("link", { name: "Descargar mis datos" }).click()]);
-  expect(download.suggestedFilename()).toBe("mis-datos.json");
-  const data = JSON.parse(await (await download.createReadStream()).toArray().then((c) => Buffer.concat(c).toString("utf8")));
+  expect(download.suggestedFilename()).toBe("mis-datos.zip");
+  const zip = await (await download.createReadStream()).toArray().then((c) => Buffer.concat(c));
+  expect(zip.subarray(0, 4).toString("hex")).toBe("504b0304"); // cabecera ZIP; el contenido se prueba en la API
+  const data = await (await p.request.get("/api/v1/me/export")).json();
   expect(data.ficha.nombre).toContain("Lucía");
   expect(data.mensajes.length).toBeGreaterThan(0);
 

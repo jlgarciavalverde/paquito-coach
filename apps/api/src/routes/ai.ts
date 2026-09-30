@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
-import { and, asc, desc, eq, gte, ilike, isNotNull, isNull, or, sql } from "drizzle-orm";
+import { and, desc, eq, gte, isNotNull, isNull, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   AiDocument,
@@ -25,6 +25,7 @@ import { AiError, type AiProvider, type OutSchema } from "../lib/ai/provider";
 import { clientContext } from "../lib/ai/anonymize";
 import { chunkText, topK } from "../lib/ai/chunks";
 import { extractDocText, sniffDoc } from "../lib/ai/extract";
+import { exerciseMatcher } from "../lib/ai/match";
 import { exerciseSummaries, progressFromWorkouts } from "../lib/progress";
 import { madridClock } from "../lib/scheduler";
 import { madridInstant } from "../lib/tz";
@@ -178,29 +179,21 @@ export function registerAi(app: FastifyInstance, { db, cfg }: Ctx, deps: { ai: A
     return clientContext({ name: c.name, birthDate: c.birthDate, goal: c.goal, healthNotes: c.healthNotes, includeHealth, loads });
   }
 
-  /** Empareja un nombre de ejercicio con la biblioteca (los propios primero; si no, recortando palabras). */
-  async function matchExercise(studioId: string, name: string) {
-    const words = name.toLowerCase().replace(/[()«»"]/g, " ").split(/\s+/).filter((w) => w.length > 1);
-    for (let n = words.length; n >= Math.min(2, words.length); n--) {
-      const q = words.slice(0, n).join(" ");
-      const like = `%${q.replace(/[%_\\]/g, "\\$&")}%`;
-      const [r] = await db
-        .select({ id: exercises.id, name: exercises.name })
-        .from(exercises)
-        .where(and(isNull(exercises.archivedAt), or(isNull(exercises.studioId), eq(exercises.studioId, studioId)), or(ilike(exercises.name, like), sql`array_to_string(${exercises.aliases}, ' ') ilike ${like}`)))
-        .orderBy(sql`${exercises.studioId} is null`, sql`${exercises.name} ilike ${like} desc`, sql`length(${exercises.name})`, asc(exercises.name))
-        .limit(1);
-      if (r) return r;
-    }
-    return null;
+  /** La biblioteca que ve el estudio (común + propia), una vez por petición, para emparejar en memoria. */
+  async function matcherFor(studioId: string) {
+    const rows = await db
+      .select({ id: exercises.id, name: exercises.name, aliases: exercises.aliases, studioId: exercises.studioId })
+      .from(exercises)
+      .where(and(isNull(exercises.archivedAt), or(isNull(exercises.studioId), eq(exercises.studioId, studioId))));
+    return exerciseMatcher(rows.map((r) => ({ id: r.id, name: r.name, aliases: r.aliases ?? [], own: r.studioId !== null })));
   }
-  async function toRoutine(studioId: string, r: z.infer<typeof AiRoutine>, unmatched: string[]): Promise<z.infer<typeof RoutineBody>> {
+  function toRoutine(match: (name: string) => { id: string; name: string } | null, r: z.infer<typeof AiRoutine>, unmatched: string[]): z.infer<typeof RoutineBody> {
     const blocks: RoutineBlock[] = [];
     let g = 0;
     for (const b of r.blocks.slice(0, 12)) {
       const items: RoutineBlock["items"] = [];
       for (const it of b.items.slice(0, 30)) {
-        const ex = await matchExercise(studioId, it.exercise);
+        const ex = match(it.exercise);
         if (!ex) {
           unmatched.push(it.exercise);
           continue;
@@ -318,7 +311,7 @@ ${fragmentsText(fs)}`;
       const parsed = AiRoutine.safeParse(out.data);
       if (!parsed.success) throw new AiError("bad_output", "La IA ha devuelto una rutina incompleta. Prueba otra vez.");
       const unmatched: string[] = [];
-      const routine = await toRoutine(u.studioId, parsed.data, unmatched);
+      const routine = toRoutine(await matcherFor(u.studioId), parsed.data, unmatched);
       return { routine, unmatched, sources: sourcesOf(fs) };
     });
   });
@@ -347,10 +340,11 @@ ${fragmentsText(fs)}`;
       const unmatched: string[] = [];
       const routines = [];
       const used = new Set<number>();
+      const match = await matcherFor(u.studioId);
       for (const r of parsed.data.routines.slice(0, 7)) {
         const weekdays = [...new Set(r.weekdays.map((d) => Math.round(d)).filter((d) => d >= 1 && d <= 7 && !used.has(d)))];
         weekdays.forEach((d) => used.add(d));
-        routines.push({ routine: await toRoutine(u.studioId, r.routine, unmatched), weekdays });
+        routines.push({ routine: toRoutine(match, r.routine, unmatched), weekdays });
       }
       const kg = parsed.data.progressionKgPerWeek;
       return {

@@ -36,7 +36,7 @@ export const users = pgTable(
     createdAt: createdAt(),
     deletedAt: ts("deleted_at"),
   },
-  (t) => [uniqueIndex("users_email_uq").on(sql`lower(${t.email})`)],
+  (t) => [uniqueIndex("users_email_uq").on(sql`lower(${t.email})`), index("users_studio_fk_idx").on(t.studioId)],
 );
 
 export const sessions = pgTable(
@@ -79,27 +79,35 @@ export const clientProfiles = pgTable(
   (t) => [index("client_profiles_studio_idx").on(t.studioId, t.status)],
 );
 
-export const invites = pgTable("invites", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
-  clientId: uuid("client_id").notNull().references(() => clientProfiles.id, { onDelete: "cascade" }),
-  tokenHash: text("token_hash").notNull().unique(),
-  expiresAt: ts("expires_at").notNull(),
-  usedAt: ts("used_at"),
-  createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
-  createdAt: createdAt(),
-});
+export const invites = pgTable(
+  "invites",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id").notNull().references(() => clientProfiles.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: ts("expires_at").notNull(),
+    usedAt: ts("used_at"),
+    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("invites_client_idx").on(t.clientId), index("invites_studio_fk_idx").on(t.studioId)],
+);
 
 /** Enlaces de un solo uso para restablecer la contraseña (los genera el entrenador para sus clientes). */
-export const passwordResets = pgTable("password_resets", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  tokenHash: text("token_hash").notNull().unique(),
-  expiresAt: ts("expires_at").notNull(),
-  usedAt: ts("used_at"),
-  createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
-  createdAt: createdAt(),
-});
+export const passwordResets = pgTable(
+  "password_resets",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: ts("expires_at").notNull(),
+    usedAt: ts("used_at"),
+    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("password_resets_user_idx").on(t.userId)],
+);
 
 /** Registro de acciones sensibles (accesos a fichas con datos de salud, altas, bajas…). */
 export const auditLog = pgTable(
@@ -186,7 +194,12 @@ export const workouts = pgTable(
     createdAt: createdAt(),
     updatedAt: ts("updated_at").notNull().defaultNow(),
   },
-  (t) => [index("workouts_client_date_idx").on(t.clientId, t.date), index("workouts_studio_done_idx").on(t.studioId, t.completedAt)],
+  (t) => [
+    index("workouts_client_date_idx").on(t.clientId, t.date),
+    index("workouts_studio_done_idx").on(t.studioId, t.completedAt),
+    index("workouts_run_idx").on(t.programRunId),
+    index("workouts_routine_idx").on(t.routineId),
+  ],
 );
 
 // ── F3: nutrición ──────────────────────────────────────────────────────────────
@@ -227,7 +240,7 @@ export const mealChecks = pgTable(
     note: text("note"),
     updatedAt: ts("updated_at").notNull().defaultNow(),
   },
-  (t) => [uniqueIndex("meal_checks_uq").on(t.clientId, t.date, t.mealId)],
+  (t) => [uniqueIndex("meal_checks_uq").on(t.clientId, t.date, t.mealId), index("meal_checks_studio_fk_idx").on(t.studioId)],
 );
 
 // ── F4: agenda ─────────────────────────────────────────────────────────────────
@@ -257,22 +270,31 @@ export const appointments = pgTable(
     createdAt: createdAt(),
     updatedAt: ts("updated_at").notNull().defaultNow(),
   },
-  (t) => [index("appointments_studio_time_idx").on(t.studioId, t.startsAt), index("appointments_client_time_idx").on(t.clientId, t.startsAt)],
+  (t) => [
+    index("appointments_studio_time_idx").on(t.studioId, t.startsAt),
+    index("appointments_client_time_idx").on(t.clientId, t.startsAt),
+    index("appointments_pack_idx").on(t.packId),
+    index("appointments_hold_idx").on(t.holdExpiresAt).where(sql`${t.paymentStatus} = 'pending'`),
+  ],
 );
 
 // ── F5: mensajes ───────────────────────────────────────────────────────────────
 
 /** Archivos subidos (fotos del chat). Se guardan en disco (DATA_DIR/media) con el id como nombre. */
-export const media = pgTable("media", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
-  uploaderId: uuid("uploader_id").references(() => users.id, { onDelete: "set null" }),
-  /** Conversación a la que pertenece (el cliente); decide quién puede verlo. */
-  clientId: uuid("client_id").references(() => clientProfiles.id, { onDelete: "cascade" }),
-  mime: text("mime").notNull(),
-  size: integer("size").notNull(),
-  createdAt: createdAt(),
-});
+export const media = pgTable(
+  "media",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    uploaderId: uuid("uploader_id").references(() => users.id, { onDelete: "set null" }),
+    /** Conversación a la que pertenece (el cliente); decide quién puede verlo. */
+    clientId: uuid("client_id").references(() => clientProfiles.id, { onDelete: "cascade" }),
+    mime: text("mime").notNull(),
+    size: integer("size").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index("media_client_idx").on(t.clientId), index("media_studio_idx").on(t.studioId)],
+);
 
 /** Una conversación por cliente: la clave es `client_id`. */
 export const messages = pgTable(
@@ -287,7 +309,11 @@ export const messages = pgTable(
     mediaId: uuid("media_id").references(() => media.id, { onDelete: "set null" }),
     createdAt: createdAt(),
   },
-  (t) => [index("messages_client_time_idx").on(t.clientId, t.createdAt), index("messages_studio_time_idx").on(t.studioId, t.createdAt)],
+  (t) => [
+    index("messages_client_time_idx").on(t.clientId, t.createdAt),
+    index("messages_studio_time_idx").on(t.studioId, t.createdAt),
+    index("messages_media_idx").on(t.mediaId),
+  ],
 );
 
 /** Hasta cuándo ha leído cada persona cada conversación. */
@@ -298,17 +324,21 @@ export const conversationReads = pgTable(
     userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
     lastReadAt: ts("last_read_at").notNull(),
   },
-  (t) => [primaryKey({ columns: [t.clientId, t.userId] })],
+  (t) => [primaryKey({ columns: [t.clientId, t.userId] }), index("conversation_reads_user_fk_idx").on(t.userId)],
 );
 
-export const pushSubscriptions = pgTable("push_subscriptions", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  endpoint: text("endpoint").notNull().unique(),
-  p256dh: text("p256dh").notNull(),
-  auth: text("auth").notNull(),
-  createdAt: createdAt(),
-});
+export const pushSubscriptions = pgTable(
+  "push_subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    endpoint: text("endpoint").notNull().unique(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index("push_subscriptions_user_fk_idx").on(t.userId)],
+);
 
 // ── F7: progreso ───────────────────────────────────────────────────────────────
 
@@ -328,7 +358,7 @@ export const bodyMetrics = pgTable(
     createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
     updatedAt: ts("updated_at").notNull().defaultNow(),
   },
-  (t) => [uniqueIndex("body_metrics_client_date_uq").on(t.clientId, t.date)],
+  (t) => [uniqueIndex("body_metrics_client_date_uq").on(t.clientId, t.date), index("body_metrics_studio_fk_idx").on(t.studioId)],
 );
 
 // ── F8: cuestionario de salud (PAR-Q+ y anamnesis) ─────────────────────────────
@@ -346,7 +376,7 @@ export const questionnaires = pgTable(
     reviewedAt: ts("reviewed_at"),
     reviewedBy: uuid("reviewed_by").references(() => users.id, { onDelete: "set null" }),
   },
-  (t) => [index("questionnaires_client_idx").on(t.clientId, t.submittedAt)],
+  (t) => [index("questionnaires_client_idx").on(t.clientId, t.submittedAt), index("questionnaires_studio_fk_idx").on(t.studioId)],
 );
 
 // ── F10: recordatorios ─────────────────────────────────────────────────────────
@@ -360,7 +390,7 @@ export const reminderLog = pgTable(
     date: date("date", { mode: "string" }).notNull(),
     sentAt: ts("sent_at").notNull().defaultNow(),
   },
-  (t) => [primaryKey({ columns: [t.kind, t.userId, t.date] })],
+  (t) => [primaryKey({ columns: [t.kind, t.userId, t.date] }), index("reminder_log_user_fk_idx").on(t.userId)],
 );
 
 // ── H1: evolución y seguimiento (fotos, métricas propias, check-ins) ───────────
@@ -376,19 +406,27 @@ export const progressPhotos = pgTable(
     pose: text("pose").notNull(),
     createdAt: createdAt(),
   },
-  (t) => [index("progress_photos_client_idx").on(t.clientId, t.date), uniqueIndex("progress_photos_media_uq").on(t.mediaId)],
+  (t) => [
+    index("progress_photos_client_idx").on(t.clientId, t.date),
+    uniqueIndex("progress_photos_media_uq").on(t.mediaId),
+    index("progress_photos_studio_fk_idx").on(t.studioId),
+  ],
 );
 
-export const metricDefs = pgTable("metric_defs", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
-  unit: text("unit").notNull().default(""),
-  higherIsBetter: boolean("higher_is_better").notNull().default(true),
-  clientCanLog: boolean("client_can_log").notNull().default(true),
-  archivedAt: ts("archived_at"),
-  createdAt: createdAt(),
-});
+export const metricDefs = pgTable(
+  "metric_defs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    unit: text("unit").notNull().default(""),
+    higherIsBetter: boolean("higher_is_better").notNull().default(true),
+    clientCanLog: boolean("client_can_log").notNull().default(true),
+    archivedAt: ts("archived_at"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("metric_defs_studio_fk_idx").on(t.studioId)],
+);
 
 export const metricValues = pgTable(
   "metric_values",
@@ -403,18 +441,26 @@ export const metricValues = pgTable(
     createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
     updatedAt: ts("updated_at").notNull().defaultNow(),
   },
-  (t) => [uniqueIndex("metric_values_uq").on(t.clientId, t.metricId, t.date)],
+  (t) => [
+    uniqueIndex("metric_values_uq").on(t.clientId, t.metricId, t.date),
+    index("metric_values_metric_idx").on(t.metricId),
+    index("metric_values_studio_fk_idx").on(t.studioId),
+  ],
 );
 
-export const checkinForms = pgTable("checkin_forms", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
-  intro: text("intro").notNull().default(""),
-  questions: jsonb("questions").$type<CheckinQuestion[]>().notNull(),
-  archivedAt: ts("archived_at"),
-  updatedAt: ts("updated_at").notNull().defaultNow(),
-});
+export const checkinForms = pgTable(
+  "checkin_forms",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    intro: text("intro").notNull().default(""),
+    questions: jsonb("questions").$type<CheckinQuestion[]>().notNull(),
+    archivedAt: ts("archived_at"),
+    updatedAt: ts("updated_at").notNull().defaultNow(),
+  },
+  (t) => [index("checkin_forms_studio_fk_idx").on(t.studioId)],
+);
 
 /** Un formulario asignado a un cliente con su periodicidad; `next_due` es el próximo día que le toca. */
 export const checkinAssignments = pgTable(
@@ -428,7 +474,12 @@ export const checkinAssignments = pgTable(
     nextDue: date("next_due", { mode: "string" }).notNull(),
     createdAt: createdAt(),
   },
-  (t) => [uniqueIndex("checkin_assignments_uq").on(t.clientId, t.formId)],
+  (t) => [
+    uniqueIndex("checkin_assignments_uq").on(t.clientId, t.formId),
+    index("checkin_assignments_due_idx").on(t.nextDue),
+    index("checkin_assignments_form_idx").on(t.formId),
+    index("checkin_assignments_studio_fk_idx").on(t.studioId),
+  ],
 );
 
 /** Respuestas: guardan copia de las preguntas para que editar el formulario no cambie lo ya contestado. */
@@ -446,21 +497,29 @@ export const checkinResponses = pgTable(
     submittedAt: ts("submitted_at").notNull().defaultNow(),
     seenAt: ts("seen_at"),
   },
-  (t) => [index("checkin_responses_client_idx").on(t.clientId, t.submittedAt)],
+  (t) => [
+    index("checkin_responses_client_idx").on(t.clientId, t.submittedAt),
+    index("checkin_responses_assignment_fk_idx").on(t.assignmentId),
+    index("checkin_responses_studio_fk_idx").on(t.studioId),
+  ],
 );
 
 // ── H2: programas de varias semanas ────────────────────────────────────────────
 
-export const programs = pgTable("programs", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
-  description: text("description").notNull().default(""),
-  weeks: integer("weeks").notNull(),
-  slots: jsonb("slots").$type<ProgramSlot[]>().notNull(),
-  progression: jsonb("progression").$type<Progression | null>(),
-  updatedAt: ts("updated_at").notNull().defaultNow(),
-});
+export const programs = pgTable(
+  "programs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    description: text("description").notNull().default(""),
+    weeks: integer("weeks").notNull(),
+    slots: jsonb("slots").$type<ProgramSlot[]>().notNull(),
+    progression: jsonb("progression").$type<Progression | null>(),
+    updatedAt: ts("updated_at").notNull().defaultNow(),
+  },
+  (t) => [index("programs_studio_fk_idx").on(t.studioId)],
+);
 
 /** Un programa aplicado a un cliente desde una fecha. Sus entrenos llevan `program_run_id`. */
 export const programRuns = pgTable(
@@ -476,7 +535,11 @@ export const programRuns = pgTable(
     endedAt: ts("ended_at"),
     createdAt: createdAt(),
   },
-  (t) => [index("program_runs_client_idx").on(t.clientId)],
+  (t) => [
+    index("program_runs_client_idx").on(t.clientId),
+    index("program_runs_program_fk_idx").on(t.programId),
+    index("program_runs_studio_fk_idx").on(t.studioId),
+  ],
 );
 
 // ── H3: bonos de sesiones ──────────────────────────────────────────────────────
@@ -496,7 +559,7 @@ export const sessionPacks = pgTable(
     archivedAt: ts("archived_at"),
     createdAt: createdAt(),
   },
-  (t) => [index("session_packs_client_idx").on(t.clientId)],
+  (t) => [index("session_packs_client_idx").on(t.clientId), index("session_packs_studio_idx").on(t.studioId)],
 );
 
 /** H3b: reservas por el cliente. Una fila por estudio. */
@@ -517,32 +580,40 @@ export const bookingSettings = pgTable("booking_settings", {
 
 // ── H4: biblioteca de material ────────────────────────────────────────────────
 
-export const resources = pgTable("resources", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
-  title: text("title").notNull(),
-  description: text("description").notNull().default(""),
-  kind: text("kind").$type<"link" | "pdf">().notNull(),
-  url: text("url"),
-  mediaId: uuid("media_id").references(() => media.id, { onDelete: "set null" }),
-  forAll: boolean("for_all").notNull().default(true),
-  clientIds: jsonb("client_ids").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
-  createdAt: createdAt(),
-});
+export const resources = pgTable(
+  "resources",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    kind: text("kind").$type<"link" | "pdf">().notNull(),
+    url: text("url"),
+    mediaId: uuid("media_id").references(() => media.id, { onDelete: "set null" }),
+    forAll: boolean("for_all").notNull().default(true),
+    clientIds: jsonb("client_ids").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    createdAt: createdAt(),
+  },
+  (t) => [index("resources_studio_idx").on(t.studioId), index("resources_media_fk_idx").on(t.mediaId)],
+);
 
 // ── I1: IA con los documentos del entrenador ──────────────────────────────────
 
 /** Documentos del entrenador (su metodología). Se guarda el texto extraído, no el archivo. */
-export const aiDocuments = pgTable("ai_documents", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
-  title: text("title").notNull(),
-  kind: text("kind").$type<"pdf" | "docx" | "text">().notNull(),
-  status: text("status").$type<"ready" | "error">().notNull(),
-  error: text("error"),
-  chars: integer("chars").notNull().default(0),
-  createdAt: createdAt(),
-});
+export const aiDocuments = pgTable(
+  "ai_documents",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    kind: text("kind").$type<"pdf" | "docx" | "text">().notNull(),
+    status: text("status").$type<"ready" | "error">().notNull(),
+    error: text("error"),
+    chars: integer("chars").notNull().default(0),
+    createdAt: createdAt(),
+  },
+  (t) => [index("ai_documents_studio_fk_idx").on(t.studioId)],
+);
 
 export const aiChunks = pgTable(
   "ai_chunks",
@@ -554,7 +625,7 @@ export const aiChunks = pgTable(
     text: text("text").notNull(),
     embedding: real("embedding").array().notNull(),
   },
-  (t) => [index("ai_chunks_studio_idx").on(t.studioId)],
+  (t) => [index("ai_chunks_studio_idx").on(t.studioId), index("ai_chunks_document_fk_idx").on(t.documentId)],
 );
 
 /** Uso de la IA (para el límite diario propio y para saber cuánto se usa). */
@@ -573,17 +644,21 @@ export const aiUsage = pgTable(
 // ── C1: cobros con Stripe ──────────────────────────────────────────────────────
 
 /** Tarifas del estudio (importes en céntimos). */
-export const prices = pgTable("prices", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
-  kind: text("kind").$type<"pack" | "session" | "subscription">().notNull(),
-  amountCents: integer("amount_cents").notNull(),
-  sessions: integer("sessions"),
-  validDays: integer("valid_days"),
-  active: boolean("active").notNull().default(true),
-  createdAt: createdAt(),
-});
+export const prices = pgTable(
+  "prices",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    kind: text("kind").$type<"pack" | "session" | "subscription">().notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    sessions: integer("sessions"),
+    validDays: integer("valid_days"),
+    active: boolean("active").notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [index("prices_studio_fk_idx").on(t.studioId)],
+);
 
 /** Cada cobro. El importe lo fija el servidor; Stripe confirma por webhook. */
 export const payments = pgTable(
@@ -619,6 +694,9 @@ export const payments = pgTable(
     // Una factura de cuota = un cobro (evita duplicados si llegan «pagada» y «fallida» a la vez).
     uniqueIndex("payments_invoice_uq").on(t.stripeInvoiceId),
     index("payments_intent_idx").on(t.paymentIntentId),
+    index("payments_appointment_fk_idx").on(t.appointmentId),
+    index("payments_pack_fk_idx").on(t.packId),
+    index("payments_price_fk_idx").on(t.priceId),
   ],
 );
 
@@ -651,5 +729,7 @@ export const subscriptions = pgTable(
     uniqueIndex("subscriptions_stripe_uq").on(t.stripeSubscriptionId),
     // Como mucho una cuota viva por cliente.
     uniqueIndex("subscriptions_one_live_uq").on(t.clientId).where(sql`${t.status} in ('active', 'past_due')`),
+    index("subscriptions_price_fk_idx").on(t.priceId),
+    index("subscriptions_studio_fk_idx").on(t.studioId),
   ],
 );

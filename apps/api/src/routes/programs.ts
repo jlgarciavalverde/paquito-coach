@@ -157,11 +157,15 @@ export function registerPrograms(app: FastifyInstance, { db }: Ctx) {
     const [run] = await db.select().from(programRuns).where(and(eq(programRuns.id, req.params.id), eq(programRuns.studioId, u.studioId)));
     if (!run) throw notFound("Programa");
     const today = madridClock(new Date()).date;
-    const removed = await db
-      .delete(workouts)
-      .where(and(eq(workouts.programRunId, run.id), eq(workouts.status, "planned"), gte(workouts.date, today), sql`${workouts.log} = '{}'::jsonb`))
-      .returning({ id: workouts.id });
-    await db.update(programRuns).set({ endedAt: new Date() }).where(eq(programRuns.id, run.id));
+    // En una transacción: no queda un programa a medio terminar (entrenos borrados pero sin marcar como terminado).
+    const removed = await db.transaction(async (tx) => {
+      const r = await tx
+        .delete(workouts)
+        .where(and(eq(workouts.programRunId, run.id), eq(workouts.status, "planned"), gte(workouts.date, today), sql`${workouts.log} = '{}'::jsonb`))
+        .returning({ id: workouts.id });
+      await tx.update(programRuns).set({ endedAt: new Date() }).where(eq(programRuns.id, run.id));
+      return r;
+    });
     return { removed: removed.length };
   });
 }

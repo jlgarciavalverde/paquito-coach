@@ -70,15 +70,21 @@ export function registerPacks(app: FastifyInstance, { db }: Ctx) {
       const [a] = await db.select().from(appointments).where(and(eq(appointments.id, req.params.id), eq(appointments.studioId, u.studioId)));
       if (!a) throw notFound("Cita");
       const { status } = req.body;
-      let packId: string | null = null;
-      if ((status === "done" || status === "no_show") && a.clientId) {
-        if (a.packId) packId = a.packId;
-        else {
-          const date = madridClock(a.startsAt).date;
-          packId = (await packsOf(db, a.clientId)).find((p) => packUsable(p, date))?.id ?? null;
+      // Cerrojo por cliente: marcar dos citas a la vez no gasta dos veces la última sesión del mismo bono.
+      const r = await db.transaction(async (tx) => {
+        let packId: string | null = null;
+        if ((status === "done" || status === "no_show") && a.clientId) {
+          await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${"pack:" + a.clientId}))`);
+          const [cur] = await tx.select({ packId: appointments.packId }).from(appointments).where(eq(appointments.id, a.id));
+          if (cur?.packId) packId = cur.packId;
+          else {
+            const date = madridClock(a.startsAt).date;
+            packId = (await packsOf(tx, a.clientId)).find((p) => packUsable(p, date))?.id ?? null;
+          }
         }
-      }
-      const [r] = await db.update(appointments).set({ status, packId, updatedAt: new Date() }).where(eq(appointments.id, a.id)).returning();
+        const [row] = await tx.update(appointments).set({ status, packId, updatedAt: new Date() }).where(eq(appointments.id, a.id)).returning();
+        return row;
+      });
       const [c] = a.clientId ? await db.select({ name: clientProfiles.name }).from(clientProfiles).where(eq(clientProfiles.id, a.clientId)) : [];
       return {
         id: r!.id,

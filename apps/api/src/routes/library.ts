@@ -1,14 +1,14 @@
-import { assertQuota } from "../lib/quota";
 import type { FastifyInstance } from "fastify";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { and, desc, eq, gte, inArray, isNotNull, lt } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNotNull, lt, or } from "drizzle-orm";
 import { z } from "zod";
 import { Achievements, Ok, Resource, ResourceInput, StudioReport, packUsable, weekStreaks } from "@coach/shared";
 import { appointments, clientProfiles, media, payments, resources, sessionPacks, workouts } from "../db/schema";
 import { HttpError, notFound } from "../lib/errors";
 import { isPdf } from "../lib/sniff";
-import { packsOf } from "../lib/packs";
+import { packsOfMany } from "../lib/packs";
+import { assertQuota } from "../lib/quota";
 import { progressFromWorkouts } from "../lib/progress";
 import { madridClock } from "../lib/scheduler";
 import { madridInstant } from "../lib/tz";
@@ -173,15 +173,21 @@ export function registerLibrary(app: FastifyInstance, { db, cfg }: Ctx) {
       .from(appointments)
       .where(and(eq(appointments.studioId, u.studioId), gte(appointments.startsAt, madridInstant(monthStart, 0)), lt(appointments.startsAt, new Date())));
     const packs = await db.select({ id: sessionPacks.id, clientId: sessionPacks.clientId, price: sessionPacks.price, paid: sessionPacks.paid, createdAt: sessionPacks.createdAt }).from(sessionPacks).where(eq(sessionPacks.studioId, u.studioId));
-    const pays = await db.select({ amountCents: payments.amountCents, status: payments.status, paidAt: payments.paidAt, packId: payments.packId }).from(payments).where(eq(payments.studioId, u.studioId));
-    // Los bonos pagados en la app ya cuentan como cobro: no se suman dos veces.
-    const paidInApp = new Set(pays.map((p) => p.packId).filter(Boolean));
-    let toRenew = 0;
-    for (const id of new Set(packs.map((p) => p.clientId))) {
-      const ps = (await packsOf(db, id)).filter((p) => !p.archived);
-      if (ps.length && ps.filter((p) => packUsable(p, today)).reduce((n, p) => n + p.remaining, 0) <= 1) toRenew++;
-    }
     const monthStartInstant = madridInstant(monthStart, 0);
+    // Solo los cobros que cuentan (pendientes o pagados este mes), no el histórico entero
+    const pays = await db
+      .select({ amountCents: payments.amountCents, status: payments.status, paidAt: payments.paidAt })
+      .from(payments)
+      .where(and(eq(payments.studioId, u.studioId), or(eq(payments.status, "pending"), gte(payments.paidAt, monthStartInstant))));
+    // Los bonos pagados en la app ya cuentan como cobro: no se suman dos veces.
+    const paidInApp = new Set(
+      (await db.select({ packId: payments.packId }).from(payments).where(and(eq(payments.studioId, u.studioId), isNotNull(payments.packId)))).map((p) => p.packId),
+    );
+    let toRenew = 0;
+    for (const ps of (await packsOfMany(db, [...new Set(packs.map((p) => p.clientId))])).values()) {
+      const live = ps.filter((p) => !p.archived);
+      if (live.length && live.filter((p) => packUsable(p, today)).reduce((n, p) => n + p.remaining, 0) <= 1) toRenew++;
+    }
     return {
       activeClients: active.length,
       newClients30d: clients.filter((c) => c.createdAt.getTime() > Date.now() - 30 * 86400000).length,
