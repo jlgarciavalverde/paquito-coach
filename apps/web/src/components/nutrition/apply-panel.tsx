@@ -7,6 +7,7 @@ import { Checkbox } from "../ui/field";
 import { useToast } from "../ui/toast";
 import { clientsQuery } from "../../lib/queries";
 import { useApplyPlan } from "../../lib/nutrition";
+import { errorMessage } from "../../lib/api";
 
 /** Aplica una plantilla a varios clientes (cada uno recibe su copia; sustituye su plan actual). */
 export function ApplyPlanPanel({ plan, onClose }: { plan: MealPlan; onClose: () => void }) {
@@ -26,7 +27,7 @@ export function ApplyPlanPanel({ plan, onClose }: { plan: MealPlan; onClose: () 
           <Button variant="quiet" onClick={onClose}>
             Cancelar
           </Button>
-          <Button disabled={sel.length === 0} loading={apply.isPending} onClick={() => apply.mutate(sel, { onSuccess: (r) => (toast(r.applied === 1 ? "Plan aplicado" : `Plan aplicado a ${r.applied} clientes`), onClose()) })}>
+          <Button disabled={sel.length === 0} loading={apply.isPending} onClick={() => apply.mutate(sel, { onError: (e) => toast(errorMessage(e), "error"), onSuccess: (r) => (toast(r.applied === 1 ? "Plan aplicado" : `Plan aplicado a ${r.applied} clientes`), onClose()) })}>
             {sel.length > 1 ? `Aplicar a ${sel.length}` : "Aplicar"}
           </Button>
         </>

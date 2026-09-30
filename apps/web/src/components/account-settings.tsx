@@ -16,6 +16,8 @@ import { relativeTime } from "../lib/format";
 import { cn } from "../lib/cn";
 import { disablePush, enablePush, pushState, type PushState } from "../lib/push";
 import { errorMessage } from "../lib/api";
+import { QueryError } from "./ui/query-state";
+import { RadioGroup } from "./ui/radio-group";
 
 export function ThemeSetting() {
   const [pref, setPref] = useState<ThemePref>(getThemePref);
@@ -27,7 +29,7 @@ export function ThemeSetting() {
   return (
     <section>
       <BlockTitle>Apariencia</BlockTitle>
-      <div className="inline-flex rounded-[var(--radius-control)] border border-rule-strong p-0.5" role="radiogroup" aria-label="Tema">
+      <RadioGroup className="inline-flex rounded-[var(--radius-control)] border border-rule-strong p-0.5" aria-label="Tema">
         {opts.map(({ v, label }) => (
           <button
             key={v}
@@ -42,7 +44,7 @@ export function ThemeSetting() {
             {label}
           </button>
         ))}
-      </div>
+      </RadioGroup>
     </section>
   );
 }
@@ -95,7 +97,7 @@ export function SessionsSetting() {
       <BlockTitle
         action={
           count > 0 && (
-            <Button size="sm" variant="secondary" loading={others.isPending} onClick={() => others.mutate()}>
+            <Button size="sm" variant="secondary" loading={others.isPending} onClick={() => others.mutate(undefined, { onError: (e) => toast(errorMessage(e), "error") })}>
               Cerrar las demás sesiones
             </Button>
           )
@@ -104,6 +106,7 @@ export function SessionsSetting() {
         Dónde tienes la sesión abierta
       </BlockTitle>
       <p className="mb-3 text-[13px] text-ink-2">Si has perdido el móvil o entraste en un ordenador ajeno, ciérralas desde aquí.</p>
+      {q.isError && <QueryError compact className="mb-3" q={q} />}
       <ul className="divide-y divide-rule border-y border-rule">
         {rows.map((s) => (
           <li key={s.id} className="flex items-center gap-3 py-3">
@@ -112,7 +115,7 @@ export function SessionsSetting() {
               <span className="block text-[13px] text-ink-3">{s.current ? "Este dispositivo" : `Último uso ${relativeTime(s.lastUsedAt)}`}</span>
             </span>
             {!s.current && (
-              <Button size="sm" variant="quiet" loading={close.isPending && close.variables === s.id} onClick={() => close.mutate(s.id)}>
+              <Button size="sm" variant="quiet" loading={close.isPending && close.variables === s.id} onClick={() => close.mutate(s.id, { onError: (e) => toast(errorMessage(e), "error") })}>
                 Cerrar sesión
               </Button>
             )}
@@ -175,6 +178,7 @@ export function PushSetting() {
 }
 
 function RemindersToggle() {
+  const toast = useToast();
   const me = useMe()!;
   const qc = useQueryClient();
   const set = useMutation({
@@ -186,7 +190,7 @@ function RemindersToggle() {
       className="mt-3"
       checked={me.reminders}
       disabled={set.isPending}
-      onChange={(e) => set.mutate(e.target.checked)}
+      onChange={(e) => set.mutate(e.target.checked, { onError: (e) => toast(errorMessage(e), "error") })}
       label={me.role === "coach" ? "Resumen del día a las 8:00" : "Recordatorio del entreno del día"}
       description={me.role === "coach" ? "Cuántas citas y entrenos de tus clientes hay hoy." : "A las 8:00 si hoy te toca, y a las 20:00 si aún no lo has anotado."}
     />

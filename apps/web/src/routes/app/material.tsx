@@ -7,6 +7,7 @@ import { resourceHref } from "../../components/followup/resources";
 import { myResourcesQuery } from "../../lib/library";
 import { useMe } from "../../lib/auth";
 import { relativeTime } from "../../lib/format";
+import { QueryError } from "../../components/ui/query-state";
 
 export const Route = createFileRoute("/app/material")({
   component: Material,
@@ -22,6 +23,8 @@ function Material() {
       <PageTitle title="Material" lead={`Pautas, vídeos y lecturas que te ha preparado ${coach}.`} />
       {q.isPending ? (
         <Skeleton className="h-40" />
+      ) : q.isError ? (
+        <QueryError q={q} />
       ) : (q.data ?? []).length === 0 ? (
         <EmptyNote>Todavía no hay nada. Cuando {coach} comparta algo contigo, aparecerá aquí.</EmptyNote>
       ) : (

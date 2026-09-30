@@ -11,12 +11,15 @@ import { useWorkoutEdit, workoutQuery } from "../../lib/training";
 import { dayLong, dayShort } from "../../lib/dates";
 import { useSendMessage } from "../../lib/chat";
 import { errorMessage } from "../../lib/api";
+import { QueryError } from "../ui/query-state";
+import { useConfirm } from "../ui/confirm";
 
 /** Detalle de un entreno asignado (entrenador): lo prescrito, lo registrado por el cliente, mover o borrar. */
 export function WorkoutPanel({ id, onClose }: { id: string | null; onClose: () => void }) {
   const q = useQuery({ ...workoutQuery(id ?? ""), enabled: Boolean(id) });
   const edit = useWorkoutEdit(id ?? "");
   const toast = useToast();
+  const ask = useConfirm();
   const w = q.data;
   const [date, setDate] = useState("");
   const [notes, setNotes] = useState("");
@@ -42,14 +45,21 @@ export function WorkoutPanel({ id, onClose }: { id: string | null; onClose: () =
               variant="danger"
               className="sm:mr-auto"
               loading={edit.isPending && edit.variables === "delete"}
-              onClick={() => edit.mutate("delete", { onSuccess: () => (toast("Entreno quitado"), onClose()), onError: (e) => toast(errorMessage(e), "error") })}
+              onClick={async () =>
+                (await ask({
+                  title: "Quitar el entreno",
+                  body: w.completedAt ? `${w.clientName.split(" ")[0]} ya lo ha registrado: se perderán sus series.` : `${w.clientName.split(" ")[0]} dejará de verlo en su app.`,
+                  confirm: "Quitar",
+                  danger: true,
+                })) && edit.mutate("delete", { onSuccess: () => (toast("Entreno quitado"), onClose()), onError: (e) => toast(errorMessage(e), "error") })
+              }
             >
               Quitar entreno
             </Button>
             <Button
               disabled={!changed}
               loading={edit.isPending && edit.variables !== "delete"}
-              onClick={() => edit.mutate({ date, coachNotes: notes }, { onSuccess: () => (toast("Entreno actualizado"), onClose()) })}
+              onClick={() => edit.mutate({ date, coachNotes: notes }, { onError: (e) => toast(errorMessage(e), "error"), onSuccess: () => (toast("Entreno actualizado"), onClose()) })}
             >
               Guardar cambios
             </Button>
@@ -57,7 +67,9 @@ export function WorkoutPanel({ id, onClose }: { id: string | null; onClose: () =
         )
       }
     >
-      {!w ? (
+      {q.isError ? (
+        <QueryError q={q} />
+      ) : !w ? (
         <Skeleton className="h-64" />
       ) : (
         <div className="flex flex-col gap-6">

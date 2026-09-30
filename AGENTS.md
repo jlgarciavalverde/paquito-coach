@@ -87,6 +87,11 @@ deploy/             docker-compose.yml y .env.example de producción · tools/ s
 - **Pruebas de componentes**: `// @vitest-environment jsdom` al principio del archivo y `renderWithProviders`/`mockFetch` de `src/test/render.tsx`. TanStack Query pausa las mutaciones sin red salvo `networkMode: "always"` (así está en `main.tsx`).
 - **Rutas y permisos**: toda ruta nueva de cliente o pública va en `apps/api/src/lib/access.ts`; si no, el acceso por defecto la deniega (y `security.matrix.test.ts` lo comprueba).
 - Fastify 5: `disableRequestLogging` está obsoleto → `logController: new LogController(...)`.
+- **Cargas y errores en la web**: toda pantalla con `useQuery` muestra el fallo con `QueryError`/`QueryState` (`components/ui/query-state.tsx`), nunca un vacío falso; toda `mutate` sin `isError` en pantalla lleva `onError` con aviso.
+- **Grupos de opciones** (botones con `role="radio"`): dentro de `RadioGroup` (`components/ui/radio-group.tsx`), que da el teclado (flechas, una sola parada con Tab).
+- **Números con coma**: `DecimalField` si el valor es un número; si se guarda texto, convertir al guardar con `replace(",", ".")`. Nunca convertir en cada tecla.
+- **Avisos**: hay siempre dos regiones vivas (`alert` para errores y `status`); en Playwright, `getByRole("alert").filter({ hasText })`.
+- **Dev con `--watch` y migraciones**: el servidor de desarrollo aplica las migraciones al reiniciarse. Si regeneras una migración sin desplegar, la BD `coach` puede tener la versión anterior: hazla idempotente (`IF NOT EXISTS`) o recrea la BD de desarrollo.
 - VPS: Docker **rootless**, sin compilar allí (temperatura), Cloudflare cachea por extensión (HTML y `/health` van con `no-store`).
 
 ## Remote Control (mandar tareas desde el móvil o claude.ai/code)

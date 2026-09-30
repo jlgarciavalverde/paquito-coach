@@ -5,6 +5,7 @@ import { TextField } from "../../components/ui/field";
 import { BlockTitle } from "../../components/ui/layout";
 import { FormError } from "../../components/form-error";
 import { api } from "../../lib/api";
+import { forgetDevice } from "../../lib/push";
 import { useSubmit } from "../../lib/use-form";
 import { Button, buttonClass } from "../../components/ui/button";
 import { Monogram } from "../../components/ui/layout";
@@ -71,7 +72,7 @@ function MyData() {
   const [password, setPassword] = useState("");
   const { pending, error, onSubmit } = useSubmit(
     () => api("/me/delete", { body: { password } }),
-    () => window.location.assign("/acceso"),
+    () => void forgetDevice({ server: false }).finally(() => window.location.assign("/acceso")),
   );
   return (
     <section>

@@ -14,11 +14,14 @@ import { clientPaymentsQuery, clientSubscriptionsQuery, paymentsInfoQuery, price
 import { useSendMessage } from "../../lib/chat";
 import { dayMonth } from "../../lib/dates";
 import { errorMessage } from "../../lib/api";
+import { QueryError } from "../ui/query-state";
+import { localDate } from "../../lib/agenda";
 
 export const statusTone = (s: Payment["status"]) => (s === "paid" ? "green" : s === "pending" ? "blue" : s === "refunded" ? "yellow" : "red") as "green" | "blue" | "yellow" | "red";
 
 /** Cobros de un cliente: historial y «Nuevo cobro» con enlace de pago para mandar por WhatsApp o por el chat. */
 export function ClientPayments({ client }: { client: Client }) {
+  const toast = useToast();
   const info = useQuery(paymentsInfoQuery);
   const q = useQuery(clientPaymentsQuery(client.id));
   const renew = useRenewPayment();
@@ -39,13 +42,15 @@ export function ClientPayments({ client }: { client: Client }) {
           <PlateMark tone={current.status === "active" ? "green" : "red"}>{SUBSCRIPTION_STATUS_LABEL[current.status]}</PlateMark>
           {current.currentPeriodEnd && (
             <span className="text-[13px] text-ink-2">
-              {current.cancelAtPeriodEnd ? "Se da de baja el" : "Próximo cobro el"} {dayMonth(current.currentPeriodEnd.slice(0, 10))}
+              {current.cancelAtPeriodEnd ? "Se da de baja el" : "Próximo cobro el"} {dayMonth(localDate(current.currentPeriodEnd))}
             </span>
           )}
         </p>
       )}
       {q.isPending ? (
         <Skeleton className="h-16" />
+      ) : q.isError ? (
+        <QueryError q={q} />
       ) : (q.data ?? []).length === 0 ? (
         <p className="text-sm text-ink-2">Sin cobros. Puedes mandarle un enlace de pago (un bono, una valoración…) o que compre el bono desde su app.</p>
       ) : (
@@ -54,7 +59,7 @@ export function ClientPayments({ client }: { client: Client }) {
             <li key={p.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2.5 text-sm">
               <span className="min-w-0 flex-1">
                 <span className="block font-medium">{p.description}</span>
-                <span className="block text-[13px] text-ink-3">{dayMonth((p.paidAt ?? p.createdAt).slice(0, 10))}</span>
+                <span className="block text-[13px] text-ink-3">{dayMonth(localDate(p.paidAt ?? p.createdAt))}</span>
               </span>
               <span className="font-narrow text-[16px]">{formatEuros(p.amount)}</span>
               <PlateMark tone={statusTone(p.status)}>{PAYMENT_STATUS_LABEL[p.status]}</PlateMark>
@@ -64,7 +69,7 @@ export function ClientPayments({ client }: { client: Client }) {
                 </Button>
               )}
               {(p.status === "expired" || (p.status === "pending" && !p.url)) && (
-                <Button size="sm" variant="quiet" loading={renew.isPending} onClick={() => renew.mutate(p.id, { onSuccess: setShared })}>
+                <Button size="sm" variant="quiet" loading={renew.isPending} onClick={() => renew.mutate(p.id, { onError: (e) => toast(errorMessage(e), "error"), onSuccess: setShared })}>
                   Enlace nuevo
                 </Button>
               )}
@@ -144,7 +149,7 @@ function SharePanel({ client, payment, onClose }: { client: Client; payment: Pay
         <div className="flex flex-wrap gap-2">
           <WhatsAppLink text={text} />
           {client.userId && (
-            <Button variant="secondary" loading={send.isPending} onClick={() => send.mutate({ body: text, mediaId: null }, { onSuccess: () => (toast("Enviado por el chat"), onClose()) })}>
+            <Button variant="secondary" loading={send.isPending} onClick={() => send.mutate({ body: text, mediaId: null }, { onError: (e) => toast(errorMessage(e), "error"), onSuccess: () => (toast("Enviado por el chat"), onClose()) })}>
               Enviar por el chat
             </Button>
           )}

@@ -14,6 +14,7 @@ import { customMetricsQuery, useCustomValue } from "../../lib/followup";
 import { dayMonth, today } from "../../lib/dates";
 import { errorMessage } from "../../lib/api";
 import type { Who } from "../../lib/progress";
+import { QueryError } from "../ui/query-state";
 
 const num = (n: number) => n.toLocaleString("es-ES", { maximumFractionDigits: 1 });
 const withUnit = (n: number, unit: string) => (unit.startsWith("/") || unit === "°" || unit === "%" ? `${num(n)}${unit}` : `${num(n)}${unit ? ` ${unit}` : ""}`);
@@ -23,6 +24,7 @@ export function CustomMetricsBlock({ who, name }: { who: Who; name?: string }) {
   const q = useQuery(customMetricsQuery(who));
   const [open, setOpen] = useState<string | null>(null);
   if (q.isPending) return <Skeleton className="h-32" />;
+  if (q.isError) return <QueryError q={q} />;
   const { defs, values } = q.data ?? { defs: [], values: [] };
   const loggable = defs.filter((d) => !d.archived && (who !== "me" || d.clientCanLog));
   if (defs.length === 0) {

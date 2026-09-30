@@ -16,6 +16,8 @@ import { mediaUrl } from "../../lib/chat";
 import { relativeTime } from "../../lib/format";
 import { errorMessage } from "../../lib/api";
 import { cn } from "../../lib/cn";
+import { QueryError } from "../ui/query-state";
+import { RadioGroup } from "../ui/radio-group";
 
 export const resourceHref = (r: Resource) => (r.kind === "pdf" && r.mediaId ? mediaUrl(r.mediaId) : (r.url ?? "#"));
 
@@ -32,6 +34,8 @@ export function ResourcesBlock() {
       </BlockTitle>
       {q.isPending ? (
         <Skeleton className="h-24" />
+      ) : q.isError ? (
+        <QueryError q={q} />
       ) : (q.data ?? []).length === 0 ? (
         <EmptyNote action={<Button onClick={() => setEdit("new")}>Añadir el primero</Button>}>
           Pautas de readaptación en PDF, vídeos de técnica o artículos que quieres que lean. Lo ven en su app, en «Material».
@@ -94,7 +98,7 @@ function ResourcePanel({ r, onClose }: { r: Resource | null; onClose: () => void
             <Button
               variant="quiet"
               className="sm:mr-auto"
-              onClick={async () => (await ask({ title: "Quitar el material", body: "Tus clientes dejarán de verlo.", confirm: "Quitar", danger: true })) && m.mutate({ remove: r.id }, { onSuccess: () => (toast("Material quitado"), onClose()) })}
+              onClick={async () => (await ask({ title: "Quitar el material", body: "Tus clientes dejarán de verlo.", confirm: "Quitar", danger: true })) && m.mutate({ remove: r.id }, { onError: (e) => toast(errorMessage(e), "error"), onSuccess: () => (toast("Material quitado"), onClose()) })}
             >
               Quitar
             </Button>
@@ -109,13 +113,13 @@ function ResourcePanel({ r, onClose }: { r: Resource | null; onClose: () => void
       }
     >
       <div className="flex flex-col gap-5">
-        <div className="grid grid-cols-2 overflow-hidden rounded-[var(--radius-control)] border border-rule-strong" role="radiogroup" aria-label="Tipo">
+        <RadioGroup className="grid grid-cols-2 overflow-hidden rounded-[var(--radius-control)] border border-rule-strong" aria-label="Tipo">
           {(["link", "pdf"] as const).map((k) => (
             <button key={k} type="button" role="radio" aria-checked={f.kind === k} onClick={() => setF({ ...f, kind: k })} className={cn("h-10 text-sm font-medium not-first:border-l not-first:border-rule-strong", f.kind === k ? "bg-ink text-paper" : "text-ink-2 hover:bg-tray")}>
               {k === "link" ? "Enlace o vídeo" : "PDF"}
             </button>
           ))}
-        </div>
+        </RadioGroup>
         <TextField label="Título" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="Pauta de ejercicios para casa" />
         {f.kind === "link" ? (
           <TextField label="Enlace" type="url" value={f.url} onChange={(e) => setF({ ...f, url: e.target.value })} placeholder="https://www.youtube.com/watch?v=…" />

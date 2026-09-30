@@ -16,13 +16,13 @@ export function useBook() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (startsAt: string) => api<Appointment & { checkoutUrl: string | null }>("/me/booking", { body: { startsAt } }),
-    onSettled: () => (qc.invalidateQueries({ queryKey: ["booking"] }), qc.invalidateQueries({ queryKey: ["appointments"] })),
+    onSettled: () => ["booking", "appointments", "packs", "payments"].forEach((k) => void qc.invalidateQueries({ queryKey: [k] })),
   });
 }
 export function useCancelMine() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => api(`/me/appointments/${id}/cancel`, { body: {} }),
-    onSettled: () => (qc.invalidateQueries({ queryKey: ["booking"] }), qc.invalidateQueries({ queryKey: ["appointments"] })),
+    onSettled: () => ["booking", "appointments", "packs", "payments"].forEach((k) => void qc.invalidateQueries({ queryKey: [k] })),
   });
 }

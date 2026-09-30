@@ -192,7 +192,7 @@ function Editor({ program, initial }: { program?: Program; initial: ProgramBody 
                 variant="quiet"
                 onClick={async () =>
                   (await ask({ title: "Borrar el programa", body: "Sale de tu biblioteca. Lo ya aplicado a clientes se mantiene.", confirm: "Borrar programa", danger: true })) &&
-                  del.mutate(id, { onSuccess: () => ((leaving.current = true), navigate({ to: "/coach/entrenos", search: { vista: "programas" } })) })
+                  del.mutate(id, { onError: (e) => toast(errorMessage(e), "error"), onSuccess: () => ((leaving.current = true), navigate({ to: "/coach/entrenos", search: { vista: "programas" } })) })
                 }
               >
                 Borrar

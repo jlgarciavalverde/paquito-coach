@@ -10,9 +10,14 @@ import { AssignCheckinPanel } from "./assign-checkin-panel";
 import { clientCheckinsQuery, useCheckinAdmin } from "../../lib/followup";
 import { mediaUrl } from "../../lib/chat";
 import { dayLong, dayMonth, today } from "../../lib/dates";
+import { QueryError } from "../ui/query-state";
+import { errorMessage } from "../../lib/api";
+import { useToast } from "../../components/ui/toast";
+import { localDate } from "../../lib/agenda";
 
 /** Pestaña «Seguimiento» de la ficha: qué check-ins tiene programados y lo que ha contestado. */
 export function ClientCheckins({ client }: { client: Client }) {
+  const toast = useToast();
   const q = useQuery(clientCheckinsQuery(client.id));
   const admin = useCheckinAdmin(client.id);
   const ask = useConfirm();
@@ -21,10 +26,12 @@ export function ClientCheckins({ client }: { client: Client }) {
   const unseen = (q.data?.responses ?? []).some((r) => !r.seen);
   // Abrir la pestaña es revisarlos.
   useEffect(() => {
-    if (unseen) admin.mutate({ seen: true });
+    if (unseen) admin.mutate({ seen: true }, { onError: (e) => toast(errorMessage(e), "error") });
   }, [unseen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (q.isPending) return <Skeleton className="h-48" />;
+
+  if (q.isError) return <QueryError q={q} />;
   const { assignments, responses } = q.data!;
   const canAsk = client.status === "active";
 
@@ -55,7 +62,7 @@ export function ClientCheckins({ client }: { client: Client }) {
                   size="sm"
                   variant="quiet"
                   onClick={async () =>
-                    (await ask({ title: `Dejar de pedir «${a.formName}»`, body: `${first} no volverá a verlo. Sus respuestas se conservan.`, confirm: "Dejar de pedirlo" })) && admin.mutate({ unassign: a.id })
+                    (await ask({ title: `Dejar de pedir «${a.formName}»`, body: `${first} no volverá a verlo. Sus respuestas se conservan.`, confirm: "Dejar de pedirlo" })) && admin.mutate({ unassign: a.id }, { onError: (e) => toast(errorMessage(e), "error") })
                   }
                 >
                   Dejar de pedirlo
@@ -91,7 +98,7 @@ function ResponseCard({ r, prev, open }: { r: CheckinResponse; prev?: CheckinRes
     <details open={open} className="group rounded-[var(--radius-zone)] bg-tray">
       <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3">
         <span className="font-medium">{r.formName}</span>
-        <span className="font-narrow text-[14px] text-ink-2">{dayMonth(r.submittedAt.slice(0, 10))}</span>
+        <span className="font-narrow text-[14px] text-ink-2">{dayMonth(localDate(r.submittedAt))}</span>
         {!r.seen && <PlateMark tone="blue">Nuevo</PlateMark>}
         {pain && <PlateMark tone="red">Ha tenido dolor</PlateMark>}
         <span className="ml-auto text-[13px] text-primary group-open:hidden">Ver respuestas</span>

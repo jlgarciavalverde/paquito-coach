@@ -39,6 +39,7 @@ export async function enablePush(): Promise<PushState> {
 }
 
 export async function disablePush(): Promise<PushState> {
+  if (!supported()) return "unsupported";
   const reg = await navigator.serviceWorker.getRegistration();
   const sub = await reg?.pushManager.getSubscription();
   if (sub) {
@@ -46,4 +47,21 @@ export async function disablePush(): Promise<PushState> {
     await sub.unsubscribe();
   }
   return "off";
+}
+
+/**
+ * Al cerrar sesión o borrar la cuenta: este dispositivo deja de recibir avisos de esa persona (en un móvil compartido, el
+ * siguiente que entre no vería los mensajes del anterior). `server: false` si la sesión ya no existe (cuenta borrada: el
+ * servidor ya borró sus suscripciones). Nunca falla.
+ */
+export async function forgetDevice({ server = true } = {}) {
+  try {
+    if (!supported()) return;
+    const sub = await (await navigator.serviceWorker.getRegistration())?.pushManager.getSubscription();
+    if (!sub) return;
+    if (server) await api("/push/subscriptions", { method: "DELETE", body: { endpoint: sub.endpoint } }).catch(() => {});
+    await sub.unsubscribe();
+  } catch {
+    // sin service worker o sin permiso: no hay nada que olvidar
+  }
 }

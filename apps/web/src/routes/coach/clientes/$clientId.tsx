@@ -176,7 +176,7 @@ function ClientHeader({ client: c }: { client: Client }) {
         )}
         {c.status === "archived" ? (
           <>
-            <Button size="sm" variant="secondary" loading={act.isPending} onClick={() => act.mutate("unarchive", { onSuccess: () => toast("Cliente recuperado") })}>
+            <Button size="sm" variant="secondary" loading={act.isPending} onClick={() => act.mutate("unarchive", { onError: (e) => toast(errorMessage(e), "error"), onSuccess: () => toast("Cliente recuperado") })}>
               Recuperar cliente
             </Button>
             <Button size="sm" variant="danger" onClick={() => setConfirmDelete(true)}>
@@ -236,7 +236,7 @@ function ClientHeader({ client: c }: { client: Client }) {
             <Button
               variant="primary"
               loading={act.isPending}
-              onClick={() => act.mutate("archive", { onSuccess: () => (setConfirmArchive(false), toast("Cliente archivado")) })}
+              onClick={() => act.mutate("archive", { onError: (e) => toast(errorMessage(e), "error"), onSuccess: () => (setConfirmArchive(false), toast("Cliente archivado")) })}
             >
               Archivar
             </Button>

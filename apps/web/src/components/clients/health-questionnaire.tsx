@@ -7,12 +7,14 @@ import { HealthAlert, PlateMark, RecordRow, RecordSheet } from "../ui/layout";
 import { useToast } from "../ui/toast";
 import { clientQuestionnaireQuery, useQuestionnaireAction } from "../../lib/questionnaire";
 import { fmtDate } from "../../lib/format";
+import { errorMessage } from "../../lib/api";
 
 const alertText = (q: Questionnaire) =>
   q.alerts.map((i) => (i === -1 ? `dolor actual ${q.anamnesis.painNow}/10${q.anamnesis.painArea ? ` (${q.anamnesis.painArea})` : ""}` : `pregunta ${i + 1}`)).join(", ");
 
 /** Alerta del cuestionario de salud encima de las pestañas de la ficha (mientras no se revise). */
 export function QuestionnaireAlert({ client }: { client: Client }) {
+  const toast = useToast();
   const q = useQuery({ ...clientQuestionnaireQuery(client.id), enabled: Boolean(client.userId) });
   const act = useQuestionnaireAction(client.id);
   const [open, setOpen] = useState(false);
@@ -27,7 +29,7 @@ export function QuestionnaireAlert({ client }: { client: Client }) {
         <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>
           Ver respuestas
         </Button>
-        <Button size="sm" variant="quiet" loading={act.isPending} onClick={() => act.mutate("review")}>
+        <Button size="sm" variant="quiet" loading={act.isPending} onClick={() => act.mutate("review", { onError: (e) => toast(errorMessage(e), "error") })}>
           Marcar como revisado
         </Button>
       </div>
@@ -66,7 +68,7 @@ export function QuestionnaireSummary({ client }: { client: Client }) {
             </Button>
           )}
           {!q.data?.pending && (
-            <Button size="sm" variant="quiet" loading={act.isPending} onClick={() => act.mutate("request", { onSuccess: () => toast("Se lo pediremos al abrir la app") })}>
+            <Button size="sm" variant="quiet" loading={act.isPending} onClick={() => act.mutate("request", { onError: (e) => toast(errorMessage(e), "error"), onSuccess: () => toast("Se lo pediremos al abrir la app") })}>
               Pedir que lo repita
             </Button>
           )}

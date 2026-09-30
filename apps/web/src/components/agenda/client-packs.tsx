@@ -12,6 +12,7 @@ import { FormError } from "../form-error";
 import { packsQuery, usePackMutation } from "../../lib/packs";
 import { dayMonth, today } from "../../lib/dates";
 import { errorMessage } from "../../lib/api";
+import { QueryError } from "../ui/query-state";
 
 const euros = (n: number) => n.toLocaleString("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 2 });
 
@@ -28,6 +29,8 @@ export function ClientPacks({ client }: { client: Client }) {
       </BlockTitle>
       {q.isPending ? (
         <Skeleton className="h-16" />
+      ) : q.isError ? (
+        <QueryError q={q} />
       ) : shown.length === 0 ? (
         <p className="text-sm text-ink-2">Sin bonos. Si entrena con bono de sesiones, créalo aquí: cada cita marcada como hecha (o a la que no venga) descuenta una.</p>
       ) : (

@@ -4,18 +4,21 @@ import { useQuery } from "@tanstack/react-query";
 import { CaretLeft } from "@phosphor-icons/react";
 import { checkinError, type CheckinAnswers, type CheckinQuestion, type PendingCheckin } from "@coach/shared";
 import { Button } from "../../../components/ui/button";
-import { TextArea, TextField } from "../../../components/ui/field";
+import { DecimalField, TextArea } from "../../../components/ui/field";
 import { EmptyNote } from "../../../components/ui/layout";
 import { Skeleton } from "../../../components/ui/spinner";
 import { useToast } from "../../../components/ui/toast";
 import { FormError } from "../../../components/form-error";
 import { myCheckinsQuery, useSubmitCheckin } from "../../../lib/followup";
-import { uploadPhoto } from "../../../lib/chat";
+import { createUploadCache } from "../../../lib/chat";
 import { useMe } from "../../../lib/auth";
 import { dayLong } from "../../../lib/dates";
 import { errorMessage } from "../../../lib/api";
 import { useDocumentTitle } from "../../../lib/title";
 import { cn } from "../../../lib/cn";
+import { QueryError } from "../../../components/ui/query-state";
+import { FilePreview } from "../../../lib/use-object-url";
+import { RadioGroup } from "../../../components/ui/radio-group";
 
 export const Route = createFileRoute("/app/checkin/$assignmentId")({
   component: CheckinPage,
@@ -27,6 +30,7 @@ function CheckinPage() {
   const c = q.data?.find((x) => x.assignmentId === assignmentId);
   useDocumentTitle(c?.formName ?? "Check-in");
   if (q.isPending) return <Skeleton className="h-96" />;
+  if (q.isError) return <QueryError q={q} />;
   if (!c)
     return (
       <EmptyNote action={<Link to="/app" className="font-medium text-primary">Volver a Hoy</Link>}>Este check-in ya está hecho o todavía no te toca.</EmptyNote>
@@ -45,6 +49,7 @@ function CheckinForm({ c }: { c: PendingCheckin }) {
   const [error, setError] = useState<string | null>(null);
   const set = (id: string, v: CheckinAnswers[string]) => setAnswers((a) => ({ ...a, [id]: v }));
 
+  const [upload] = useState(() => createUploadCache());
   const send = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -56,7 +61,7 @@ function CheckinForm({ c }: { c: PendingCheckin }) {
     setBusy(true);
     try {
       const final = { ...answers };
-      for (const [id, f] of Object.entries(files)) final[id] = await uploadPhoto(f);
+      for (const [id, f] of Object.entries(files)) final[id] = await upload(f);
       await submit.mutateAsync(final);
       toast(`Enviado a ${me.studio.coachName?.split(" ")[0] ?? "tu entrenador"}`);
       void navigate({ to: "/app" });
@@ -105,7 +110,7 @@ function Question({ q, n, value, file, onChange, onFile }: { q: CheckinQuestion;
     return (
       <>
         {label}
-        <div className="mt-3 grid grid-cols-10 gap-1" role="radiogroup" aria-labelledby={id}>
+        <RadioGroup className="mt-3 grid grid-cols-10 gap-1" aria-labelledby={id}>
           {Array.from({ length: 10 }, (_, i) => i + 1).map((k) => (
             <button
               key={k}
@@ -119,7 +124,7 @@ function Question({ q, n, value, file, onChange, onFile }: { q: CheckinQuestion;
               {k}
             </button>
           ))}
-        </div>
+        </RadioGroup>
         <p className="mt-1 flex justify-between text-[12.5px] text-ink-3">
           <span>Muy mal</span>
           <span>Muy bien</span>
@@ -130,20 +135,20 @@ function Question({ q, n, value, file, onChange, onFile }: { q: CheckinQuestion;
     return (
       <div className="flex flex-wrap items-center justify-between gap-3">
         {label}
-        <div className="inline-flex rounded-[var(--radius-control)] border border-rule-strong p-0.5" role="radiogroup" aria-labelledby={id}>
+        <RadioGroup className="inline-flex rounded-[var(--radius-control)] border border-rule-strong p-0.5" aria-labelledby={id}>
           {([true, false] as const).map((v) => (
             <button key={String(v)} type="button" role="radio" aria-checked={value === v} onClick={() => onChange(v)} className={cn("h-10 w-16 rounded-[4px] text-sm font-medium", value === v ? "bg-ink text-paper" : "text-ink-2 hover:text-ink")}>
               {v ? "Sí" : "No"}
             </button>
           ))}
-        </div>
+        </RadioGroup>
       </div>
     );
   if (q.kind === "number")
     return (
       <>
         {label}
-        <TextField label={q.label} hideLabel inputMode="decimal" value={value == null ? "" : String(value).replace(".", ",")} onChange={(e) => onChange(e.target.value.trim() === "" ? null : Number(e.target.value.replace(",", ".")))} className="mt-2 max-w-[180px] [&_input]:font-narrow [&_input]:text-[18px]" />
+        <DecimalField label={q.label} hideLabel value={typeof value === "number" ? value : null} onValue={onChange} className="mt-2 max-w-[180px] [&_input]:font-narrow [&_input]:text-[18px]" />
       </>
     );
   if (q.kind === "photo")
@@ -151,7 +156,7 @@ function Question({ q, n, value, file, onChange, onFile }: { q: CheckinQuestion;
       <>
         {label}
         <div className="mt-2 flex items-center gap-4">
-          {file && <img src={URL.createObjectURL(file)} alt="" className="h-24 w-[72px] rounded-[4px] object-cover" />}
+          {file && <FilePreview file={file} className="h-24 w-[72px] rounded-[4px] object-cover" />}
           <input type="file" accept="image/jpeg,image/png,image/webp" aria-labelledby={id} onChange={(e) => onFile(e.target.files?.[0] ?? null)} className="text-[13px] text-ink-2 file:mr-3 file:rounded-[var(--radius-control)] file:border-0 file:bg-tray file:px-3 file:py-2 file:text-ink" />
         </div>
       </>

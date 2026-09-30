@@ -14,6 +14,8 @@ import { dayLong, dayShort, today } from "../../lib/dates";
 import { errorMessage } from "../../lib/api";
 import { useDocumentTitle } from "../../lib/title";
 import { cn } from "../../lib/cn";
+import { QueryError } from "../../components/ui/query-state";
+import { RadioGroup } from "../../components/ui/radio-group";
 
 export const Route = createFileRoute("/app/reservar")({
   component: Book,
@@ -36,6 +38,8 @@ function Book() {
   const chosen = slots.find((s) => s.startsAt === pick);
 
   if (q.isPending) return <Skeleton className="h-64" />;
+
+  if (q.isError) return <QueryError q={q} />;
   return (
     <div className="pb-8">
       <Link to="/app/agenda" className="mb-4 inline-flex items-center gap-1 text-sm text-ink-2 hover:text-ink">
@@ -49,7 +53,7 @@ function Book() {
         <EmptyNote className="mt-6">No quedan huecos libres en las próximas dos semanas. Escribe a tu entrenador por el chat.</EmptyNote>
       ) : (
         <>
-          <div className="mt-6 -mx-4 flex gap-2 overflow-x-auto px-4 pb-1" role="radiogroup" aria-label="Día">
+          <RadioGroup className="mt-6 -mx-4 flex gap-2 overflow-x-auto px-4 pb-1" aria-label="Día">
             {days.map((x) => (
               <button
                 key={x}
@@ -63,9 +67,9 @@ function Book() {
                 <span className="font-narrow block text-[18px] leading-tight">{Number(x.slice(8))}</span>
               </button>
             ))}
-          </div>
+          </RadioGroup>
           <h2 className="mt-6 mb-2 text-[13.5px] font-medium text-ink-2">{d && dayLong(d).replace(/^./, (c) => c.toUpperCase())}</h2>
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-5" role="radiogroup" aria-label="Hora">
+          <RadioGroup className="grid grid-cols-3 gap-2 sm:grid-cols-5" aria-label="Hora">
             {ofDay.map((s) => (
               <button
                 key={s.startsAt}
@@ -79,7 +83,7 @@ function Book() {
                 {hhmm(s.startsAt)}
               </button>
             ))}
-          </div>
+          </RadioGroup>
           <div className="mt-8 flex flex-col gap-3">
             <FormError message={book.isError ? errorMessage(book.error) : null} />
             <Button

@@ -18,6 +18,8 @@ import { ExercisePanel } from "../../../components/training/exercise-panel";
 import { exercisesQuery, routinesQuery, useRoutineAction } from "../../../lib/training";
 import { relativeTime } from "../../../lib/format";
 import { cn } from "../../../lib/cn";
+import { QueryError } from "../../../components/ui/query-state";
+import { errorMessage } from "../../../lib/api";
 
 export const Route = createFileRoute("/coach/entrenos/")({
   validateSearch: z.object({ vista: z.enum(["rutinas", "programas", "ejercicios"]).optional() }),
@@ -64,6 +66,7 @@ function Routines() {
     </Link>
   );
   if (q.isPending) return <Skeleton className="h-48" />;
+  if (q.isError) return <QueryError q={q} />;
   if ((q.data ?? []).length === 0)
     return (
       <EmptyNote action={newBtn}>
@@ -87,7 +90,7 @@ function Routines() {
               </span>
             </Link>
             <div className="flex gap-1">
-              <Button size="sm" variant="quiet" onClick={() => act.mutate({ id: r.id, action: "duplicate" }, { onSuccess: () => toast("Rutina duplicada") })}>
+              <Button size="sm" variant="quiet" onClick={() => act.mutate({ id: r.id, action: "duplicate" }, { onError: (e) => toast(errorMessage(e), "error"), onSuccess: () => toast("Rutina duplicada") })}>
                 Duplicar
               </Button>
               <Button size="sm" variant="secondary" onClick={() => setAssign(r)} disabled={r.exerciseCount === 0}>
@@ -111,6 +114,7 @@ function Programs() {
     </Link>
   );
   if (q.isPending) return <Skeleton className="h-48" />;
+  if (q.isError) return <QueryError q={q} />;
   if ((q.data ?? []).length === 0)
     return (
       <EmptyNote action={newBtn}>
@@ -190,6 +194,8 @@ function Exercises() {
       </div>
       {list.isPending ? (
         <Skeleton className="h-64" />
+      ) : list.isError ? (
+        <QueryError q={list} />
       ) : (list.data ?? []).length === 0 ? (
         <p className="py-6 text-sm text-ink-2">{own ? "Todavía no has creado ejercicios propios." : "Nada con ese nombre."}</p>
       ) : (

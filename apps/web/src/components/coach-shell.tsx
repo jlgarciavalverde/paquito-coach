@@ -15,6 +15,8 @@ import { clientsQuery } from "../lib/queries";
 import { conversationsQuery } from "../lib/chat";
 import { useRealtime } from "../lib/realtime";
 import { cn } from "../lib/cn";
+import { errorMessage } from "../lib/api";
+import { useToast } from "../components/ui/toast";
 
 type NavItem = { to: string; label: string; icon: Icon; exact?: boolean };
 
@@ -38,6 +40,7 @@ function useIsActive() {
 
 /** Marco del entrenador: barra superior de texto en escritorio; barra inferior en móvil. */
 export function CoachShell({ children }: { children: ReactNode }) {
+  const toast = useToast();
   const me = useMe()!;
   const logout = useLogout();
   const isActive = useIsActive();
@@ -59,7 +62,7 @@ export function CoachShell({ children }: { children: ReactNode }) {
       if (path.startsWith("/coach/entrenos")) void navigate({ to: "/coach/entrenos/$routineId", params: { routineId: "nueva" } });
       else if (path.startsWith("/coach/calendario")) act.newAppointment();
       else if (path.startsWith("/coach/seguimiento")) void navigate({ to: "/coach/seguimiento/$formId", params: { formId: "nuevo" } });
-      else if (path.startsWith("/coach/nutricion")) createPlan.mutate({ clientId: null }, { onSuccess: (p) => void navigate({ to: "/coach/nutricion/$planId", params: { planId: p.id } }) });
+      else if (path.startsWith("/coach/nutricion")) createPlan.mutate({ clientId: null }, { onError: (e) => toast(errorMessage(e), "error"), onSuccess: (p) => void navigate({ to: "/coach/nutricion/$planId", params: { planId: p.id } }) });
       else act.newClient();
     },
   });

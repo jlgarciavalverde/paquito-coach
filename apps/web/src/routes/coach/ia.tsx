@@ -14,6 +14,7 @@ import { aiDocumentsQuery, aiStatusQuery, useAiDocument, useAsk } from "../../li
 import { relativeTime } from "../../lib/format";
 import { errorMessage } from "../../lib/api";
 import { useDocumentTitle } from "../../lib/title";
+import { QueryError } from "../../components/ui/query-state";
 
 export const Route = createFileRoute("/coach/ia")({
   component: AiPage,
@@ -110,6 +111,8 @@ function Documents({ disabled }: { disabled: boolean }) {
       <p className="mb-3 text-[13px] text-ink-2">Tu material: metodología, pautas de readaptación, tablas de nutrición… PDF, Word o texto. No subas documentos con datos de clientes.</p>
       {q.isPending ? (
         <Skeleton className="h-24" />
+      ) : q.isError ? (
+        <QueryError q={q} />
       ) : (q.data ?? []).length === 0 ? (
         <EmptyNote>Sin documentos todavía. La IA funciona igual, pero con criterios generales en lugar de los tuyos.</EmptyNote>
       ) : (

@@ -1,5 +1,5 @@
-import { bumpValue, suggestSet, type Suggestion } from "../../../lib/logbook";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { bumpValue, createLogSaver, suggestSet, type SaveState, type Suggestion } from "../../../lib/logbook";
+import { useCallback, useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Check, CaretLeft, X } from "@phosphor-icons/react";
@@ -19,6 +19,8 @@ import { dayLong, dayMonth, fmtRest } from "../../../lib/dates";
 import { errorMessage } from "../../../lib/api";
 import { cn } from "../../../lib/cn";
 import { useDocumentTitle } from "../../../lib/title";
+import { QueryError } from "../../../components/ui/query-state";
+import { RadioGroup } from "../../../components/ui/radio-group";
 
 export const Route = createFileRoute("/app/entreno/$workoutId")({
   component: WorkoutPage,
@@ -29,7 +31,7 @@ function WorkoutPage() {
   const q = useQuery(workoutQuery(workoutId));
   useDocumentTitle(q.data?.title ?? "Entreno");
   if (q.isPending) return <Skeleton className="h-96" />;
-  if (q.isError) return <p className="text-plate-red">{errorMessage(q.error)}</p>;
+  if (q.isError) return <QueryError q={q} />;
   return q.data.status === "planned" ? <Logbook key={q.data.id} w={q.data} /> : <Finished w={q.data} />;
 }
 
@@ -42,29 +44,28 @@ function Logbook({ w }: { w: Workout }) {
   const labels = itemLabels(w.blocks);
   const items = w.blocks.flatMap((b) => b.items);
   const [log, setLog] = useState<WorkoutLog>(() => Object.fromEntries(items.map((it) => [it.id, w.log[it.id]?.length ? w.log[it.id]! : blankSets(it)])));
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveState, setSaveState] = useState<SaveState>("idle");
   const [rest, setRest] = useState<{ until: number; total: number; name: string } | null>(null);
   const [finishOpen, setFinishOpen] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const last = useQuery(lastSetsQuery(items.map((it) => it.exerciseId), w.id)).data ?? {};
   const [active, setActive] = useState<string | null>(null);
 
   const suggest = (it: RoutineItem, idx: number): Suggestion => suggestSet(it, idx, log[it.id], last);
 
-  const persist = useCallback(
-    (next: WorkoutLog) => {
-      clearTimeout(timer.current);
-      setSaveState("saving");
-      timer.current = setTimeout(() => {
-        saveLog(w.id, next).then(
-          () => setSaveState("saved"),
-          () => setSaveState("error"),
-        );
-      }, 700);
-    },
-    [w.id],
-  );
-  useEffect(() => () => clearTimeout(timer.current), []);
+  // Guardados en orden y lo pendiente se manda al salir (también al cerrar la pestaña o pasar a otra app).
+  const [saver] = useState(() => createLogSaver<WorkoutLog>({ save: (l, keepalive) => saveLog(w.id, l, keepalive), onState: setSaveState }));
+  const persist = saver.schedule;
+  useEffect(() => {
+    const onHide = () => document.visibilityState === "hidden" && void saver.flush().catch(() => {});
+    document.addEventListener("visibilitychange", onHide);
+    window.addEventListener("pagehide", saver.leave);
+    return () => {
+      document.removeEventListener("visibilitychange", onHide);
+      window.removeEventListener("pagehide", saver.leave);
+      saver.leave();
+    };
+  }, [saver]);
+  const endRest = useCallback(() => setRest(null), []);
 
   const update = (itemId: string, idx: number, patch: Partial<SetLog>) =>
     setLog((l) => {
@@ -129,7 +130,7 @@ function Logbook({ w }: { w: Workout }) {
       </div>
 
       <div className="fixed inset-x-0 bottom-14 z-20 border-t border-rule bg-paper sm:bottom-0">
-        {rest && <RestBar rest={rest} onEnd={() => setRest(null)} />}
+        {rest && <RestBar rest={rest} onEnd={endRest} />}
         <div className="mx-auto flex max-w-[760px] items-center gap-3 px-4 py-3">
           <div className="min-w-0 flex-1">
             <p className="font-narrow text-[17px] leading-none text-ink">
@@ -149,8 +150,8 @@ function Logbook({ w }: { w: Workout }) {
         onOpenChange={setFinishOpen}
         w={w}
         beforeSend={async () => {
-          clearTimeout(timer.current);
-          await saveLog(w.id, log);
+          saver.schedule(log);
+          await saver.flush();
         }}
         onDone={(skipped) => toast(skipped ? "Anotado. Tu entrenador lo verá." : "Entreno terminado. Buen trabajo.")}
       />
@@ -211,6 +212,8 @@ function ExerciseLog({
         <div className="mt-2 ml-8 flex flex-col gap-3">
           {ex.isPending ? (
             <Skeleton className="h-16" />
+          ) : ex.isError ? (
+            <QueryError q={ex} />
           ) : ex.data ? (
             <>
               {ex.data.videoUrl && <VideoEmbed url={ex.data.videoUrl} title={ex.data.name} />}
@@ -333,7 +336,7 @@ function RestBar({ rest, onEnd }: { rest: { until: number; total: number; name: 
       <div className="relative mx-auto flex max-w-[760px] items-center gap-3 px-4 py-2" role="timer" aria-live="off">
         <span className="font-narrow text-[22px] text-ink">{left === 0 ? "¡Siguiente serie!" : fmtRest(left)}</span>
         <span className="min-w-0 flex-1 truncate text-[13px] text-ink-2">Descanso, {rest.name}</span>
-        <button type="button" onClick={onEnd} className="rounded-[var(--radius-control)] p-2 text-ink-2 hover:bg-tray-2" aria-label="Saltar descanso">
+        <button type="button" onClick={onEnd} className="inline-flex size-10 items-center justify-center rounded-[var(--radius-control)] text-ink-2 hover:bg-tray-2 pointer-coarse:size-11" aria-label="Saltar descanso">
           <X size={16} />
         </button>
       </div>
@@ -345,8 +348,22 @@ function FinishDialog({ open, onOpenChange, w, beforeSend, onDone }: { open: boo
   const complete = useCompleteWorkout(w.id);
   const [rpe, setRpe] = useState<number | null>(null);
   const [comment, setComment] = useState("");
+  // Si no se han podido guardar las series, no se termina (luego ya no se podrían corregir sin «Reabrir»).
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(false);
+  const busy = saving || complete.isPending;
   const send = async (skipped: boolean) => {
-    await beforeSend().catch(() => {});
+    if (busy) return;
+    setSaving(true);
+    setSaveError(false);
+    try {
+      await beforeSend();
+    } catch {
+      setSaveError(true);
+      return;
+    } finally {
+      setSaving(false);
+    }
     complete.mutate({ sessionRpe: skipped ? null : rpe, comment: comment.trim() || null, skipped }, { onSuccess: () => (onOpenChange(false), onDone(skipped)) });
   };
   const toneBg = { green: "bg-plate-green", yellow: "bg-plate-yellow", red: "bg-plate-red" } as const;
@@ -358,10 +375,10 @@ function FinishDialog({ open, onOpenChange, w, beforeSend, onDone }: { open: boo
       description="Tu entrenador verá el esfuerzo y tu comentario."
       footer={
         <>
-          <Button variant="quiet" onClick={() => send(true)} disabled={complete.isPending}>
+          <Button variant="quiet" onClick={() => send(true)} disabled={busy}>
             No he podido hacerlo
           </Button>
-          <Button onClick={() => send(false)} loading={complete.isPending && typeof complete.variables === "object" && !complete.variables.skipped}>
+          <Button onClick={() => send(false)} disabled={busy} loading={saving || (complete.isPending && typeof complete.variables === "object" && !complete.variables.skipped)}>
             Terminar entreno
           </Button>
         </>
@@ -369,7 +386,7 @@ function FinishDialog({ open, onOpenChange, w, beforeSend, onDone }: { open: boo
     >
       <fieldset>
         <legend className="mb-2 text-[13.5px] font-medium">Esfuerzo de la sesión (de 1 a 10)</legend>
-        <div className="grid grid-cols-5 gap-1.5" role="radiogroup">
+        <RadioGroup className="grid grid-cols-5 gap-1.5">
           {RPE_SCALE.map((r) => (
             <button
               key={r.value}
@@ -384,16 +401,26 @@ function FinishDialog({ open, onOpenChange, w, beforeSend, onDone }: { open: boo
               <span className={cn("absolute bottom-1 h-1 w-4 rounded-[1px]", toneBg[r.tone])} aria-hidden="true" />
             </button>
           ))}
-        </div>
+        </RadioGroup>
         <p className="mt-2 h-5 text-sm text-ink-2">{rpe ? RPE_SCALE[rpe - 1]!.label : ""}</p>
       </fieldset>
       <TextArea label="Comentario" aside="opcional" rows={2} value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Molestias, sensaciones, cambios que hiciste…" className="mt-2" />
-      {complete.isError && <p className="mt-3 text-sm text-plate-red">{errorMessage(complete.error)}</p>}
+      {saveError && (
+        <p className="mt-3 text-sm text-plate-red" role="alert">
+          No se han podido guardar tus series. Revisa la conexión y vuelve a pulsar «Terminar entreno»: no se pierde nada.
+        </p>
+      )}
+      {complete.isError && (
+        <p className="mt-3 text-sm text-plate-red" role="alert">
+          {errorMessage(complete.error)}
+        </p>
+      )}
     </Dialog>
   );
 }
 
 function Finished({ w }: { w: Workout }) {
+  const toast = useToast();
   const reopen = useCompleteWorkout(w.id);
   return (
     <div>
@@ -409,7 +436,7 @@ function Finished({ w }: { w: Workout }) {
       <div className="mt-8">
         <PrescriptionList blocks={w.blocks} log={w.log} />
       </div>
-      <Button variant="quiet" className="mt-6 -ml-3" loading={reopen.isPending} onClick={() => reopen.mutate("reopen")}>
+      <Button variant="quiet" className="mt-6 -ml-3" loading={reopen.isPending} onClick={() => reopen.mutate("reopen", { onError: (e) => toast(errorMessage(e), "error") })}>
         Reabrir para corregir
       </Button>
     </div>

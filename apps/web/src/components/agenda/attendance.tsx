@@ -4,6 +4,7 @@ import { useToast } from "../ui/toast";
 import { useAttendance } from "../../lib/packs";
 import { errorMessage } from "../../lib/api";
 import { cn } from "../../lib/cn";
+import { RadioGroup } from "../ui/radio-group";
 
 /** Asistencia de una cita con cliente: programada, hecha, no vino o cancelada (las dos del medio descuentan del bono). */
 export function AttendanceControl({ appointment: a }: { appointment: Appointment }) {
@@ -27,7 +28,7 @@ export function AttendanceControl({ appointment: a }: { appointment: Appointment
       <p id={`att-${a.id}`} className="mb-1.5 text-[13.5px] font-medium">
         Asistencia
       </p>
-      <div className="grid grid-cols-4 overflow-hidden rounded-[var(--radius-control)] border border-rule-strong" role="radiogroup" aria-labelledby={`att-${a.id}`}>
+      <RadioGroup className="grid grid-cols-4 overflow-hidden rounded-[var(--radius-control)] border border-rule-strong" aria-labelledby={`att-${a.id}`}>
         {AttendanceStatus.options.map((s) => (
           <button
             key={s}
@@ -43,24 +44,25 @@ export function AttendanceControl({ appointment: a }: { appointment: Appointment
             {ATTENDANCE_LABEL[s]}
           </button>
         ))}
-      </div>
+      </RadioGroup>
     </div>
   );
 }
 
 /** Botón rápido para «Hoy»: marcar la cita como hecha (y deshacer). */
 export function QuickDone({ appointment: a }: { appointment: Appointment }) {
+  const toast = useToast();
   const m = useAttendance();
   if (!a.clientId || a.status === "cancelled") return null;
   if (a.status !== "scheduled")
     return (
-      <button type="button" onClick={() => m.mutate({ id: a.id, status: "scheduled" })} className="text-[13px] text-ink-2 hover:text-ink" aria-label={`${ATTENDANCE_LABEL[a.status]}. Deshacer`}>
+      <button type="button" onClick={() => m.mutate({ id: a.id, status: "scheduled" }, { onError: (e) => toast(errorMessage(e), "error") })} className="text-[13px] text-ink-2 hover:text-ink" aria-label={`${ATTENDANCE_LABEL[a.status]}. Deshacer`}>
         <span className={cn("mr-1.5 inline-block h-3.5 w-[5px] rounded-[1.5px] align-[-2px]", a.status === "done" ? "bg-plate-green" : "bg-plate-red")} aria-hidden="true" />
         {ATTENDANCE_LABEL[a.status]}
       </button>
     );
   return (
-    <button type="button" disabled={m.isPending} onClick={() => m.mutate({ id: a.id, status: "done" })} className="rounded-[var(--radius-control)] border border-rule-strong px-2.5 py-1 text-[13px] font-medium text-ink hover:bg-tray">
+    <button type="button" disabled={m.isPending} onClick={() => m.mutate({ id: a.id, status: "done" }, { onError: (e) => toast(errorMessage(e), "error") })} className="rounded-[var(--radius-control)] border border-rule-strong px-2.5 py-1 text-[13px] font-medium text-ink hover:bg-tray">
       Marcar hecha
     </button>
   );

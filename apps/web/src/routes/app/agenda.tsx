@@ -17,6 +17,7 @@ import { myBookingQuery, useCancelMine } from "../../lib/booking";
 import { errorMessage } from "../../lib/api";
 import { myPacksQuery } from "../../lib/packs";
 import { packUsable } from "@coach/shared";
+import { QueryError } from "../../components/ui/query-state";
 
 export const Route = createFileRoute("/app/agenda")({
   validateSearch: z.object({ pago: z.string().optional(), simulado: z.string().optional() }),
@@ -36,6 +37,8 @@ function MyAgenda() {
   const toast = useToast();
   const ask = useConfirm();
   if (appts.isPending || workouts.isPending) return <Skeleton className="h-64" />;
+  if (appts.isError) return <QueryError q={appts} />;
+  if (workouts.isError) return <QueryError q={workouts} />;
   const rows = days
     .map((d) => ({ d, a: (appts.data ?? []).filter((x) => localDate(x.startsAt) === d), w: (workouts.data ?? []).filter((x) => x.date === d) }))
     .filter((r) => r.a.length || r.w.length || r.d === t);

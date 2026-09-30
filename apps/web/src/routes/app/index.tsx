@@ -18,6 +18,7 @@ import { cn } from "../../lib/cn";
 import { myQuestionnaireQuery } from "../../lib/questionnaire";
 import { myCheckinsQuery } from "../../lib/followup";
 import { achievementsQuery, myResourcesQuery } from "../../lib/library";
+import { QueryError } from "../../components/ui/query-state";
 
 export const Route = createFileRoute("/app/")({
   component: Today,
@@ -44,6 +45,8 @@ function Today() {
         <BlockTitle id="t-train">Entreno de hoy</BlockTitle>
         {q.isPending ? (
           <Skeleton className="h-40" />
+        ) : q.isError ? (
+          <QueryError q={q} />
         ) : todays.length === 0 ? (
           <p className="text-ink-2">Hoy no tienes entreno. {next[0] ? `El próximo es el ${dayLong(next[0].date)}.` : "Tu entrenador te lo asignará aquí."}</p>
         ) : (

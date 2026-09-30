@@ -21,6 +21,9 @@ import { appointmentsQuery, hhmm } from "../../lib/agenda";
 import { appointmentLabel } from "@coach/shared";
 import { plusDays } from "../../lib/dates";
 import { cn } from "../../lib/cn";
+import { QueryError } from "../../components/ui/query-state";
+import { errorMessage } from "../../lib/api";
+import { useToast } from "../../components/ui/toast";
 
 export const Route = createFileRoute("/coach/")({
   component: CoachToday,
@@ -30,6 +33,7 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /** La hoja del día: quién entrena hoy, qué han hecho tus clientes y qué requiere tu atención. */
 function CoachToday() {
+  const toast = useToast();
   const me = useMe()!;
   const t = today();
   useDocumentTitle("Hoy");
@@ -73,6 +77,7 @@ function CoachToday() {
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] [&>*]:min-w-0">
         <section aria-labelledby="today-title">
+          {appts.isError && <QueryError compact className="mb-6" q={appts} />}
           {apptList.length > 0 && (
             <div className="mb-10">
               <BlockTitle action={<Link to="/coach/calendario" className="text-sm font-medium text-primary hover:underline">Abrir agenda</Link>}>Citas de hoy</BlockTitle>
@@ -95,6 +100,8 @@ function CoachToday() {
           <BlockTitle id="today-title">Entrenos de hoy</BlockTitle>
           {todays.isPending ? (
             <Skeleton className="h-40" />
+          ) : todays.isError ? (
+            <QueryError q={todays} />
           ) : list.length === 0 ? (
             <div className="rounded-[var(--radius-zone)] bg-tray px-5 py-6">
               <p className="text-ink-2">Nadie tiene un entreno asignado para hoy. Los entrenos se asignan desde la ficha de cada cliente o desde una rutina.</p>
@@ -138,7 +145,7 @@ function CoachToday() {
               id="activity-title"
               action={
                 unseen > 0 && (
-                  <Button size="sm" variant="quiet" loading={markAll.isPending} onClick={() => markAll.mutate()}>
+                  <Button size="sm" variant="quiet" loading={markAll.isPending} onClick={() => markAll.mutate(undefined, { onError: (e) => toast(errorMessage(e), "error") })}>
                     Marcar todo como revisado
                   </Button>
                 )
@@ -153,6 +160,8 @@ function CoachToday() {
             )}
             {activity.isPending ? (
               <Skeleton className="h-32" />
+            ) : activity.isError ? (
+              <QueryError q={activity} />
             ) : (activity.data ?? []).length === 0 ? (
               <p className="text-sm text-ink-2">Cuando tus clientes terminen un entreno lo verás aquí, con su esfuerzo y sus comentarios.</p>
             ) : (

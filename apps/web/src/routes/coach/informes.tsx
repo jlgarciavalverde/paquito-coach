@@ -5,6 +5,7 @@ import { Skeleton } from "../../components/ui/spinner";
 import { LineChart } from "../../components/progress/line-chart";
 import { reportQuery } from "../../lib/library";
 import { useDocumentTitle } from "../../lib/title";
+import { QueryError } from "../../components/ui/query-state";
 
 export const Route = createFileRoute("/coach/informes")({
   component: Reports,
@@ -18,6 +19,7 @@ function Reports() {
   useDocumentTitle("Informes");
   const q = useQuery(reportQuery);
   if (q.isPending) return <Skeleton className="h-96" />;
+  if (q.isError) return <QueryError q={q} />;
   const r = q.data!;
   const month = new Date().toLocaleDateString("es-ES", { month: "long" });
   const lines = [

@@ -13,11 +13,13 @@ import { bookingSettingsQuery, useSaveBookingSettings } from "../../lib/booking"
 import { WEEKDAYS } from "../../lib/dates";
 import { errorMessage } from "../../lib/api";
 import { cn } from "../../lib/cn";
+import { QueryError } from "../ui/query-state";
 
 /** Ajustes → Reservas: cuándo pueden reservar los clientes, cuánto dura cada hueco, plazas y antelación. */
 export function BookingSettingsBlock() {
   const q = useQuery(bookingSettingsQuery);
   if (q.isPending) return <Skeleton className="h-40" />;
+  if (q.isError) return <QueryError q={q} />;
   return <Form key={JSON.stringify(q.data)} initial={q.data!} />;
 }
 

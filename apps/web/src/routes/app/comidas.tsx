@@ -11,6 +11,7 @@ import { myChecksQuery, myPlanQuery, useCheckMeal } from "../../lib/nutrition";
 import { dayLong, fromIso, isoDate, mondayOf, plusDays, today } from "../../lib/dates";
 import { errorMessage } from "../../lib/api";
 import { cn } from "../../lib/cn";
+import { QueryError } from "../../components/ui/query-state";
 
 export const Route = createFileRoute("/app/comidas")({
   component: Meals,
@@ -27,6 +28,8 @@ function Meals() {
   const checks = useQuery(myChecksQuery(monday, days[6]!));
 
   if (plan.isPending) return <Skeleton className="h-64" />;
+
+  if (plan.isError) return <QueryError q={plan} />;
   if (!plan.data)
     return (
       <>

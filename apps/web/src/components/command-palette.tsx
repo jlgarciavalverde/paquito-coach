@@ -9,6 +9,8 @@ import { clientsQuery } from "../lib/queries";
 import { routinesQuery } from "../lib/training";
 import { templatesQuery, useCreatePlan } from "../lib/nutrition";
 import { cn } from "../lib/cn";
+import { errorMessage } from "../lib/api";
+import { useToast } from "../components/ui/toast";
 
 type Item = { id: string; group: string; label: string; hint?: string; person?: string; keywords?: string; run: () => void };
 
@@ -21,6 +23,7 @@ const matches = (item: Item, words: string[]) => {
 
 /** Paleta de órdenes (⌘K): ir a cualquier sitio o hacer cualquier cosa escribiendo dos o tres letras. */
 export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  const toast = useToast();
   const navigate = useNavigate();
   const act = useCoachActions();
   const createPlan = useCreatePlan();
@@ -51,7 +54,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
         group: "Crear",
         label: "Nueva plantilla de comidas",
         keywords: "nutricion dieta plan",
-        run: close(() => createPlan.mutate({ clientId: null }, { onSuccess: (p) => void navigate({ to: "/coach/nutricion/$planId", params: { planId: p.id } }) })),
+        run: close(() => createPlan.mutate({ clientId: null }, { onError: (e) => toast(errorMessage(e), "error"), onSuccess: (p) => void navigate({ to: "/coach/nutricion/$planId", params: { planId: p.id } }) })),
       },
       { id: "a-assign", group: "Crear", label: "Asignar una rutina", keywords: "entreno planificar", run: close(() => act.assign()) },
       { id: "ai-r", group: "Con IA", label: "Generar una rutina con IA", keywords: "inteligencia artificial gemini entreno", run: close(() => act.generate("routine")) },

@@ -1,6 +1,20 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [1.16.0] — 2026-09-30 · Auditoría profunda A3: la web
+### Corregido
+- **Cuaderno**: los guardados van en orden (una respuesta vieja ya no pisa series nuevas); lo pendiente se guarda al salir de la pantalla o cerrar la app (`keepalive`); «Terminar entreno» se detiene si no se han podido guardar las series (antes se perdían) y no admite doble toque; la barra de descanso ya no se queda colgada.
+- **Pantallas que mentían**: si falla la carga, ahora dicen por qué y ofrecen «Reintentar» (40 pantallas) en lugar de un vacío falso («No tienes plan») o un esqueleto eterno; 37 acciones que fallaban en silencio avisan.
+- Cerrar sesión o borrar la cuenta da de baja los avisos del dispositivo (en un móvil compartido, el siguiente no recibe los mensajes del anterior).
+- Chat: sin mensajes dobles al pulsar Intro dos veces; si falla el envío, el reintento no vuelve a subir la foto; fotos con tamaño fijo (sin saltos al cargar). Fotos de progreso: si falla una, el reintento no duplica las anteriores. Vistas previas de fotos sin fugas de memoria.
+- Check-in: los números con coma decimal se pueden escribir («72,5»). Fechas de cobros y check-ins en hora local (antes, en UTC: el día anterior después de las 22:00).
+- Pagos: un solo «Comprar» a la vez; al volver de Stripe se actualizan cobros, cuota y bonos, y se quita `?pago=ok` de la dirección. Reservar o cancelar actualiza los bonos; editar un entreno actualiza el panel abierto.
+- Confirmación antes de «Quitar entreno».
+### Accesibilidad
+- `RadioGroup` común (13 grupos): una sola parada con Tab y flechas para elegir. Dianas táctiles de 40–44 px en el móvil. Los avisos de error se anuncian al momento (`role="alert"`); el chat anuncia solo los mensajes nuevos, no la conversación entera.
+### Pruebas
+- Web: guardado del cuaderno (orden, fallo, `keepalive`), `QueryState`, `RadioGroup` con teclado, `DecimalField`, `useObjectUrl`, avisos al cerrar sesión. Web 72 tests.
+
 ## [1.15.0] — 2026-09-30 · Auditoría profunda A2: datos, RGPD y rendimiento
 ### Añadido
 - **Descargar mis datos** ahora es un ZIP con todas las fotos (chat, progreso, check-ins) y el JSON completo: añade cuotas, programas, check-ins programados, notas de citas, sesiones abiertas, dispositivos con avisos, avisos enviados, preferencias y el registro de accesos a su ficha. El entrenador lo descarga desde la ficha.

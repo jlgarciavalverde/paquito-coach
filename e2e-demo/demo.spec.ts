@@ -16,7 +16,7 @@ test("la demo se prueba con un clic y avisa de que es una demo", async ({ browse
   await coach.getByLabel("Contraseña actual").fill("x");
   await coach.getByLabel("Nueva contraseña").fill("otra-contraseña-larga");
   await coach.getByRole("button", { name: "Cambiar contraseña" }).click();
-  await expect(coach.getByRole("alert")).toContainText("no está disponible en la demo");
+  await expect(coach.getByRole("alert").filter({ hasText: "no está disponible en la demo" })).toBeVisible();
 
   const lucia = await (await browser.newContext({ locale: "es-ES", viewport: { width: 390, height: 844 }, isMobile: true })).newPage();
   await lucia.goto("/acceso");

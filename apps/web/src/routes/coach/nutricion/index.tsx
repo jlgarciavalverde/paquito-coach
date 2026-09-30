@@ -11,17 +11,21 @@ import { TargetsLine } from "../../../components/nutrition/plan-view";
 import { ApplyPlanPanel } from "../../../components/nutrition/apply-panel";
 import { templatesQuery, useCreatePlan } from "../../../lib/nutrition";
 import { relativeTime } from "../../../lib/format";
+import { QueryError } from "../../../components/ui/query-state";
+import { errorMessage } from "../../../lib/api";
+import { useToast } from "../../../components/ui/toast";
 
 export const Route = createFileRoute("/coach/nutricion/")({
   component: Templates,
 });
 
 function Templates() {
+  const toast = useToast();
   const q = useQuery(templatesQuery);
   const create = useCreatePlan();
   const navigate = useNavigate();
   const [apply, setApply] = useState<MealPlan | null>(null);
-  const newTemplate = () => create.mutate({ clientId: null }, { onSuccess: (p) => navigate({ to: "/coach/nutricion/$planId", params: { planId: p.id } }) });
+  const newTemplate = () => create.mutate({ clientId: null }, { onError: (e) => toast(errorMessage(e), "error"), onSuccess: (p) => navigate({ to: "/coach/nutricion/$planId", params: { planId: p.id } }) });
   const act = useCoachActions();
   const btn = (
     <div className="flex flex-wrap gap-2">
@@ -38,6 +42,8 @@ function Templates() {
       <PageTitle title="Nutrición" lead="Plantillas de planes de comidas. Aplícalas a tus clientes y ajusta después cada copia en su ficha." actions={q.data?.length ? btn : undefined} />
       {q.isPending ? (
         <Skeleton className="h-40" />
+      ) : q.isError ? (
+        <QueryError q={q} />
       ) : q.data!.length === 0 ? (
         <EmptyNote action={btn}>
           Aún no tienes plantillas. Crea tus planes tipo (por ejemplo «Definición 2.000 kcal» o «Volumen, 5 comidas») para no empezar de cero con cada cliente. También puedes hacer el plan directamente desde la ficha de un cliente.

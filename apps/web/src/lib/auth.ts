@@ -1,6 +1,7 @@
 import { queryOptions, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import type { Me } from "@coach/shared";
 import { api, RequestError } from "./api";
+import { forgetDevice } from "./push";
 
 /** Sesión actual; `null` si no hay sesión (401). */
 export const meQuery = queryOptions({
@@ -23,6 +24,7 @@ export function useMe() {
 export function useLogout() {
   const qc = useQueryClient();
   return async () => {
+    await forgetDevice();
     await api("/auth/logout", { method: "POST", body: {} }).catch(() => {});
     qc.clear();
     window.location.assign("/acceso");

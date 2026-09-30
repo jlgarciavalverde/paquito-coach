@@ -15,6 +15,8 @@ import { useConfirm } from "../ui/confirm";
 import { useToast } from "../ui/toast";
 import { dayShort, isoDate, mondayOf, plusDays, today, weekLabel } from "../../lib/dates";
 import { cn } from "../../lib/cn";
+import { QueryError } from "../ui/query-state";
+import { errorMessage } from "../../lib/api";
 
 const WEEKS = 5;
 
@@ -89,7 +91,7 @@ export function ClientTraining({ client }: { client: Client }) {
               variant="quiet"
               onClick={async () =>
                 (await ask({ title: `Terminar «${r.name}»`, body: `Se quitan los ${r.pending} entrenos que quedan sin empezar. Lo ya hecho se conserva.`, confirm: "Terminar programa", danger: true })) &&
-                endRun.mutate(r.id, { onSuccess: (x) => toast(`${x.removed} entrenos quitados`) })
+                endRun.mutate(r.id, { onError: (e) => toast(errorMessage(e), "error"), onSuccess: (x) => toast(`${x.removed} entrenos quitados`) })
               }
             >
               Terminar ya
@@ -99,6 +101,8 @@ export function ClientTraining({ client }: { client: Client }) {
       })}
       {q.isPending ? (
         <Skeleton className="h-64" />
+      ) : q.isError ? (
+        <QueryError q={q} />
       ) : (q.data ?? []).length === 0 && offset === 0 ? (
         <EmptyNote action={<Button onClick={() => setAssignOpen(true)}>Asignar rutina</Button>}>
           {client.name.split(" ")[0]} no tiene entrenos entre la semana pasada y las próximas cuatro. Asígnale una rutina de tu biblioteca en los días que entrena.

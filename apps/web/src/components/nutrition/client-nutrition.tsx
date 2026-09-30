@@ -10,9 +10,14 @@ import { PlanView, TargetsLine } from "./plan-view";
 import { clientChecksQuery, clientPlanQuery, templatesQuery, useCreatePlan } from "../../lib/nutrition";
 import { dayShort, fromIso, plusDays, today } from "../../lib/dates";
 import { cn } from "../../lib/cn";
+import { QueryError } from "../ui/query-state";
+import { errorMessage } from "../../lib/api";
+import { useToast } from "../../components/ui/toast";
+import { localDate } from "../../lib/agenda";
 
 /** Pestaña «Nutrición» de la ficha: su plan activo, cumplimiento de los últimos 7 días y cambiar/crear plan. */
 export function ClientNutrition({ client }: { client: Client }) {
+  const toast = useToast();
   const plan = useQuery(clientPlanQuery(client.id));
   const templates = useQuery(templatesQuery);
   const create = useCreatePlan();
@@ -23,8 +28,8 @@ export function ClientNutrition({ client }: { client: Client }) {
   const checks = useQuery({ ...clientChecksQuery(client.id, from, t), enabled: Boolean(plan.data) });
 
   const open = (id: string) => navigate({ to: "/coach/nutricion/$planId", params: { planId: id } });
-  const startBlank = () => create.mutate({ clientId: client.id }, { onSuccess: (p) => open(p.id) });
-  const fromTemplate = () => tpl && create.mutate({ clientId: client.id, fromPlanId: tpl }, { onSuccess: (p) => open(p.id) });
+  const startBlank = () => create.mutate({ clientId: client.id }, { onError: (e) => toast(errorMessage(e), "error"), onSuccess: (p) => open(p.id) });
+  const fromTemplate = () => tpl && create.mutate({ clientId: client.id, fromPlanId: tpl }, { onError: (e) => toast(errorMessage(e), "error"), onSuccess: (p) => open(p.id) });
 
   const picker = (templates.data ?? []).length > 0 && (
     <div className="flex flex-wrap items-end gap-2">
@@ -43,6 +48,8 @@ export function ClientNutrition({ client }: { client: Client }) {
   );
 
   if (plan.isPending) return <Skeleton className="h-48" />;
+
+  if (plan.isError) return <QueryError q={plan} />;
   if (!plan.data)
     return (
       <div className="flex flex-col gap-6">
@@ -80,7 +87,7 @@ export function ClientNutrition({ client }: { client: Client }) {
         <div className="grid grid-cols-7 gap-1">
           {days.map((d) => {
             // Días anteriores a este plan no cuentan (no tenía nada que cumplir).
-            const before = d < p.createdAt.slice(0, 10);
+            const before = d < localDate(p.createdAt);
             const e = before ? 0 : expectedOn(d);
             const n = doneOn(d);
             return (

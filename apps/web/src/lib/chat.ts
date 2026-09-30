@@ -53,4 +53,19 @@ export async function uploadPhoto(file: File, clientId?: string): Promise<string
   return data.id as string;
 }
 
+/**
+ * `uploadPhoto` que recuerda lo ya subido: si tras subir la foto falla el paso siguiente (guardar la respuesta, el mensaje…),
+ * el reintento reutiliza el mismo archivo del servidor en lugar de subir otro (y dejar huérfano el primero).
+ */
+export function createUploadCache(clientId?: string) {
+  const done = new WeakMap<File, string>();
+  return async (file: File) => {
+    const hit = done.get(file);
+    if (hit) return hit;
+    const id = await uploadPhoto(file, clientId);
+    done.set(file, id);
+    return id;
+  };
+}
+
 export const mediaUrl = (id: string) => `/api/v1/media/${id}`;

@@ -26,7 +26,7 @@ test("alta inicial del estudio", async ({ browser }) => {
   await coach.getByLabel("Contraseña").fill(PASSWORD);
   await coach.getByLabel("Código de instalación").fill("mal");
   await coach.getByRole("button", { name: "Crear mi estudio" }).click();
-  await expect(coach.getByRole("alert")).toContainText("Código de instalación incorrecto");
+  await expect(coach.getByRole("alert").filter({ hasText: "Código de instalación incorrecto" })).toBeVisible();
   await coach.getByLabel("Código de instalación").fill("e2e-setup");
   await coach.getByRole("button", { name: "Crear mi estudio" }).click();
   await expect(coach).toHaveURL(/\/coach$/);
@@ -159,7 +159,7 @@ test("login y cierre de sesión", async ({ browser }) => {
   await p.getByLabel("Correo electrónico").fill("paquito@example.com");
   await p.getByLabel("Contraseña").fill("mala-contraseña");
   await p.getByRole("button", { name: "Entrar" }).click();
-  await expect(p.getByRole("alert")).toContainText("Correo o contraseña incorrectos");
+  await expect(p.getByRole("alert").filter({ hasText: "Correo o contraseña incorrectos" })).toBeVisible();
   await p.getByLabel("Contraseña").fill(PASSWORD);
   await p.getByRole("button", { name: "Entrar" }).click();
   await expect(p).toHaveURL(/\/coach$/);

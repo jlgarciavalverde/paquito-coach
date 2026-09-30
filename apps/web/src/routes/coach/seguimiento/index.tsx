@@ -16,6 +16,7 @@ import { checkinFormsQuery, metricDefsQuery, useMetricDef } from "../../../lib/f
 import { relativeTime } from "../../../lib/format";
 import { errorMessage } from "../../../lib/api";
 import { useDocumentTitle } from "../../../lib/title";
+import { QueryError } from "../../../components/ui/query-state";
 
 export const Route = createFileRoute("/coach/seguimiento/")({
   component: Followup,
@@ -55,6 +56,8 @@ function Forms() {
       </BlockTitle>
       {q.isPending ? (
         <Skeleton className="h-40" />
+      ) : q.isError ? (
+        <QueryError q={q} />
       ) : (q.data ?? []).length === 0 ? (
         <EmptyNote action={newBtn}>
           Un check-in es un formulario corto que el cliente rellena cada cierto tiempo: energía, sueño, dolor, cumplimiento, una foto… Empieza con el semanal que viene preparado y ajústalo a tu manera.
@@ -93,6 +96,8 @@ function Metrics() {
       </BlockTitle>
       {q.isPending ? (
         <Skeleton className="h-32" />
+      ) : q.isError ? (
+        <QueryError q={q} />
       ) : active.length === 0 ? (
         <p className="text-sm text-ink-2">
           Además del peso y el perímetro: dolor de 0 a 10, grados de flexión de rodilla, salto vertical, pasos al día… Aparecen en la pestaña Progreso de cada cliente, con su gráfica.

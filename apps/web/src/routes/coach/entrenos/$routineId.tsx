@@ -277,7 +277,7 @@ function Editor({ id, initial, fromDraft = false }: { id?: string; initial: Rout
             {id && (
               <Button
                 variant="quiet"
-                onClick={async () => (await ask({ title: "Borrar la rutina", body: "Sale de tu biblioteca. Lo ya asignado a clientes se mantiene.", confirm: "Borrar rutina", danger: true })) && act.mutate({ id, action: "delete" }, { onSuccess: () => ((leaving.current = true), navigate({ to: "/coach/entrenos" })) })}
+                onClick={async () => (await ask({ title: "Borrar la rutina", body: "Sale de tu biblioteca. Lo ya asignado a clientes se mantiene.", confirm: "Borrar rutina", danger: true })) && act.mutate({ id, action: "delete" }, { onError: (e) => toast(errorMessage(e), "error"), onSuccess: () => ((leaving.current = true), navigate({ to: "/coach/entrenos" })) })}
               >
                 Borrar
               </Button>

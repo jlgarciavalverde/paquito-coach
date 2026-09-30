@@ -13,6 +13,7 @@ import { PasswordSetting, PushSetting, SessionsSetting, ThemeSetting } from "../
 import { api } from "../../lib/api";
 import { useMe } from "../../lib/auth";
 import { joinCodeQuery } from "../../lib/queries";
+import { errorMessage } from "../../lib/api";
 
 export const Route = createFileRoute("/coach/ajustes")({
   component: Settings,
@@ -64,7 +65,7 @@ function JoinCodeSetting() {
             {q.data.code}
           </p>
           <CopyField value={q.data.url} label="Enlace de registro con el código" />
-          <Button variant="quiet" size="sm" className="self-start" loading={rotate.isPending} onClick={async () => (await ask({ title: "Cambiar el código", body: "El código y el enlace actuales dejarán de funcionar. Quien ya es cliente no se ve afectado.", confirm: "Cambiar el código" })) && rotate.mutate()}>
+          <Button variant="quiet" size="sm" className="self-start" loading={rotate.isPending} onClick={async () => (await ask({ title: "Cambiar el código", body: "El código y el enlace actuales dejarán de funcionar. Quien ya es cliente no se ve afectado.", confirm: "Cambiar el código" })) && rotate.mutate(undefined, { onError: (e) => toast(errorMessage(e), "error") })}>
             Cambiar el código
           </Button>
         </div>

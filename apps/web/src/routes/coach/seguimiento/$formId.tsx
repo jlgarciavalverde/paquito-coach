@@ -161,7 +161,7 @@ function Editor({ id, initial }: { id?: string; initial: CheckinFormInput }) {
                 variant="quiet"
                 onClick={async () =>
                   (await ask({ title: "Retirar el formulario", body: "Deja de pedirse a todos los clientes. Lo que ya contestaron se conserva en sus fichas.", confirm: "Retirar", danger: true })) &&
-                  archive.mutate(id, { onSuccess: () => ((leaving.current = true), navigate({ to: "/coach/seguimiento" })) })
+                  archive.mutate(id, { onError: (e) => toast(errorMessage(e), "error"), onSuccess: () => ((leaving.current = true), navigate({ to: "/coach/seguimiento" })) })
                 }
               >
                 Retirar

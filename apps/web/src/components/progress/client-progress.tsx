@@ -15,6 +15,7 @@ import { metricsQuery, progressExercisesQuery, progressQuery, useDeleteMetric, u
 import { dayMonth, today } from "../../lib/dates";
 import { errorMessage } from "../../lib/api";
 import { cn } from "../../lib/cn";
+import { QueryError } from "../ui/query-state";
 
 const kg = (n: number | null) => (n == null ? "—" : `${n.toLocaleString("es-ES", { maximumFractionDigits: 1 })} kg`);
 
@@ -31,6 +32,7 @@ export function ClientProgress({ who, name }: { who: Who; name?: string }) {
 }
 
 function Measurements({ who, name }: { who: Who; name?: string }) {
+  const toast = useToast();
   const q = useQuery(metricsQuery(who));
   const [open, setOpen] = useState(false);
   const del = useDeleteMetric(who);
@@ -50,6 +52,8 @@ function Measurements({ who, name }: { who: Who; name?: string }) {
       </BlockTitle>
       {q.isPending ? (
         <Skeleton className="h-48" />
+      ) : q.isError ? (
+        <QueryError q={q} />
       ) : rows.length === 0 ? (
         <EmptyNote action={<Button onClick={() => setOpen(true)}>Anotar el peso de hoy</Button>}>
           {who === "me" ? "Aún no has anotado tu peso." : `Aún no hay medidas de ${name?.split(" ")[0] ?? "este cliente"}.`} Con un registro a la semana ya se ve la tendencia.
@@ -102,7 +106,7 @@ function Measurements({ who, name }: { who: Who; name?: string }) {
                     <td className="font-narrow py-1.5 text-right">{m.bodyFatPct ?? "—"}</td>
                     <td className="text-right">
                       {who !== "me" && (
-                        <button type="button" onClick={() => del.mutate(m.date, { onSuccess: () => undoToast(`Medidas del ${dayMonth(m.date)} borradas`, () => restore.mutate(m)) })} className="text-[12.5px] text-ink-3 hover:text-plate-red" aria-label={`Borrar medidas del ${dayMonth(m.date)}`}>
+                        <button type="button" onClick={() => del.mutate(m.date, { onError: (e) => toast(errorMessage(e), "error"), onSuccess: () => undoToast(`Medidas del ${dayMonth(m.date)} borradas`, () => restore.mutate(m)) })} className="text-[12.5px] text-ink-3 hover:text-plate-red" aria-label={`Borrar medidas del ${dayMonth(m.date)}`}>
                           Borrar
                         </button>
                       )}
@@ -181,6 +185,8 @@ function Loads({ who, name }: { who: Who; name?: string }) {
       <BlockTitle id="l-title">Cargas por ejercicio</BlockTitle>
       {ex.isPending ? (
         <Skeleton className="h-48" />
+      ) : ex.isError ? (
+        <QueryError q={ex} />
       ) : (ex.data ?? []).length === 0 ? (
         <p className="text-ink-2">
           {who === "me" ? "Cuando termines entrenos anotando los kilos de tus series, aquí verás cómo progresas en cada ejercicio." : `Cuando ${name?.split(" ")[0] ?? "el cliente"} termine entrenos anotando kilos, aquí verás su progresión en cada ejercicio.`}

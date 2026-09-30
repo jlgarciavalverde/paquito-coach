@@ -14,6 +14,7 @@ import { useCreatePlan } from "../../lib/nutrition";
 import { api, errorMessage } from "../../lib/api";
 import { WEEKDAYS } from "../../lib/dates";
 import { cn } from "../../lib/cn";
+import { RadioGroup } from "../ui/radio-group";
 
 export type GenerateKind = "routine" | "program" | "mealPlan";
 const TITLE: Record<GenerateKind, string> = { routine: "Rutina con IA", program: "Programa con IA", mealPlan: "Plan de comidas con IA" };
@@ -85,13 +86,13 @@ export function GeneratePanel({ kind: initialKind, clientId: initialClient, onCl
         <Preview kind={kind} result={result} />
       ) : (
         <div className="flex flex-col gap-5">
-          <div className="grid grid-cols-3 overflow-hidden rounded-[var(--radius-control)] border border-rule-strong" role="radiogroup" aria-label="Qué quieres generar">
+          <RadioGroup className="grid grid-cols-3 overflow-hidden rounded-[var(--radius-control)] border border-rule-strong" aria-label="Qué quieres generar">
             {(["routine", "program", "mealPlan"] as const).map((k) => (
               <button key={k} type="button" role="radio" aria-checked={kind === k} onClick={() => setKind(k)} className={cn("h-10 text-sm font-medium not-first:border-l not-first:border-rule-strong", kind === k ? "bg-ink text-paper" : "text-ink-2 hover:bg-tray")}>
                 {k === "routine" ? "Rutina" : k === "program" ? "Programa" : "Dieta"}
               </button>
             ))}
-          </div>
+          </RadioGroup>
           <TextArea
             label={kind === "mealPlan" ? "Objetivo" : "Qué quieres"}
             rows={2}
@@ -270,9 +271,7 @@ function UseResult({ kind, result, clientId, onDone }: { kind: GenerateKind; res
         loading={createPlan.isPending}
         onClick={() =>
           createPlan.mutate(
-            { clientId, body: (result as GeneratedMealPlan).plan },
-            { onSuccess: (p) => (toast(clientId ? "Plan creado para el cliente" : "Plantilla creada"), onDone(), navigate({ to: "/coach/nutricion/$planId", params: { planId: p.id } })) },
-          )
+            { clientId, body: (result as GeneratedMealPlan).plan }, { onError: (e) => toast(errorMessage(e), "error"), onSuccess: (p) => (toast(clientId ? "Plan creado para el cliente" : "Plantilla creada"), onDone(), navigate({ to: "/coach/nutricion/$planId", params: { planId: p.id } })) },)
         }
       >
         {clientId ? "Crear su plan y revisarlo" : "Crear plantilla y revisarla"}

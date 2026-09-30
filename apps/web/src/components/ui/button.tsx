@@ -12,7 +12,8 @@ const variants: Record<Variant, string> = {
   danger: "text-plate-red hover:bg-plate-red-soft",
 };
 const sizes: Record<Size, string> = {
-  sm: "h-8 px-2.5 text-[13.5px] gap-1.5",
+  // En pantallas táctiles, dianas de al menos 40 px (en el ordenador se quedan compactos).
+  sm: "h-8 px-2.5 text-[13.5px] gap-1.5 pointer-coarse:h-10",
   md: "h-10 px-3.5 text-sm gap-2",
   lg: "h-12 px-5 text-[15px] gap-2",
 };
@@ -52,7 +53,7 @@ export function IconButton({ label, className, children, ...rest }: ButtonHTMLAt
       type="button"
       aria-label={label}
       title={label}
-      className={cn("inline-flex size-9 items-center justify-center rounded-[var(--radius-control)] text-ink-2 transition-colors hover:bg-tray hover:text-ink", className)}
+      className={cn("inline-flex size-9 shrink-0 items-center justify-center rounded-[var(--radius-control)] pointer-coarse:size-11 text-ink-2 transition-colors hover:bg-tray hover:text-ink", className)}
       {...rest}
     >
       {children}

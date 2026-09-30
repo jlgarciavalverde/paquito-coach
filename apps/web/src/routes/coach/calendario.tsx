@@ -19,6 +19,8 @@ import { fromIso, isoDate, mondayOf, plusDays, today, weekLabel } from "../../li
 import { api, errorMessage } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { useDocumentTitle } from "../../lib/title";
+import { QueryError } from "../../components/ui/query-state";
+import { RadioGroup } from "../../components/ui/radio-group";
 
 const View = z.enum(["semana", "mes", "lista"]);
 export const Route = createFileRoute("/coach/calendario")({
@@ -113,13 +115,13 @@ function Agenda() {
               <CaretRight size={16} />
             </IconButton>
           </div>
-          <div className="inline-flex rounded-[var(--radius-control)] border border-rule-strong p-0.5" role="radiogroup" aria-label="Vista">
+          <RadioGroup className="inline-flex rounded-[var(--radius-control)] border border-rule-strong p-0.5" aria-label="Vista">
             {(["semana", "mes", "lista"] as const).map((v) => (
               <button key={v} role="radio" aria-checked={view === v} onClick={() => set({ vista: v })} className={cn("h-8 rounded-[4px] px-3 text-sm font-medium capitalize", view === v ? "bg-ink text-paper" : "text-ink-2 hover:text-ink")}>
                 {v}
               </button>
             ))}
-          </div>
+          </RadioGroup>
           <Button icon={<Plus size={16} weight="bold" />} onClick={() => setDraft({ date: anchor < today() ? today() : anchor, minutes: 9 * 60, clientId: clientId ?? null })}>
             Nueva cita
           </Button>
@@ -159,6 +161,9 @@ function Agenda() {
         <span className="ml-auto hidden text-[13px] text-ink-3 lg:inline">Arrastra citas y entrenos para cambiarlos de día u hora. Pulsa un hueco para crear una cita.</span>
       </div>
 
+      {(appts.isError || studioWorkouts.isError || clientWorkouts.isError) && (
+        <QueryError compact className="mb-3" q={appts.isError ? appts : studioWorkouts.isError ? studioWorkouts : clientWorkouts} />
+      )}
       {view === "semana" && <WeekView days={weekDays(monday)} data={{ appointments: appts.data ?? [], workouts, mealsByDate }} layers={{ ...layers, meals: layers.meals && Boolean(clientId) }} actions={actions} />}
       {view === "mes" && (
         <MonthView weeks={weeks} month={monthStart.getMonth()} data={{ appointments: appts.data ?? [], workouts }} layers={layers} actions={actions} onPickDay={(d) => set({ vista: "semana", fecha: d })} />

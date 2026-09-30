@@ -32,8 +32,19 @@ export function Thread({ threadKey, mine, otherName, disabledReason, className }
   useEffect(() => {
     if (!q.isSuccess || (last && mine(last))) return;
     // Al leer, se actualizan los contadores de no leídos (pestaña y bandeja).
-    void markRead(threadKey).then(() => qc.invalidateQueries({ queryKey: threadKey === "me" ? ["unread", "me"] : ["conversations"] }));
+    void markRead(threadKey)
+      .then(() => qc.invalidateQueries({ queryKey: threadKey === "me" ? ["unread", "me"] : ["conversations"] }))
+      .catch(() => {}); // sin red: se marcará al siguiente mensaje o al volver
   }, [last?.id, q.isSuccess]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Solo se anuncia lo nuevo que llega de la otra persona (no la conversación entera al abrirla ni al cargar mensajes antiguos).
+  const [announce, setAnnounce] = useState("");
+  const seenLast = useRef<string | null>(null);
+  useEffect(() => {
+    if (!last) return;
+    if (seenLast.current && seenLast.current !== last.id && !mine(last)) setAnnounce(`${otherName.split(" ")[0]}: ${last.body || "una foto"}`);
+    seenLast.current = last.id;
+  }, [last?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const lastMineRead = [...messages].reverse().find(mine);
   const seen = lastMineRead && otherReadAt && otherReadAt >= lastMineRead.createdAt;
@@ -48,7 +59,7 @@ export function Thread({ threadKey, mine, otherName, disabledReason, className }
         }}
         className="min-h-0 flex-1 overflow-y-auto px-1"
         role="log"
-        aria-live="polite"
+        aria-live="off"
         aria-label={`Conversación con ${otherName}`}
       >
         {q.hasNextPage && (
@@ -78,7 +89,14 @@ export function Thread({ threadKey, mine, otherName, disabledReason, className }
                   <div className={cn("flex max-w-[82%] flex-col gap-1", own ? "self-end items-end" : "self-start items-start", !grouped && "mt-2")}>
                     {m.mediaId && (
                       <a href={mediaUrl(m.mediaId)} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-[var(--radius-control)] border border-rule">
-                        <img src={mediaUrl(m.mediaId)} alt={own ? "Foto que has enviado" : `Foto de ${otherName}`} className="max-h-72 w-auto" loading="lazy" />
+                        <img
+                          src={mediaUrl(m.mediaId)}
+                          alt={own ? "Foto que has enviado" : `Foto de ${otherName}`}
+                          width={176}
+                          height={224}
+                          className="h-56 w-44 bg-tray object-cover"
+                          loading="lazy"
+                        />
                       </a>
                     )}
                     {m.body && (
@@ -95,6 +113,9 @@ export function Thread({ threadKey, mine, otherName, disabledReason, className }
           </ol>
         )}
       </div>
+      <p className="sr-only" aria-live="polite">
+        {announce}
+      </p>
       {disabledReason ? <p className="border-t border-rule px-2 py-3 text-sm text-ink-2">{disabledReason}</p> : <Composer threadKey={threadKey} />}
     </div>
   );
@@ -117,20 +138,31 @@ function Composer({ threadKey }: { threadKey: ThreadKey }) {
     }
   }, [text]);
 
+  // Un envío cada vez (Intro dos veces no manda dos mensajes) y, si la foto ya subió pero el mensaje falló, el reintento
+  // reutiliza esa foto en vez de subirla otra vez.
+  const busy = useRef(false);
+  const uploaded = useRef<{ file: File; id: string } | null>(null);
   const submit = async () => {
-    if (!text.trim() && !photo) return;
+    if (busy.current || (!text.trim() && !photo)) return;
+    busy.current = true;
     try {
       setUploading(Boolean(photo));
-      const mediaId = photo ? await uploadPhoto(photo.file, threadKey === "me" ? undefined : threadKey) : null;
+      let mediaId: string | null = null;
+      if (photo) {
+        if (uploaded.current?.file !== photo.file) uploaded.current = { file: photo.file, id: await uploadPhoto(photo.file, threadKey === "me" ? undefined : threadKey) };
+        mediaId = uploaded.current.id;
+      }
       await send.mutateAsync({ body: text.trim(), mediaId });
       setText("");
       if (photo) URL.revokeObjectURL(photo.url);
       setPhoto(null);
+      uploaded.current = null;
       input.current?.focus();
     } catch (e) {
       toast(errorMessage(e), "error");
     } finally {
       setUploading(false);
+      busy.current = false;
     }
   };
 

@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { PAYMENT_STATUS_LABEL, SUBSCRIPTION_STATUS_LABEL, formatEuros } from "@coach/shared";
@@ -14,6 +14,8 @@ import { myPaymentsQuery, myPricesQuery, mySubscriptionsQuery, paymentsInfoQuery
 import { errorMessage } from "../../lib/api";
 import { dayMonth } from "../../lib/dates";
 import { useDocumentTitle } from "../../lib/title";
+import { QueryError } from "../../components/ui/query-state";
+import { localDate } from "../../lib/agenda";
 
 export const Route = createFileRoute("/app/pagos")({
   validateSearch: z.object({ pago: z.string().optional(), simulado: z.string().optional() }),
@@ -34,15 +36,27 @@ function Payments() {
   const current = (subs.data ?? []).find((s) => s.status !== "canceled");
   const toast = useToast();
   const qc = useQueryClient();
+  const navigate = useNavigate();
+  // Vuelta de Stripe: aviso una vez, se quita `?pago=ok` de la dirección (si no, al recargar se repite el aviso) y se
+  // refresca lo que el pago cambia (cobros, cuota, bonos) cuando el webhook ya ha llegado.
   useEffect(() => {
-    if (pago === "ok" && !simulado) {
-      toast("Pago hecho. En unos segundos aparecerá aquí.");
-      const t = setTimeout(() => void qc.invalidateQueries({ queryKey: ["payments"] }), 2500);
-      return () => clearTimeout(t);
-    }
+    // En modo de prueba (`simulado`) la página de pago simulado vive en esta misma dirección: no se toca.
+    if (pago !== "ok" || simulado) return;
+    toast("Pago hecho. En unos segundos aparecerá aquí.");
+    void navigate({ to: "/app/pagos", search: {}, replace: true });
+    const refresh = () => ["payments", "subscriptions", "packs"].forEach((k) => void qc.invalidateQueries({ queryKey: [k] }));
+    refresh();
+    const t = setTimeout(refresh, 2500);
+    return () => clearTimeout(t);
   }, [pago, simulado]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Un solo pago cada vez: mientras se prepara uno (o ya se va a Stripe), los demás botones esperan.
+  const [leaving, setLeaving] = useState(false);
+  const go = (url: string | null) => url && (setLeaving(true), window.location.assign(url));
+  const busy = leaving || checkout.isPending || subscribe.isPending || portal.isPending;
 
   if (info.isPending) return <Skeleton className="h-64" />;
+
+  if (info.isError) return <QueryError q={info} />;
   const pending = (history.data ?? []).filter((p) => p.status === "pending" && p.url);
   const done = (history.data ?? []).filter((p) => !(p.status === "pending" && p.url));
   return (
@@ -77,11 +91,11 @@ function Payments() {
                   <span className="block font-medium">{current.name}</span>
                   <span className="block text-[13px] text-ink-2">
                     {formatEuros(current.amount)} al mes.{" "}
-                    {current.currentPeriodEnd && `${current.cancelAtPeriodEnd ? "Termina el" : "Próximo cobro el"} ${dayMonth(current.currentPeriodEnd.slice(0, 10))}.`}
+                    {current.currentPeriodEnd && `${current.cancelAtPeriodEnd ? "Termina el" : "Próximo cobro el"} ${dayMonth(localDate(current.currentPeriodEnd))}.`}
                   </span>
                 </span>
                 <PlateMark tone={current.status === "active" ? "green" : "red"}>{SUBSCRIPTION_STATUS_LABEL[current.status]}</PlateMark>
-                <Button size="sm" variant="secondary" loading={portal.isPending} onClick={() => portal.mutate(undefined, { onSuccess: (r) => window.location.assign(r.url) })}>
+                <Button size="sm" variant="secondary" loading={portal.isPending} onClick={() => portal.mutate(undefined, { onSuccess: (r) => go(r.url) })}>
                   Gestionar mi cuota
                 </Button>
               </div>
@@ -108,14 +122,15 @@ function Payments() {
                       {p.kind === "subscription" && "/mes"}
                     </span>
                     {p.kind === "subscription" ? (
-                      <Button size="sm" disabled={Boolean(current)} loading={subscribe.isPending && subscribe.variables === p.id} onClick={() => subscribe.mutate(p.id, { onSuccess: (r) => window.location.assign(r.url) })}>
+                      <Button size="sm" disabled={Boolean(current) || busy} loading={subscribe.isPending && subscribe.variables === p.id} onClick={() => subscribe.mutate(p.id, { onSuccess: (r) => go(r.url) })}>
                         Suscribirme
                       </Button>
                     ) : (
                       <Button
                         size="sm"
+                        disabled={busy}
                         loading={checkout.isPending && checkout.variables === p.id}
-                        onClick={() => checkout.mutate(p.id, { onSuccess: (r) => r.url && window.location.assign(r.url) })}
+                        onClick={() => checkout.mutate(p.id, { onSuccess: (r) => go(r.url) })}
                       >
                         Comprar
                       </Button>
@@ -136,7 +151,7 @@ function Payments() {
                   <li key={p.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5 text-sm">
                     <span className="min-w-0 flex-1">
                       <span className="block font-medium">{p.description}</span>
-                      <span className="block text-[13px] text-ink-3">{dayMonth((p.paidAt ?? p.createdAt).slice(0, 10))}</span>
+                      <span className="block text-[13px] text-ink-3">{dayMonth(localDate(p.paidAt ?? p.createdAt))}</span>
                     </span>
                     <span className="font-narrow text-[16px]">{formatEuros(p.amount)}</span>
                     <PlateMark tone={statusTone(p.status)}>{PAYMENT_STATUS_LABEL[p.status]}</PlateMark>

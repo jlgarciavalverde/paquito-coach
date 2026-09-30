@@ -10,11 +10,13 @@ import { useToast } from "../ui/toast";
 import { useConfirm } from "../ui/confirm";
 import { FormError } from "../form-error";
 import { photosQuery, usePhotoMutation } from "../../lib/followup";
-import { mediaUrl, uploadPhoto } from "../../lib/chat";
+import { createUploadCache, mediaUrl } from "../../lib/chat";
 import { dayMonth, today } from "../../lib/dates";
 import { errorMessage } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import type { Who } from "../../lib/progress";
+import { QueryError } from "../ui/query-state";
+import { FilePreview } from "../../lib/use-object-url";
 
 const POSES = PhotoPose.options;
 
@@ -32,6 +34,8 @@ export function ProgressPhotos({ who, name }: { who: Who; name?: string }) {
       </BlockTitle>
       {q.isPending ? (
         <Skeleton className="h-48" />
+      ) : q.isError ? (
+        <QueryError q={q} />
       ) : rows.length === 0 ? (
         <EmptyNote action={<Button onClick={() => setOpen(true)}>Subir las primeras</Button>}>
           {who === "me" ? "Aún no tienes fotos." : `Aún no hay fotos de ${name?.split(" ")[0] ?? "este cliente"}.`} De frente, de perfil y de espaldas, con la misma luz y ropa, cada 4 semanas.
@@ -107,6 +111,7 @@ function Compare({ photos, dates }: { photos: ProgressPhoto[]; dates: string[] }
 }
 
 function Sessions({ who, photos, dates }: { who: Who; photos: ProgressPhoto[]; dates: string[] }) {
+  const toast = useToast();
   const m = usePhotoMutation(who);
   const ask = useConfirm();
   return (
@@ -126,7 +131,7 @@ function Sessions({ who, photos, dates }: { who: Who; photos: ProgressPhoto[]; d
                     type="button"
                     className="text-[12.5px] text-ink-3 hover:text-plate-red"
                     aria-label={`Borrar foto ${POSE_LABEL[p.pose].toLowerCase()} del ${dayMonth(d)}`}
-                    onClick={async () => (await ask({ title: "Borrar la foto", body: "Se borra del todo; no se puede recuperar.", confirm: "Borrar foto", danger: true })) && m.mutate({ remove: p.id })}
+                    onClick={async () => (await ask({ title: "Borrar la foto", body: "Se borra del todo; no se puede recuperar.", confirm: "Borrar foto", danger: true })) && m.mutate({ remove: p.id }, { onError: (e) => toast(errorMessage(e), "error") })}
                   >
                     Borrar
                   </button>
@@ -148,13 +153,18 @@ function UploadPanel({ who, open, onClose }: { who: Who; open: boolean; onClose:
   const [error, setError] = useState<string | null>(null);
   const n = Object.keys(files).length;
   const close = () => (setFiles({}), setError(null), onClose());
+  const [upload] = useState(() => createUploadCache(who === "me" ? undefined : who));
   const submit = async () => {
     setBusy(true);
     setError(null);
     try {
+      // Cada foto guardada sale de la lista: si falla la tercera, el reintento no duplica las dos primeras.
       for (const [pose, file] of Object.entries(files) as [PhotoPose, File][]) {
-        const mediaId = await uploadPhoto(file, who === "me" ? undefined : who);
-        await m.mutateAsync({ add: { mediaId, date, pose } });
+        await m.mutateAsync({ add: { mediaId: await upload(file), date, pose } });
+        setFiles((f) => {
+          const { [pose]: _saved, ...rest } = f;
+          return rest;
+        });
       }
       toast(n === 1 ? "Foto guardada" : `${n} fotos guardadas`);
       close();
@@ -186,7 +196,7 @@ function UploadPanel({ who, open, onClose }: { who: Who; open: boolean; onClose:
         {POSES.map((p) => (
           <label key={p} className="flex items-center gap-4">
             <span className="flex h-24 w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-[4px] bg-tray text-[12px] text-ink-3">
-              {files[p] ? <img src={URL.createObjectURL(files[p])} alt="" className="h-full w-full object-cover" /> : "Sin foto"}
+              {files[p] ? <FilePreview file={files[p]} className="h-full w-full object-cover" /> : "Sin foto"}
             </span>
             <span className="flex flex-col gap-1">
               <span className="text-sm font-medium">{POSE_LABEL[p]}</span>

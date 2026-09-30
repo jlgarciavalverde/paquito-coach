@@ -5,6 +5,7 @@ import { studioWorkoutsQuery } from "../../lib/training";
 import { dayLong, fromIso, isoDate, mondayOf, plusDays, today } from "../../lib/dates";
 import { Skeleton } from "../ui/spinner";
 import { cn } from "../../lib/cn";
+import { QueryError } from "../ui/query-state";
 
 const LETTERS = ["L", "M", "X", "J", "V", "S", "D"];
 
@@ -23,6 +24,7 @@ export function WeekMatrix({ onOpen }: { onOpen: (id: string) => void }) {
   const days = Array.from({ length: 7 }, (_, i) => plusDays(monday, i));
   const q = useQuery(studioWorkoutsQuery(monday, days[6]!));
   if (q.isPending) return <Skeleton className="h-40" />;
+  if (q.isError) return <QueryError q={q} />;
   const byClient = new Map<string, { name: string; items: Workout[] }>();
   for (const w of q.data ?? []) {
     const e = byClient.get(w.clientId) ?? { name: w.clientName, items: [] };

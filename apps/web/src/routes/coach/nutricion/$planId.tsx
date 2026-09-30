@@ -15,6 +15,7 @@ import { newId } from "../../../lib/training";
 import { errorMessage } from "../../../lib/api";
 import { cn } from "../../../lib/cn";
 import { useDocumentTitle } from "../../../lib/title";
+import { RadioGroup } from "../../../components/ui/radio-group";
 
 export const Route = createFileRoute("/coach/nutricion/$planId")({
   component: PlanPage,
@@ -141,7 +142,7 @@ function PlanEditor({ plan }: { plan: MealPlan }) {
       </div>
 
       <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-b border-rule pb-3">
-        <div className="inline-flex rounded-[var(--radius-control)] border border-rule-strong p-0.5" role="radiogroup" aria-label="Estructura del plan">
+        <RadioGroup className="inline-flex rounded-[var(--radius-control)] border border-rule-strong p-0.5" aria-label="Estructura del plan">
           {(
             [
               ["same", "Igual todos los días"],
@@ -152,7 +153,7 @@ function PlanEditor({ plan }: { plan: MealPlan }) {
               {l}
             </button>
           ))}
-        </div>
+        </RadioGroup>
         {doc.mode === "weekly" && (
           <Button variant="quiet" size="sm" onClick={copyToAll}>
             Copiar este día al resto
@@ -257,7 +258,7 @@ function PlanEditor({ plan }: { plan: MealPlan }) {
                 variant="quiet"
                 onClick={() =>
                   void ask({ title: "Borrar la plantilla", body: "Los planes ya aplicados a clientes no cambian.", confirm: "Borrar plantilla", danger: true }).then((ok) => ok &&
-                  del.mutate(plan.id, { onSuccess: () => ((leaving.current = true), navigate({ to: "/coach/nutricion" })) }))
+                  del.mutate(plan.id, { onError: (e) => toast(errorMessage(e), "error"), onSuccess: () => ((leaving.current = true), navigate({ to: "/coach/nutricion" })) }))
                 }
               >
                 Borrar plantilla

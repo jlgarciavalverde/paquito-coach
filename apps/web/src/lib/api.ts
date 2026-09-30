@@ -34,7 +34,8 @@ export const onApiError = (fn: Listener) => (listeners.add(fn), () => void liste
  * Lanza `RequestError` con el mensaje de la API si la respuesta no es 2xx; con un mensaje propio si no hay conexión,
  * si tarda más de 30 s o si lo que llega no es JSON (páginas de error de proxies).
  */
-export async function api<T>(path: string, init: { method?: string; body?: unknown; signal?: AbortSignal; timeoutMs?: number } = {}): Promise<T> {
+/** `keepalive`: la petición sigue aunque se cierre la pestaña o se salga de la pantalla (cuerpo de hasta 64 KB). */
+export async function api<T>(path: string, init: { method?: string; body?: unknown; signal?: AbortSignal; timeoutMs?: number; keepalive?: boolean } = {}): Promise<T> {
   let res: Response;
   const timeout = AbortSignal.timeout(init.timeoutMs ?? TIMEOUT_MS);
   try {
@@ -44,6 +45,7 @@ export async function api<T>(path: string, init: { method?: string; body?: unkno
       headers: init.body === undefined ? undefined : { "Content-Type": "application/json" },
       body: init.body === undefined ? undefined : JSON.stringify(init.body),
       signal: init.signal ? AbortSignal.any([init.signal, timeout]) : timeout,
+      keepalive: init.keepalive,
     });
   } catch (e) {
     if (init.signal?.aborted) throw e; // cancelado a propósito (p. ej. al salir de la pantalla)

@@ -10,6 +10,7 @@ import { useToast } from "../ui/toast";
 import { FormError } from "../form-error";
 import { paymentsInfoQuery, pricesQuery, usePrice } from "../../lib/payments";
 import { errorMessage } from "../../lib/api";
+import { QueryError } from "../ui/query-state";
 
 /** Ajustes → Cobros: estado de Stripe y tarifas (bonos, sesión suelta, cuota). */
 export function PaymentsSettings() {
@@ -30,6 +31,8 @@ export function PaymentsSettings() {
       </p>
       {q.isPending ? (
         <Skeleton className="h-20" />
+      ) : q.isError ? (
+        <QueryError q={q} />
       ) : (q.data ?? []).length === 0 ? (
         <p className="text-sm text-ink-2">Sin tarifas. Crea tus bonos («Bono 10 sesiones, 300 €, 3 meses») y el precio de la sesión suelta.</p>
       ) : (

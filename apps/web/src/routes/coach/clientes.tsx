@@ -13,6 +13,7 @@ import { PendingRequests } from "../../components/clients/pending-requests";
 import { clientsQuery } from "../../lib/queries";
 import { cn } from "../../lib/cn";
 import { useDocumentTitle } from "../../lib/title";
+import { QueryError } from "../../components/ui/query-state";
 
 const FILTERS: { value: "current" | ClientStatus; label: string }[] = [
   { value: "current", label: "Todos" },
@@ -102,6 +103,8 @@ function Roster({ selectedId, onNew }: { selectedId?: string; onNew: () => void 
             <Skeleton key={i} className="h-14" />
           ))}
         </div>
+      ) : list.isError ? (
+        <QueryError q={list} />
       ) : shown.length === 0 ? (
         <p className="py-4 text-sm text-ink-2">
           {q || filter !== "current" ? "Nadie coincide con esa búsqueda." : "Todavía no hay clientes. Crea la primera ficha con «Nuevo cliente»."}

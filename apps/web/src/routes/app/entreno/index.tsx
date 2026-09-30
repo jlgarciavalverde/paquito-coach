@@ -10,6 +10,7 @@ import { WorkoutStatusMark } from "../../../components/training/workout-status";
 import { myWorkoutsQuery } from "../../../lib/training";
 import { dayLong, fromIso, isoDate, mondayOf, plusDays, today, weekLabel } from "../../../lib/dates";
 import { cn } from "../../../lib/cn";
+import { QueryError } from "../../../components/ui/query-state";
 
 export const Route = createFileRoute("/app/entreno/")({
   component: Week,
@@ -89,6 +90,8 @@ function Week() {
         <h2 className="font-wide text-[19px]">{day === t ? "Hoy" : dayLong(day)}</h2>
         {q.isPending ? (
           <Skeleton className="mt-3 h-20" />
+        ) : q.isError ? (
+          <QueryError q={q} />
         ) : selected.length === 0 ? (
           <p className="mt-2 text-ink-2">Día de descanso.</p>
         ) : (

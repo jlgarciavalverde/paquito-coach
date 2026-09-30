@@ -81,11 +81,16 @@ export function useWorkoutEdit(id: string) {
   return useMutation({
     mutationFn: (p: { date?: string; title?: string; coachNotes?: string; blocks?: RoutineBlock[] } | "delete") =>
       p === "delete" ? api(`/workouts/${id}`, { method: "DELETE" }) : api<Workout>(`/workouts/${id}`, { method: "PATCH", body: p }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["workouts"] }),
+    onSuccess: (_r, p) => {
+      if (p === "delete") qc.removeQueries({ queryKey: ["workout", id] });
+      else void qc.invalidateQueries({ queryKey: ["workout", id] }); // el panel abierto mostraba lo de antes
+      void qc.invalidateQueries({ queryKey: ["workouts"] });
+      void qc.invalidateQueries({ queryKey: ["activity"] });
+    },
   });
 }
 
-export const saveLog = (id: string, log: WorkoutLog) => api(`/workouts/${id}/log`, { method: "PUT", body: log });
+export const saveLog = (id: string, log: WorkoutLog, keepalive = false) => api(`/workouts/${id}/log`, { method: "PUT", body: log, keepalive });
 
 export function useCompleteWorkout(id: string) {
   const qc = useQueryClient();
@@ -95,6 +100,7 @@ export function useCompleteWorkout(id: string) {
     onSuccess: (w) => {
       qc.setQueryData(["workout", id], w);
       void qc.invalidateQueries({ queryKey: ["workouts"] });
+      void qc.invalidateQueries({ queryKey: ["achievements"] });
     },
   });
 }

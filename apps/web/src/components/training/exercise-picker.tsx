@@ -7,6 +7,7 @@ import { controlClass } from "../ui/field";
 import { Skeleton } from "../ui/spinner";
 import { exercisesQuery } from "../../lib/training";
 import { cn } from "../../lib/cn";
+import { QueryError } from "../ui/query-state";
 
 /** Buscador de la biblioteca para añadir un ejercicio a una rutina. Se puede elegir varios seguidos. */
 export function ExercisePicker({ open, onOpenChange, onPick }: { open: boolean; onOpenChange: (o: boolean) => void; onPick: (e: Exercise) => void }) {
@@ -51,6 +52,8 @@ export function ExercisePicker({ open, onOpenChange, onPick }: { open: boolean; 
             <Skeleton key={i} className="h-12" />
           ))}
         </div>
+      ) : list.isError ? (
+        <QueryError q={list} />
       ) : (list.data ?? []).length === 0 ? (
         <p className="py-6 text-sm text-ink-2">Nada con ese nombre. Puedes crearlo como ejercicio propio en Entrenos → Ejercicios.</p>
       ) : (

@@ -10,6 +10,7 @@ import { useMe } from "../../lib/auth";
 import { useDocumentTitle } from "../../lib/title";
 import { errorMessage } from "../../lib/api";
 import { cn } from "../../lib/cn";
+import { RadioGroup } from "../../components/ui/radio-group";
 
 export const Route = createFileRoute("/app/salud")({
   component: HealthForm,
@@ -54,7 +55,7 @@ function HealthForm() {
                 <span className="font-narrow mr-2 text-ink-3">{i + 1}.</span>
                 {q}
               </p>
-              <div className="inline-flex w-fit self-start justify-self-start rounded-[var(--radius-control)] border border-rule-strong p-0.5" role="radiogroup" aria-labelledby={`q${i}`}>
+              <RadioGroup className="inline-flex w-fit self-start justify-self-start rounded-[var(--radius-control)] border border-rule-strong p-0.5" aria-labelledby={`q${i}`}>
                 {[
                   [true, "Sí"],
                   [false, "No"],
@@ -70,7 +71,7 @@ function HealthForm() {
                     {l as string}
                   </button>
                 ))}
-              </div>
+              </RadioGroup>
             </li>
           ))}
         </ol>
@@ -86,7 +87,7 @@ function HealthForm() {
           <p id="pain" className="text-[13.5px] font-medium text-ink">
             {ANAMNESIS_LABEL.painNow}
           </p>
-          <div className="mt-2 grid grid-cols-11 gap-1" role="radiogroup" aria-labelledby="pain">
+          <RadioGroup className="mt-2 grid grid-cols-11 gap-1" aria-labelledby="pain">
             {Array.from({ length: 11 }, (_, n) => (
               <button
                 key={n}
@@ -100,7 +101,7 @@ function HealthForm() {
                 {n}
               </button>
             ))}
-          </div>
+          </RadioGroup>
           <p className="mt-1 flex justify-between text-[12.5px] text-ink-3">
             <span>Sin dolor</span>
             <span>El peor imaginable</span>

@@ -11,6 +11,7 @@ import { WorkoutPanel } from "../training/workout-panel";
 import { appointmentsQuery } from "../../lib/agenda";
 import { clientWorkoutsQuery } from "../../lib/training";
 import { plusDays, today } from "../../lib/dates";
+import { QueryError } from "../ui/query-state";
 
 /** Pestaña «Agenda» de la ficha: las próximas 4 semanas de este cliente. */
 export function ClientAgenda({ client }: { client: Client }) {
@@ -35,6 +36,7 @@ export function ClientAgenda({ client }: { client: Client }) {
           <Button onClick={() => setDraft({ date: t, minutes: 9 * 60, clientId: client.id })}>Nueva cita</Button>
         </div>
       </div>
+      {(appts.isError || workouts.isError) && <QueryError compact className="mb-3" q={appts.isError ? appts : workouts} />}
       <ListView
         days={days}
         data={{ appointments: appts.data ?? [], workouts: workouts.data ?? [] }}

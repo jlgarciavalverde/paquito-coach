@@ -1,4 +1,4 @@
-import { forwardRef, useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
+import { forwardRef, useEffect, useId, useState, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 import { cn } from "../../lib/cn";
 
 export const controlClass =
@@ -93,5 +93,36 @@ export function Checkbox({ label, description, className, ...rest }: InputHTMLAt
         {description && <span className="mt-0.5 block text-[13px] text-ink-3">{description}</span>}
       </label>
     </div>
+  );
+}
+
+/** «72,5» → 72.5; vacío → null; lo que no es un número → undefined (se queda como texto hasta que lo sea). */
+export function parseDecimal(text: string): number | null | undefined {
+  const t = text.trim().replace(",", ".");
+  if (t === "") return null;
+  return /^-?\d+(\.\d*)?$|^-?\.\d+$/.test(t) ? Number(t) : undefined;
+}
+
+/**
+ * Campo de número con coma decimal. Guarda lo escrito tal cual y avisa del número: antes se convertía en cada tecla, y al
+ * escribir «72,» el campo volvía a «72» y no dejaba poner decimales.
+ */
+export function DecimalField({ value, onValue, ...rest }: Omit<FieldProps & InputHTMLAttributes<HTMLInputElement>, "value" | "onChange"> & { value: number | null; onValue: (n: number | null) => void }) {
+  const [text, setText] = useState(value == null ? "" : String(value).replace(".", ","));
+  // Si el valor cambia desde fuera (otro borrador, reinicio), se muestra el nuevo.
+  useEffect(() => {
+    if (parseDecimal(text) !== value) setText(value == null ? "" : String(value).replace(".", ","));
+  }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
+  return (
+    <TextField
+      {...rest}
+      inputMode="decimal"
+      value={text}
+      onChange={(e) => {
+        setText(e.target.value);
+        const n = parseDecimal(e.target.value);
+        if (n !== undefined) onValue(n);
+      }}
+    />
   );
 }

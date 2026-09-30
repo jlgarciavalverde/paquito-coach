@@ -11,6 +11,7 @@ import { hhmm, localDate } from "../../lib/agenda";
 import { dayShort, today } from "../../lib/dates";
 import { cn } from "../../lib/cn";
 import { useDocumentTitle } from "../../lib/title";
+import { QueryError } from "../../components/ui/query-state";
 
 export const Route = createFileRoute("/coach/chat")({
   validateSearch: z.object({ cliente: z.string().uuid().optional() }),
@@ -38,6 +39,8 @@ function Inbox() {
         </label>
         {q.isPending ? (
           <Skeleton className="mt-4 h-40" />
+        ) : q.isError ? (
+          <QueryError q={q} />
         ) : list.length === 0 ? (
           <p className="mt-4 text-sm text-ink-2">Cuando tengas clientes activos, aquí podrás hablar con cada uno.</p>
         ) : (
