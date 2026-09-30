@@ -1,6 +1,6 @@
-import { and, eq, gte, isNull, lt, sql, ne } from "drizzle-orm";
+import { and, eq, gte, isNull, lt, or, sql, ne } from "drizzle-orm";
 import type { DB } from "../db/client";
-import { appointments, checkinAssignments, checkinForms, clientProfiles, reminderLog, users, workouts } from "../db/schema";
+import { appointments, checkinAssignments, checkinForms, clientProfiles, passwordResets, reminderLog, sessions, users, workouts } from "../db/schema";
 import type { PushSender } from "./push";
 
 /** Hora y fecha en Madrid (el estudio está en España; ver docs/ESTADO.md si algún día hay estudios en otras zonas). */
@@ -92,9 +92,16 @@ export async function releaseHolds(db: DB) {
   return r.length;
 }
 
+/** Limpieza: sesiones caducadas (60 días sin uso o 180 de edad) y enlaces de restablecer caducados hace más de un día. */
+export async function purgeExpired(db: DB) {
+  const s = await db.delete(sessions).where(or(lt(sessions.lastUsedAt, sql`now() - interval '60 days'`), lt(sessions.createdAt, sql`now() - interval '180 days'`))).returning({ id: sessions.id });
+  const r = await db.delete(passwordResets).where(lt(passwordResets.expiresAt, sql`now() - interval '1 day'`)).returning({ id: passwordResets.id });
+  return { sessions: s.length, resets: r.length };
+}
+
 /** Comprueba cada 5 minutos si toca mandar algo (sin cron externo). */
 export function startReminders(db: DB, push: PushSender, log: (e: unknown) => void) {
-  const tick = () => void Promise.all([runReminders(db, push), releaseHolds(db)]).catch(log);
+  const tick = () => void Promise.all([runReminders(db, push), releaseHolds(db), purgeExpired(db)]).catch(log);
   const id = setInterval(tick, 5 * 60_000);
   id.unref();
   setTimeout(tick, 30_000).unref();

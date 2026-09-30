@@ -39,10 +39,12 @@ function CoachToday() {
   const pending = useQuery(clientsQuery("pending")).data ?? [];
   const [openId, setOpenId] = useState<string | null>(null);
   const [onlyUnseen, setOnlyUnseen] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const markAll = useMarkAllSeen();
   const appts = useQuery(appointmentsQuery(t, plusDays(t, 1)));
   const apptList = (appts.data ?? []).filter((a) => a.status !== "cancelled");
 
+  const shownActivity = (activity.data ?? []).filter((a) => !onlyUnseen || a.unseen);
   const list = todays.data ?? [];
   const doneToday = list.filter((w) => w.status === "done").length;
   const invited = (clients.data ?? []).filter((c) => c.status === "invited");
@@ -156,7 +158,7 @@ function CoachToday() {
             ) : (
               <ol className="flex flex-col">
                 {onlyUnseen && unseen === 0 && <li className="py-3 text-sm text-ink-2">Todo revisado.</li>}
-                {activity.data!.filter((a) => !onlyUnseen || a.unseen).map((a) => (
+                {shownActivity.slice(0, showAll ? undefined : 6).map((a) => (
                   <li key={a.workoutId}>
                     <button type="button" onClick={() => setOpenId(a.workoutId)} className="relative flex w-full gap-3 border-b border-rule py-3 pl-3 text-left hover:bg-tray">
                       <span className={cn("absolute top-3.5 bottom-3.5 left-0 w-[3px] rounded-[1px]", a.unseen ? "bg-primary" : "bg-transparent")} aria-hidden="true" />
@@ -181,6 +183,11 @@ function CoachToday() {
                   </li>
                 ))}
               </ol>
+            )}
+            {!showAll && shownActivity.length > 6 && (
+              <Button size="sm" variant="quiet" className="mt-2" onClick={() => setShowAll(true)}>
+                Ver {shownActivity.length - 6} más
+              </Button>
             )}
           </section>
 

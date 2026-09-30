@@ -88,6 +88,8 @@ export function SessionsSetting() {
     onError: (e) => toast(errorMessage(e), "error"),
   });
   const count = (q.data ?? []).filter((s) => !s.current).length;
+  const [all, setAll] = useState(false);
+  const rows = all ? (q.data ?? []) : (q.data ?? []).slice(0, 5);
   return (
     <section>
       <BlockTitle
@@ -103,7 +105,7 @@ export function SessionsSetting() {
       </BlockTitle>
       <p className="mb-3 text-[13px] text-ink-2">Si has perdido el móvil o entraste en un ordenador ajeno, ciérralas desde aquí.</p>
       <ul className="divide-y divide-rule border-y border-rule">
-        {(q.data ?? []).map((s) => (
+        {rows.map((s) => (
           <li key={s.id} className="flex items-center gap-3 py-3">
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm text-ink">{describeUA(s.userAgent)}</span>
@@ -117,6 +119,11 @@ export function SessionsSetting() {
           </li>
         ))}
       </ul>
+      {!all && (q.data ?? []).length > 5 && (
+        <Button size="sm" variant="quiet" className="mt-2" onClick={() => setAll(true)}>
+          Ver todas ({q.data!.length})
+        </Button>
+      )}
     </section>
   );
 }

@@ -6,6 +6,7 @@ import { sessions } from "./db/schema";
 import { createFakeGateway } from "./lib/stripe";
 import { redactUrl } from "./lib/redact";
 import { hashToken } from "./lib/tokens";
+import { purgeExpired } from "./lib/scheduler";
 import { recordFailure, resetThrottle, trackedKeys } from "./lib/throttle";
 import { Agent, ORIGIN, PASSWORD, inviteAndRegister, resetDb, setupCoach, testApp } from "./test-utils";
 
@@ -73,6 +74,17 @@ describe("sesiones", () => {
     await app.db.execute(sql`update sessions set created_at = now() - interval '181 days' where token_hash = ${hashOf(b)}`);
     expect((await app.inject({ method: "GET", url: "/api/v1/me", headers: { cookie: a } })).statusCode).toBe(401);
     expect((await app.inject({ method: "GET", url: "/api/v1/me", headers: { cookie: b } })).statusCode).toBe(401);
+  });
+
+  it("la limpieza periódica borra las sesiones caducadas y deja las vigentes", async () => {
+    const old = sidOf((await login("paquito@example.com", PASSWORD)).headers["set-cookie"]);
+    const oldHash = hashToken(decodeURIComponent(old.split("=")[1]!));
+    await app.db.execute(sql`update sessions set last_used_at = now() - interval '90 days' where token_hash = ${oldHash}`);
+    const before = (await app.db.select({ id: sessions.id }).from(sessions)).length;
+    const r = await purgeExpired(app.db);
+    expect(r.sessions).toBe(1);
+    expect((await app.db.select({ id: sessions.id }).from(sessions)).length).toBe(before - 1);
+    expect((await coach.get("/api/v1/me")).status).toBe(200);
   });
 
   it("tokens de sesión inventados, larguísimos o raros: 401 sin romper nada", async () => {

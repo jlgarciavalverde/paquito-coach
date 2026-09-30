@@ -285,7 +285,7 @@ export function ListView({ days, data, layers, actions }: { days: string[]; data
                     {hhmm(a.startsAt)}–{hhmm(a.endsAt)}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium">{appointmentLabel(a)}</span>
+                    <span className="line-clamp-2 block text-sm font-medium break-words">{appointmentLabel(a)}</span>
                     {a.location && <span className="block truncate text-[13px] text-ink-2">{a.location}</span>}
                   </span>
                 </button>
@@ -297,7 +297,7 @@ export function ListView({ days, data, layers, actions }: { days: string[]; data
                   <span className="flex w-24 shrink-0 items-center gap-2 text-[13px] text-ink-2">
                     <span className={cn("h-3.5 w-[5px] rounded-[1.5px]", workoutTone(w, t))} aria-hidden="true" /> entreno
                   </span>
-                  <span className="min-w-0 flex-1 truncate">
+                  <span className="line-clamp-2 min-w-0 flex-1 break-words">
                     {w.clientName}: {w.title}
                   </span>
                 </button>

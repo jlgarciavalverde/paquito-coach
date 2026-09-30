@@ -1,6 +1,14 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [1.13.0] — 2026-09-30 · Pulido para el MVP de Paquito
+### Cambiado
+- Hoy: «Lo último que han hecho» muestra los 6 más recientes con «Ver N más»; sesiones abiertas, las 5 últimas con «Ver todas».
+- Agenda en lista: los títulos largos ocupan dos líneas en el móvil en lugar de cortarse.
+- Guía de la app para Paquito (`docs/producto/mvp.md`) al día con todo lo que hace.
+### Seguridad
+- Limpieza automática cada 5 minutos de sesiones caducadas y enlaces de restablecer vencidos.
+
 ## [1.12.0] — 2026-09-30 · Robustez en la web y pruebas de componentes
 ### Añadido
 - **Cerrar las demás sesiones** (Ajustes o Perfil): para un móvil perdido o un ordenador ajeno.
