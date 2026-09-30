@@ -12,6 +12,8 @@ export const TEST_DATA_DIR = new URL("../.test-data/", import.meta.url).pathname
 /** Vacía la base de datos de test (las migraciones se vuelven a aplicar al construir la app). */
 export async function resetDb() {
   const sql = postgres(TEST_DB_URL, { onnotice: () => {} });
+  // Conexiones que haya dejado el fichero anterior (una tarea en segundo plano tras `app.close()`) bloquearían el borrado.
+  await sql`select pg_terminate_backend(pid) from pg_stat_activity where datname = current_database() and pid <> pg_backend_pid()`;
   await sql.unsafe("drop schema if exists public cascade; drop schema if exists drizzle cascade; create schema public;");
   await sql.end();
   resetThrottle();
