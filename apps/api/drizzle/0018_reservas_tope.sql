@@ -1,0 +1,1 @@
+ALTER TABLE "booking_settings" ADD COLUMN "max_future_bookings" integer DEFAULT 4 NOT NULL;

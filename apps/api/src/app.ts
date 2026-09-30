@@ -23,6 +23,8 @@ import type { AppConfig } from "./config";
 import { createDb, runMigrations, type DB } from "./db/client";
 import { HttpError, notFound } from "./lib/errors";
 import { redactUrl } from "./lib/redact";
+import { canonicalPath } from "./lib/path";
+import { clientIp } from "./lib/ip";
 import { gate } from "./lib/access";
 import { stripNul } from "./lib/sanitize";
 import { authenticate, cookieName } from "./lib/session";
@@ -47,7 +49,7 @@ import { registerLibrary } from "./routes/library";
 import { registerAi } from "./routes/ai";
 import { createGemini } from "./lib/ai/gemini";
 import { createCannedAi } from "./lib/ai/canned";
-import { registerPayments } from "./routes/payments";
+import { registerPayments, type Billing } from "./routes/payments";
 import { createFakeGateway, createStripeGateway, type PaymentGateway } from "./lib/stripe";
 import type { AiProvider } from "./lib/ai/provider";
 import { Hub } from "./lib/realtime";
@@ -55,7 +57,7 @@ import { createPushSender, type PushSender } from "./lib/push";
 import { seedExercises } from "./db/seed";
 import type { Ctx } from "./routes/ctx";
 
-export type App = FastifyInstance & { db: DB; push: PushSender; routeList: { method: string; url: string }[] };
+export type App = FastifyInstance & { db: DB; push: PushSender; routeList: { method: string; url: string }[]; billing: Billing };
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
@@ -74,6 +76,9 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
         : cfg.geminiApiKey
           ? createGemini({ apiKey: cfg.geminiApiKey, model: cfg.geminiModel, embedModel: cfg.geminiEmbedModel })
           : null;
+  // Los modos simulados son para pruebas: en producción no se arranca con ellos (salvo la IA de ejemplo de la demo).
+  if (process.env.NODE_ENV === "production" && (cfg.paymentsFake || (cfg.aiFake && !cfg.demoMode)))
+    throw new Error("PAYMENTS_FAKE/AI_FAKE no se pueden usar en producción");
   // Cobros: Stripe con claves; simulado en e2e; nunca en la demo.
   const fakeGateway = cfg.paymentsFake && !cfg.demoMode ? createFakeGateway() : null;
   const gateway =
@@ -85,6 +90,7 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
   const push = opts.push ?? createPushSender(db, { publicKey: cfg.vapidPublicKey, privateKey: cfg.vapidPrivateKey, subject: cfg.vapidSubject ?? "mailto:admin@example.com" });
 
   const routeList: { method: string; url: string }[] = [];
+  let billing!: Billing;
   const app = Fastify({
     logger:
       cfg.logLevel === "silent"
@@ -95,8 +101,8 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
             // Los tokens de invitación y de restablecer viajan en la URL: no deben quedar en los logs.
             serializers: { req: (r: { method: string; url: string }) => ({ method: r.method, url: redactUrl(r.url) }) },
           },
-    // Detrás del túnel de Cloudflare la IP real llega en CF-Connecting-IP (ver keyGenerator).
-    trustProxy: true,
+    // Solo detrás del túnel se confía en un salto de proxy; sin él, `X-Forwarded-For` no puede falsear la IP.
+    trustProxy: cfg.trustCloudflare ? (_addr: string, hop: number) => hop === 0 : false,
     bodyLimit: 256 * 1024,
     // El healthcheck de Docker no debe llenar los logs.
     logController: new LogController({ disableRequestLogging: (req) => req.url === "/health" }),
@@ -108,15 +114,7 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
 
-  const clientIp = (req: { headers: Record<string, unknown>; ip: string }) => {
-    const cf = req.headers["cf-connecting-ip"];
-    if (cfg.trustCloudflare && typeof cf === "string" && cf.length < 64) return cf;
-    try {
-      return req.ip;
-    } catch {
-      return "sin-ip"; // peticiones inyectadas sin socket (tests de WebSocket)
-    }
-  };
+  const ipOf = (req: { headers: Record<string, unknown>; ip: string }) => clientIp(cfg, req);
 
   await app.register(helmet, {
     contentSecurityPolicy: {
@@ -145,7 +143,7 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
   });
   // Datos privados: que ningún navegador ni proxy (Cloudflare) guarde respuestas de la API. Sin cámara ni micro para nadie.
   app.addHook("onSend", async (req, reply) => {
-    if (req.url.startsWith("/api/") && !reply.hasHeader("cache-control")) reply.header("Cache-Control", "no-store");
+    if (canonicalPath(req.url).startsWith("/api/") && !reply.hasHeader("cache-control")) reply.header("Cache-Control", "no-store");
     reply.header("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()");
   });
   await app.register(cookie);
@@ -155,9 +153,10 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
     global: true,
     max: cfg.globalRateLimit,
     timeWindow: "1 minute",
-    keyGenerator: clientIp,
+    keyGenerator: ipOf,
     // Solo la API cuenta: los archivos estáticos (decenas de trozos JS por página) agotarían el límite al cargar la app.
-    allowList: (req) => !req.url.startsWith("/api/"),
+    // Con la ruta decodificada: `/%61pi/...` también cuenta.
+    allowList: (req) => !canonicalPath(req.url).startsWith("/api/"),
     errorResponseBuilder: (_req, ctx) => ({
       statusCode: 429,
       error: "rate_limited",
@@ -200,9 +199,10 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
   // CSRF: además de SameSite=Lax, toda petición que modifica datos debe venir de un origen permitido.
   app.addHook("onRequest", async (req, reply) => {
     if (SAFE_METHODS.has(req.method)) return;
-    if (req.url.startsWith("/ws")) return;
+    // Exenciones por ruta resuelta (no por prefijo de la URL en bruto).
+    if (req.routeOptions.url === "/ws") return;
     // Stripe no manda Origin: el webhook se autentica con su firma.
-    if (req.url.startsWith("/api/v1/stripe/webhook")) return;
+    if (req.routeOptions.url === "/api/v1/stripe/webhook") return;
     const origin = req.headers.origin;
     if (!origin || !cfg.allowedOrigins.includes(origin)) {
       return reply.code(403).send({ error: "bad_origin", message: "Origen no permitido" });
@@ -212,11 +212,14 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
   // Demo pública: nada que suba archivos, cambie credenciales, cree cuentas reales o borre la demo para los demás.
   if (cfg.demoMode) {
     const BLOCKED: RegExp[] = [
-      /^\/api\/v1\/media/, /^\/api\/v1\/me\/delete/, /^\/api\/v1\/clients\/[^/]+\/(delete|reset-link)/, /^\/api\/v1\/auth\/(password|setup|register)/,
+      /^\/api\/v1\/media/, /^\/api\/v1\/me\/delete/, /^\/api\/v1\/clients\/[^/]+\/(delete|reset-link|archive|unarchive)/, /^\/api\/v1\/auth\/(password|setup|register)/,
       /^\/api\/v1\/push\/subscriptions/, /^\/api\/v1\/studio\/join-code\/rotate/, /^\/api\/v1\/ai\/documents/, /^\/api\/v1\/resources\/upload/,
+      /^\/api\/v1\/me\/sessions/, /^\/api\/v1\/studio\/booking/, /^\/api\/v1\/prices/, /^\/api\/v1\/me\/photos/, /^\/api\/v1\/clients\/[^/]+\/photos/,
     ];
     app.addHook("onRequest", async (req, reply) => {
-      if (req.method !== "GET" && BLOCKED.some((r) => r.test(req.url))) {
+      // Contra la ruta resuelta y la decodificada: sin rodeos con %XX.
+      const path = req.routeOptions.url ?? canonicalPath(req.url);
+      if (req.method !== "GET" && BLOCKED.some((r) => r.test(path) || r.test(canonicalPath(req.url)))) {
         return reply.code(403).send({ error: "demo", message: "Esto no está disponible en la demo." });
       }
     });
@@ -244,6 +247,8 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
 
   await app.register(
     async (api) => {
+      // Cobros primero: su servicio (Billing) lo usan el borrado de clientes y las reservas.
+      billing = registerPayments(api, ctx, { gateway, push });
       registerAuth(api, ctx);
       registerMe(api, ctx);
       registerClients(api, ctx);
@@ -251,7 +256,7 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
       registerTraining(api, ctx);
       registerNutrition(api, ctx);
       registerAgenda(api, ctx);
-      registerPrivacy(api, ctx);
+      registerPrivacy(api, ctx, { billing });
       registerProgress(api, ctx);
       registerQuestionnaire(api, ctx);
       registerAttention(api, ctx);
@@ -260,7 +265,6 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
       registerPacks(api, ctx);
       registerLibrary(api, ctx);
       registerAi(api, ctx, { ai });
-      const billing = registerPayments(api, ctx, { gateway, push });
       registerBooking(api, ctx, { push, billing });
       if (fakeGateway) {
         // Solo e2e: simula que Stripe confirma el pago de un checkout (evento firmado que entra por el webhook real).
@@ -325,5 +329,5 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
     await pg.end({ timeout: 5 });
   });
 
-  return Object.assign(app, { db, push, routeList }) as App;
+  return Object.assign(app, { db, push, routeList, billing }) as App;
 }

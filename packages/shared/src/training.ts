@@ -144,7 +144,11 @@ export const Workout = z.object({
 });
 export type Workout = z.infer<typeof Workout>;
 
-export const WorkoutRange = z.object({ from: DateOnly, to: DateOnly });
+/** Rango de días (como mucho ~3 meses: las pantallas piden semanas o meses, nunca años de golpe). */
+export const WorkoutRange = z
+  .object({ from: DateOnly, to: DateOnly })
+  .refine((r) => r.to >= r.from, { message: "El rango de fechas está al revés" })
+  .refine((r) => (Date.parse(`${r.to}T12:00:00Z`) - Date.parse(`${r.from}T12:00:00Z`)) / 86_400_000 <= 93, { message: "Rango de fechas demasiado largo (máximo tres meses)" });
 
 export const WorkoutPatch = z.object({
   date: DateOnly.optional(),

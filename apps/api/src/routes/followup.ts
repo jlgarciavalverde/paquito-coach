@@ -76,7 +76,11 @@ export function registerFollowup(app: FastifyInstance, { db, cfg }: Ctx) {
 
   async function addPhoto(user: AuthUser, clientId: string, b: ProgressPhotoInput) {
     // La foto tiene que haberse subido para este cliente (POST /media) y no estar ya usada.
-    const [m] = await db.select({ id: media.id }).from(media).where(and(eq(media.id, b.mediaId), eq(media.studioId, user.studioId), eq(media.clientId, clientId)));
+    // Un cliente solo puede registrar fotos subidas por él (no las que le mandó su entrenador por el chat).
+    const [m] = await db
+      .select({ id: media.id })
+      .from(media)
+      .where(and(eq(media.id, b.mediaId), eq(media.studioId, user.studioId), eq(media.clientId, clientId), ...(user.role === "client" ? [eq(media.uploaderId, user.id)] : [])));
     if (!m) throw new HttpError(400, "bad_media", "La foto no es válida");
     const [p] = await db.insert(progressPhotos).values({ studioId: user.studioId, clientId, mediaId: b.mediaId, date: b.date, pose: b.pose }).returning();
     return { id: p!.id, mediaId: p!.mediaId, date: p!.date, pose: p!.pose } as ProgressPhoto;

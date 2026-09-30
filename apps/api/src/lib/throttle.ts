@@ -7,10 +7,11 @@ const MAX_FAILS = 5;
 
 const fails = new Map<string, number[]>();
 
-export function isLocked(key: string, now = Date.now()) {
+export function isLocked(key: string, now = Date.now(), max = MAX_FAILS) {
   const list = (fails.get(key) ?? []).filter((t) => now - t < WINDOW_MS);
-  fails.set(key, list);
-  return list.length >= MAX_FAILS;
+  if (list.length) fails.set(key, list);
+  else fails.delete(key);
+  return list.length >= max;
 }
 
 /** Tope de correos vigilados a la vez: sin él, miles de correos inventados llenarían la memoria. */

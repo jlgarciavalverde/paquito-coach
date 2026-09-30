@@ -56,6 +56,7 @@ export async function authenticate(db: DB, token: string | undefined): Promise<A
     .limit(1);
   const row = rows[0];
   if (!row) return null;
+  if (row.c?.status === "archived") return null; // dado de baja por su entrenador
   const now = Date.now();
   if (now - row.s.lastUsedAt.getTime() > SESSION_TTL_MS || now - row.s.createdAt.getTime() > SESSION_MAX_AGE_MS) {
     await db.delete(sessions).where(eq(sessions.id, row.s.id));

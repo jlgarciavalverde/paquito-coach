@@ -38,12 +38,17 @@ export const CLIENT_ROUTES = new Set([
 
 export type Gate = "public" | "login" | "coach-only" | "ok";
 
-export function gate(method: string, route: string | undefined, user: { role: "coach" | "client" } | null): Gate {
+/** Lo único que puede hacer un cliente pendiente de aceptar (además de `/me`): su contraseña y los avisos. */
+const NOT_ACTIVE_OK = new Set(["POST /api/v1/auth/password/change", "GET /api/v1/push/key", "POST /api/v1/push/subscriptions", "DELETE /api/v1/push/subscriptions"]);
+
+export function gate(method: string, route: string | undefined, user: { role: "coach" | "client"; clientStatus?: string | null } | null): Gate {
   if (!route || !route.startsWith("/api/v1/")) return "ok"; // estáticos, /health, /ws y 404
   const k = `${method} ${route}`;
   if (PUBLIC_ROUTES.has(k)) return "public";
   if (!user) return "login";
   if (user.role === "coach") return "ok";
-  if (route === "/api/v1/me" || route.startsWith("/api/v1/me/") || CLIENT_ROUTES.has(k)) return "ok";
+  if (route === "/api/v1/me" || route.startsWith("/api/v1/me/")) return "ok";
+  // Un cliente pendiente de aceptar aún no ve la biblioteca, los entrenos ni los archivos del estudio.
+  if (CLIENT_ROUTES.has(k)) return user.clientStatus === "active" || NOT_ACTIVE_OK.has(k) ? "ok" : "coach-only";
   return "coach-only";
 }

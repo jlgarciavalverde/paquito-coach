@@ -33,6 +33,8 @@ import { typed, type Ctx } from "./ctx";
 
 const MAX_DOC = 20 * 1024 * 1024;
 const MAX_CHARS = 400_000;
+/** Trozos de documentos por estudio (la búsqueda los carga en memoria). */
+const MAX_CHUNKS = 4000;
 const newId = () => Math.random().toString(36).slice(2, 10);
 
 // ── Esquemas de salida para la IA (formato sencillo; luego se convierte a los de la app) ──
@@ -265,6 +267,9 @@ export function registerAi(app: FastifyInstance, { db, cfg }: Ctx, deps: { ai: A
         text = "";
       }
       const pieces = chunkText(text);
+      const [{ n: have } = { n: 0 }] = await db.select({ n: sql<number>`count(*)::int` }).from(aiChunks).where(eq(aiChunks.studioId, u.studioId));
+      if (have + pieces.length > MAX_CHUNKS)
+        throw new HttpError(413, "ai_full", "Ya tienes muchos documentos para la IA. Quita alguno antiguo antes de subir más.");
       if (pieces.length === 0) {
         const [d] = await db.insert(aiDocuments).values({ studioId: u.studioId, title, kind, status: "error", error: "No se ha podido leer texto (¿es un PDF escaneado como imagen?)", chars: 0 }).returning();
         return { id: d!.id, title, kind, status: "error" as const, error: d!.error, chunks: 0, chars: 0, createdAt: d!.createdAt.toISOString() };

@@ -1,3 +1,4 @@
+import { assertQuota } from "../lib/quota";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { createReadStream, existsSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -202,6 +203,7 @@ export function registerChat(app: FastifyInstance, { db }: Ctx, deps: ChatDeps) 
       const buf = await file.toBuffer().catch(() => {
         throw new HttpError(413, "too_large", "La foto pesa demasiado (máximo 8 MB)");
       });
+      await assertQuota(db, u.studioId, clientId, buf.length);
       const mime = sniffImage(buf);
       if (!mime) throw new HttpError(415, "bad_type", "Solo se admiten fotos JPG, PNG, WEBP o GIF");
       const [m] = await db.insert(media).values({ studioId: u.studioId, uploaderId: u.id, clientId, mime, size: buf.length }).returning();
@@ -218,13 +220,16 @@ export function registerChat(app: FastifyInstance, { db }: Ctx, deps: ChatDeps) 
     const [m] = await db.select().from(media).where(and(eq(media.id, id), eq(media.studioId, u.studioId)));
     // El cliente ve lo de su conversación/progreso y los PDF de la biblioteca compartidos con él.
     const clientMayView = async () =>
-      Boolean(u.clientId) && m!.clientId !== undefined && (m!.clientId === u.clientId || (m!.clientId === null && (await resourceVisible(db, u.studioId, u.clientId!, m!.id))));
+      Boolean(u.clientId) &&
+      u.clientStatus === "active" &&
+      (m!.clientId === u.clientId || (m!.clientId === null && (await resourceVisible(db, u.studioId, u.clientId!, m!.id))));
     if (!m || (u.role === "client" && !(await clientMayView()))) throw notFound("Foto");
     const path = join(deps.mediaDir, m.id);
     if (!existsSync(path)) throw notFound("Foto");
     return reply
       .header("Content-Type", m.mime)
-      .header("Cache-Control", "private, max-age=31536000, immutable")
+      // Privado y revalidando siempre: si se retira el acceso (material, cliente archivado), el navegador no lo conserva.
+      .header("Cache-Control", "private, no-cache")
       .header("Content-Disposition", "inline")
       .send(createReadStream(path));
   });
@@ -237,7 +242,8 @@ export function registerChat(app: FastifyInstance, { db }: Ctx, deps: ChatDeps) 
     await db
       .insert(pushSubscriptions)
       .values({ userId: u.id, endpoint: b.endpoint, p256dh: b.keys.p256dh, auth: b.keys.auth })
-      .onConflictDoUpdate({ target: pushSubscriptions.endpoint, set: { userId: u.id, p256dh: b.keys.p256dh, auth: b.keys.auth } });
+      // Si el endpoint ya es de otro usuario no se le quita (solo se actualizan las claves del propio).
+      .onConflictDoUpdate({ target: pushSubscriptions.endpoint, set: { p256dh: b.keys.p256dh, auth: b.keys.auth }, setWhere: eq(pushSubscriptions.userId, u.id) });
     return { ok: true as const };
   });
   api.delete("/push/subscriptions", { schema: { tags: ["mensajes"], body: z.object({ endpoint: z.string().max(1000) }), response: { 200: Ok } } }, async (req) => {

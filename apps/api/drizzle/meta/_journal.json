@@ -120,6 +120,20 @@
       "when": 1790715847949,
       "tag": "0016_cuotas",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1790797149460,
+      "tag": "0017_cobros_seguros",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1790797307092,
+      "tag": "0018_reservas_tope",
+      "breakpoints": true
     }
   ]
 }

@@ -1,3 +1,4 @@
+import { assertQuota } from "../lib/quota";
 import type { FastifyInstance } from "fastify";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -70,6 +71,7 @@ export function registerLibrary(app: FastifyInstance, { db, cfg }: Ctx) {
         throw new HttpError(413, "too_large", "El PDF pesa demasiado (máximo 15 MB)");
       });
       if (!isPdf(buf)) throw new HttpError(415, "bad_type", "Solo se admiten archivos PDF");
+      await assertQuota(db, u.studioId, null, buf.length);
       const [m] = await db.insert(media).values({ studioId: u.studioId, uploaderId: u.id, clientId: null, mime: "application/pdf", size: buf.length }).returning();
       await mkdir(mediaDir, { recursive: true });
       await writeFile(join(mediaDir, m!.id), buf, { mode: 0o600 });
@@ -101,9 +103,13 @@ export function registerLibrary(app: FastifyInstance, { db, cfg }: Ctx) {
     const u = requireCoach(req);
     const [r] = await db.delete(resources).where(and(eq(resources.id, req.params.id), eq(resources.studioId, u.studioId))).returning();
     if (!r) throw notFound("Material");
+    // El archivo solo se borra si ningún otro material lo usa.
     if (r.mediaId) {
-      await db.delete(media).where(eq(media.id, r.mediaId));
-      await rm(join(mediaDir, r.mediaId), { force: true });
+      const [other] = await db.select({ id: resources.id }).from(resources).where(eq(resources.mediaId, r.mediaId)).limit(1);
+      if (!other) {
+        await db.delete(media).where(eq(media.id, r.mediaId));
+        await rm(join(mediaDir, r.mediaId), { force: true });
+      }
     }
     return { ok: true as const };
   });

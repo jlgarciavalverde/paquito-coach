@@ -1,3 +1,4 @@
+import { madridClock } from "../lib/scheduler";
 import type { FastifyInstance } from "fastify";
 import { and, asc, desc, eq, gte, ilike, inArray, isNotNull, isNull, lte, or, sql, type SQL } from "drizzle-orm";
 import { z } from "zod";
@@ -61,6 +62,9 @@ const toWorkout = (w: WorkoutRow, clientName: string): Workout => ({
   completedAt: w.completedAt?.toISOString() ?? null,
   routineId: w.routineId,
 });
+
+/** Tope de entrenos que se crean en una sola petición. */
+const MAX_CREATE = 2000;
 
 export function registerTraining(app: FastifyInstance, { db, hub }: Ctx) {
   const api = typed(app);
@@ -226,6 +230,7 @@ export function registerTraining(app: FastifyInstance, { db, hub }: Ctx) {
         .where(and(eq(clientProfiles.studioId, u.studioId), inArray(clientProfiles.id, req.body.clientIds)));
       if (clients.length !== new Set(req.body.clientIds).size) throw notFound("Cliente");
       const dates = [...new Set(req.body.dates)].sort();
+      if (dates.length * clients.length > MAX_CREATE) throw new HttpError(400, "too_many", `Son demasiados entrenos de una vez (máximo ${MAX_CREATE}). Asígnalos por partes.`);
       const values = clients.flatMap((c) =>
         dates.map((date) => ({
           studioId: u.studioId,
@@ -310,6 +315,7 @@ export function registerTraining(app: FastifyInstance, { db, hub }: Ctx) {
   api.put("/workouts/:id/log", { schema: { tags: ["entrenamiento"], params: IdParams, body: WorkoutLog, response: { 200: Ok } } }, async (req) => {
     requireActiveClient(req);
     const { w } = await visibleWorkout(req, req.params.id);
+    if (w.status !== "planned") throw new HttpError(409, "workout_closed", "Este entreno ya está terminado. Reábrelo para cambiar las series.");
     const itemIds = new Set(w.blocks.flatMap((b) => b.items.map((i) => i.id)));
     const log = Object.fromEntries(Object.entries(req.body).filter(([k]) => itemIds.has(k)));
     await db.update(workouts).set({ log, updatedAt: new Date() }).where(eq(workouts.id, w.id));
@@ -319,6 +325,12 @@ export function registerTraining(app: FastifyInstance, { db, hub }: Ctx) {
   api.post("/workouts/:id/complete", { schema: { tags: ["entrenamiento"], params: IdParams, body: CompleteWorkoutInput, response: { 200: Workout } } }, async (req) => {
     requireActiveClient(req);
     const { w, name } = await visibleWorkout(req, req.params.id);
+    // Se puede adelantar (hacer el del jueves el miércoles, o la semana que viene si se va de viaje), no dar por hechos
+    // entrenos de dentro de meses.
+    const today = madridClock(new Date()).date;
+    const limit = new Date(`${today}T12:00:00Z`);
+    limit.setUTCDate(limit.getUTCDate() + 14);
+    if (w.date > limit.toISOString().slice(0, 10)) throw new HttpError(409, "too_early", "Este entreno es para más adelante; se podrá marcar cuando se acerque su día.");
     const [upd] = await db
       .update(workouts)
       .set({

@@ -40,7 +40,18 @@ export type ServerEvent =
   | { type: "message.read"; clientId: string; readerId: string; at: string }
   | { type: "workout.completed"; workoutId: string; clientId: string };
 
+/** Servicios de avisos de los navegadores: el servidor solo manda avisos a estos (nunca a direcciones internas). */
+export const PUSH_HOSTS = [/^fcm\.googleapis\.com$/, /^android\.googleapis\.com$/, /(^|\.)push\.services\.mozilla\.com$/, /(^|\.)push\.apple\.com$/, /(^|\.)notify\.windows\.com$/];
+export const isPushEndpoint = (u: string) => {
+  try {
+    const url = new URL(u);
+    return url.protocol === "https:" && !url.port && PUSH_HOSTS.some((h) => h.test(url.hostname));
+  } catch {
+    return false;
+  }
+};
+
 export const PushSubscriptionInput = z.object({
-  endpoint: z.string().url().max(1000),
+  endpoint: z.string().url().max(1000).refine(isPushEndpoint, "Servicio de avisos no reconocido"),
   keys: z.object({ p256dh: z.string().max(200), auth: z.string().max(100) }),
 });

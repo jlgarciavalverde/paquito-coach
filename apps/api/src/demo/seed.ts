@@ -30,6 +30,9 @@ const weekdayOf = (offsetDays: number) => new Date(`${madridDate(offsetDays)}T12
  * que usa su propia base de datos (nunca la de producción; ver ADR 0009).
  */
 export async function resetDemo(db: DB) {
+  // Seguro contra un DEMO_MODE puesto por error en la base de datos real: si hay alguna cuenta que no es de la demo, no se borra nada.
+  const [real] = (await db.execute(sql`select count(*)::int as n from users where email not like '%@demo.coach'`)) as unknown as [{ n: number }];
+  if (real && real.n > 0) throw new Error("resetDemo: esta base de datos tiene cuentas reales; no se reinicia");
   await db.execute(sql`delete from studios`); // cascada: todo lo del estudio
   const hash = await hashPassword(DEMO_PASSWORD);
   const [st] = await db.insert(studios).values({ name: "Estudio de demostración", joinCode: newJoinCode() }).returning();

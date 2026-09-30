@@ -376,7 +376,7 @@ export const progressPhotos = pgTable(
     pose: text("pose").notNull(),
     createdAt: createdAt(),
   },
-  (t) => [index("progress_photos_client_idx").on(t.clientId, t.date)],
+  (t) => [index("progress_photos_client_idx").on(t.clientId, t.date), uniqueIndex("progress_photos_media_uq").on(t.mediaId)],
 );
 
 export const metricDefs = pgTable("metric_defs", {
@@ -510,6 +510,7 @@ export const bookingSettings = pgTable("booking_settings", {
   location: text("location").notNull().default(""),
   windows: jsonb("windows").$type<BookingWindow[]>().notNull().default(sql`'[]'::jsonb`),
   payAtBooking: boolean("pay_at_booking").notNull().default(false),
+  maxFutureBookings: integer("max_future_bookings").notNull().default(4),
   sessionPriceId: uuid("session_price_id"),
   updatedAt: ts("updated_at").notNull().defaultNow(),
 });
@@ -590,7 +591,9 @@ export const payments = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
-    clientId: uuid("client_id").notNull().references(() => clientProfiles.id, { onDelete: "cascade" }),
+    /** Nulo si el cliente se borró: el cobro se conserva anonimizado (obligación fiscal), con el nombre de entonces. */
+    clientId: uuid("client_id").references(() => clientProfiles.id, { onDelete: "set null" }),
+    clientName: text("client_name").notNull().default(""),
     priceId: uuid("price_id").references(() => prices.id, { onDelete: "set null" }),
     kind: text("kind").$type<"pack" | "session" | "link" | "subscription">().notNull(),
     description: text("description").notNull(),
@@ -609,7 +612,14 @@ export const payments = pgTable(
     createdAt: createdAt(),
     paidAt: ts("paid_at"),
   },
-  (t) => [index("payments_studio_idx").on(t.studioId, t.createdAt), index("payments_client_idx").on(t.clientId), uniqueIndex("payments_checkout_uq").on(t.checkoutId)],
+  (t) => [
+    index("payments_studio_idx").on(t.studioId, t.createdAt),
+    index("payments_client_idx").on(t.clientId),
+    uniqueIndex("payments_checkout_uq").on(t.checkoutId),
+    // Una factura de cuota = un cobro (evita duplicados si llegan «pagada» y «fallida» a la vez).
+    uniqueIndex("payments_invoice_uq").on(t.stripeInvoiceId),
+    index("payments_intent_idx").on(t.paymentIntentId),
+  ],
 );
 
 /** Eventos de Stripe ya procesados (los webhooks pueden repetirse). */
@@ -636,5 +646,10 @@ export const subscriptions = pgTable(
     cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
     createdAt: createdAt(),
   },
-  (t) => [index("subscriptions_client_idx").on(t.clientId), uniqueIndex("subscriptions_stripe_uq").on(t.stripeSubscriptionId)],
+  (t) => [
+    index("subscriptions_client_idx").on(t.clientId),
+    uniqueIndex("subscriptions_stripe_uq").on(t.stripeSubscriptionId),
+    // Como mucho una cuota viva por cliente.
+    uniqueIndex("subscriptions_one_live_uq").on(t.clientId).where(sql`${t.status} in ('active', 'past_due')`),
+  ],
 );

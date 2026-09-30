@@ -3,7 +3,8 @@ import { gate } from "./access";
 
 describe("acceso denegado por defecto", () => {
   const coach = { role: "coach" as const };
-  const client = { role: "client" as const };
+  const client = { role: "client" as const, clientStatus: "active" };
+  const pending = { role: "client" as const, clientStatus: "pending" };
   it("sin sesión: solo lo público", () => {
     expect(gate("POST", "/api/v1/auth/login", null)).toBe("public");
     expect(gate("GET", "/api/v1/clients", null)).toBe("login");
@@ -15,6 +16,12 @@ describe("acceso denegado por defecto", () => {
     expect(gate("PATCH", "/api/v1/workouts/:id", client)).toBe("coach-only");
     expect(gate("GET", "/api/v1/clients", client)).toBe("coach-only");
     expect(gate("GET", "/api/v1/mentira", client)).toBe("coach-only");
+  });
+  it("cliente pendiente de aceptar: solo lo suyo, su contraseña y los avisos (ni biblioteca ni archivos del estudio)", () => {
+    expect(gate("GET", "/api/v1/me", pending)).toBe("ok");
+    expect(gate("POST", "/api/v1/auth/password/change", pending)).toBe("ok");
+    expect(gate("GET", "/api/v1/exercises", pending)).toBe("coach-only");
+    expect(gate("GET", "/api/v1/media/:id", pending)).toBe("coach-only");
   });
   it("entrenador: todo lo que pida permiso por dentro; estáticos y 404 no pasan por aquí", () => {
     expect(gate("GET", "/api/v1/clients", coach)).toBe("ok");

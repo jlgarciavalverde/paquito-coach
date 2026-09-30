@@ -1,3 +1,4 @@
+import type { Billing } from "./payments";
 import type { FastifyInstance, FastifyReply } from "fastify";
 import { rm } from "node:fs/promises";
 import { join } from "node:path";
@@ -17,7 +18,7 @@ import { typed, type Ctx } from "./ctx";
  * El borrado es en cascada desde la ficha del cliente (entrenos, planes, citas, mensajes, fotos) y además
  * se borran del disco los archivos de sus fotos.
  */
-export function registerPrivacy(app: FastifyInstance, { db, cfg }: Ctx) {
+export function registerPrivacy(app: FastifyInstance, { db, cfg }: Ctx, deps: { billing: Billing }) {
   const api = typed(app);
   const mediaDir = join(cfg.dataDir, "media");
 
@@ -59,6 +60,9 @@ export function registerPrivacy(app: FastifyInstance, { db, cfg }: Ctx) {
   async function deleteClient(db_: DB, clientId: string) {
     const files = await db_.select({ id: media.id }).from(media).where(eq(media.clientId, clientId));
     const [c] = await db_.select({ userId: clientProfiles.userId }).from(clientProfiles).where(eq(clientProfiles.id, clientId));
+    // Antes de borrar: fuera de Stripe (cancela sus cuotas: no se le vuelve a cobrar) y enlaces pendientes caducados.
+    // Sus cobros se conservan anonimizados (client_id queda nulo, con el nombre de entonces) por obligación fiscal.
+    await deps.billing.forgetClient(clientId);
     await db_.transaction(async (tx) => {
       await tx.delete(clientProfiles).where(eq(clientProfiles.id, clientId)); // cascada: entrenos, planes, citas, mensajes, fotos…
       if (c?.userId) await tx.delete(users).where(eq(users.id, c.userId)); // cascada: sesiones, suscripciones push, lecturas

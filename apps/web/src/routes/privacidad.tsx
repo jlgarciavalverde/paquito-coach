@@ -38,7 +38,7 @@ function Privacy() {
         <p>
           Tu entrenador puede usar un asistente de inteligencia artificial (Gemini, de Google) para preparar propuestas de entrenamiento o de dieta que luego revisa él. En ese caso se envían <strong>sin tu nombre ni tus datos de contacto</strong>: tu edad aproximada, tu objetivo, tus cargas recientes y, solo si él lo marca, tus lesiones o limitaciones. En su plan gratuito, Google puede usar lo que recibe para mejorar sus servicios.
         </p>
-        <p>Si pagas desde la app, el pago lo gestiona Stripe en su propia página: la app no ve ni guarda los datos de tu tarjeta; solo guarda el concepto, el importe y si está pagado.</p>
+        <p>Si pagas desde la app, el pago lo gestiona Stripe en su propia página: la app no ve ni guarda los datos de tu tarjeta; solo guarda el concepto, el importe y si está pagado. Si borras tu cuenta, tus cobros se conservan con tu nombre y sin nada más durante el plazo que exige la ley fiscal.</p>
 
         <H>Dónde están</H>
         <p>En un servidor propio en España, cifrados en tránsito (HTTPS). Se hace una copia de seguridad diaria que se conserva 14 días.</p>

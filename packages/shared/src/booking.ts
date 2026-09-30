@@ -23,9 +23,11 @@ export const BookingSettings = z.object({
   /** Si el cliente no tiene bono, pagar la sesión al reservar (tarifa de sesión suelta). */
   payAtBooking: z.boolean().default(false),
   sessionPriceId: z.string().uuid().nullable().default(null),
+  /** Reservas futuras que puede tener a la vez cada cliente (evita que alguien llene la agenda). */
+  maxFutureBookings: z.number().int().min(1).max(20).default(4),
 });
 export type BookingSettings = z.infer<typeof BookingSettings>;
-export const DEFAULT_BOOKING: BookingSettings = { enabled: false, slotMinutes: 60, capacity: 1, noticeHours: 12, cancelHours: 24, location: "", windows: [], payAtBooking: false, sessionPriceId: null };
+export const DEFAULT_BOOKING: BookingSettings = { enabled: false, slotMinutes: 60, capacity: 1, noticeHours: 12, cancelHours: 24, location: "", windows: [], payAtBooking: false, sessionPriceId: null, maxFutureBookings: 4 };
 
 export const BookingSlot = z.object({ startsAt: z.string(), endsAt: z.string(), free: z.number() });
 export type BookingSlot = z.infer<typeof BookingSlot>;

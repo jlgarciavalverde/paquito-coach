@@ -1,3 +1,4 @@
+import { clientIp } from "../lib/ip";
 import type { FastifyInstance } from "fastify";
 import { and, count, eq, gt, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -61,7 +62,10 @@ export function registerAuth(app: FastifyInstance, ctx: Ctx) {
   api.post("/auth/login", { schema: { tags: ["auth"], body: LoginInput, response: { 200: Me } }, config: strict }, async (req, reply) => {
     const { email, password } = req.body;
     const key = email.toLowerCase();
-    if (isLocked(key)) throw LOCKED;
+    // Dos frenos: 5 fallos por correo desde la misma IP y 20 por correo en total. Así un atacante desde su IP no deja
+    // bloqueada la cuenta de otra persona (que entra desde la suya), pero un ataque repartido sigue frenado.
+    const keyIp = `${key}|${clientIp(cfg, req)}`;
+    if (isLocked(keyIp, Date.now(), 5) || isLocked(key, Date.now(), 20)) throw LOCKED;
     const [user] = await db
       .select()
       .from(users)
@@ -70,10 +74,14 @@ export function registerAuth(app: FastifyInstance, ctx: Ctx) {
     // Se verifica siempre (con un hash de relleno si no existe) para no revelar por tiempo qué correos existen.
     const ok = await verifyPassword(password, user?.passwordHash);
     if (!user || !ok) {
+      recordFailure(keyIp);
       recordFailure(key);
       throw INVALID_LOGIN;
     }
-    clearFailures(key);
+    clearFailures(keyIp);
+    // Un cliente archivado no entra: su entrenador le ha dado de baja (sus datos se conservan).
+    const [cp] = await db.select({ status: clientProfiles.status }).from(clientProfiles).where(eq(clientProfiles.userId, user.id));
+    if (cp?.status === "archived") throw new HttpError(403, "archived", "Tu entrenador ha dado de baja tu cuenta. Si es un error, escríbele.");
     await createSession(db, cfg, reply, user.id, req.headers["user-agent"], req.cookies[cookieName(cfg)]);
     return meOf(db, user.id);
   });
@@ -145,6 +153,9 @@ export function registerAuth(app: FastifyInstance, ctx: Ctx) {
   api.post("/auth/register", { schema: { tags: ["auth"], body: RegisterInput, response: { 200: Me } }, config: strict }, async (req, reply) => {
     const b = req.body;
     assertStrong(b.password);
+    // Primero la invitación o el código (sin uno válido no se dice nada del correo: no se pueden sondear cuentas).
+    if (b.inviteToken) await findValidInvite(ctx, b.inviteToken);
+    else await findStudioByCode(ctx, b.joinCode!);
     if (await emailExists(db, b.email)) throw EMAIL_TAKEN;
     const passwordHash = await hashPassword(b.password);
 

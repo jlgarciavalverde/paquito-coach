@@ -38,7 +38,8 @@ export const PAYMENT_STATUS_LABEL: Record<PaymentStatus, string> = { pending: "P
 
 export const Payment = z.object({
   id: z.string(),
-  clientId: z.string(),
+  /** Nulo si el cliente se borró (el cobro se conserva por obligación fiscal). */
+  clientId: z.string().nullable(),
   clientName: z.string(),
   kind: PaymentKind,
   description: z.string(),

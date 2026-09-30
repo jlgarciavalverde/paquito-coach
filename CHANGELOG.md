@@ -1,6 +1,20 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [1.14.0] — 2026-09-30 · Auditoría profunda A1: seguridad y dinero
+### Seguridad
+- El límite de peticiones, el `no-store` y los bloqueos de la demo ya no se saltan con rutas codificadas (`/%61pi/…`); la IP no se falsea con `X-Forwarded-For`.
+- Clientes archivados sin acceso; los pendientes de aceptar solo ven su perfil. El freno de contraseñas es por correo+IP, así que un atacante no bloquea la cuenta de otro. El registro no revela si un correo tiene cuenta.
+- Avisos push solo hacia los servicios oficiales (sin URLs internas). Cuotas de almacenamiento, `.docx` «bomba», tope de documentos de IA, rangos de fechas y asignaciones con máximo.
+- La API no arranca en producción con pagos o IA de prueba; `resetDemo` se niega ante una base de datos con cuentas reales.
+### Corregido
+- **Cobros**: un pago ya no puede crear dos bonos; los enlaces viejos se anulan en Stripe al renovar o cancelar; sin facturas ni cuotas duplicadas; el pago de una reserva ya cancelada no la reactiva y avisa al entrenador (ADR 0015).
+- **Borrar un cliente** anula sus cuotas en Stripe y conserva sus cobros anonimizados; el CSV del gestor trae todos los cobros (antes, los últimos 500).
+- **Reservas**: muchas a la vez ya no bloquean la API; tope de reservas por cliente (ajustable, 4 por defecto) y el bono solo cubre si le quedan sesiones para todas.
+- Un entreno terminado no se edita sin «Reabrir»; no se completan entrenos de dentro de más de dos semanas.
+### Pruebas
+- `audit.a1.test.ts` y `security.bypass.test.ts`: una prueba por hallazgo, con carreras reales (20 reservas a la vez con 10 conexiones). API: 211 tests.
+
 ## [1.13.0] — 2026-09-30 · Pulido para el MVP de Paquito
 ### Cambiado
 - Hoy: «Lo último que han hecho» muestra los 6 más recientes con «Ver N más»; sesiones abiertas, las 5 últimas con «Ver todas».

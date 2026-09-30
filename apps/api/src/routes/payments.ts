@@ -1,5 +1,5 @@
 import type { FastifyInstance, FastifyReply } from "fastify";
-import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import type Stripe from "stripe";
 import { Payment, PaymentLinkInput, PaymentsInfo, Price, PriceInput, Subscription, fromCents, toCents } from "@coach/shared";
@@ -41,6 +41,10 @@ const addDays = (date: string, n: number) => {
  */
 export type Billing = {
   enabled: boolean;
+  /** Caduca en Stripe los cobros pendientes de estas citas (reserva cancelada o retención liberada). */
+  expireForAppointments: (appointmentIds: string[]) => Promise<void>;
+  /** Al borrar un cliente: se borra en Stripe (cancela sus cuotas) y se caducan sus enlaces pendientes. */
+  forgetClient: (clientId: string) => Promise<void>;
   startPayment: (o: { studioId: string; clientId: string; kind: "pack" | "session" | "link" | "subscription"; description: string; amountCents: number; priceId: string | null; createdBy: string; returnPath: string; appointmentId?: string }) => Promise<Payment>;
 };
 
@@ -63,8 +67,11 @@ export function registerPayments(app: FastifyInstance, { db, cfg }: Ctx, deps: {
     return gw;
   };
 
+  /** Cliente de Stripe del cliente (se crea la primera vez). Con cerrojo: dos cobros a la vez no crean dos clientes. */
   async function customerOf(clientId: string) {
-    const [c] = await db
+    return db.transaction(async (tx) => {
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${"stripe-customer:" + clientId}))`);
+      const [c] = await tx
       .select({ id: clientProfiles.id, name: clientProfiles.name, email: clientProfiles.email, customer: clientProfiles.stripeCustomerId, studioId: clientProfiles.studioId, userEmail: users.email })
       .from(clientProfiles)
       .leftJoin(users, eq(users.id, clientProfiles.userId))
@@ -72,8 +79,9 @@ export function registerPayments(app: FastifyInstance, { db, cfg }: Ctx, deps: {
     if (!c) throw notFound("Cliente");
     if (c.customer) return { ...c, customer: c.customer };
     const customer = await need().ensureCustomer({ name: c.name, email: c.userEmail ?? c.email, metadata: { clientId: c.id, studioId: c.studioId } });
-    await db.update(clientProfiles).set({ stripeCustomerId: customer }).where(eq(clientProfiles.id, c.id));
-    return { ...c, customer };
+      await tx.update(clientProfiles).set({ stripeCustomerId: customer }).where(eq(clientProfiles.id, c.id));
+      return { ...c, customer };
+    });
   }
 
   /** Crea el cobro pendiente y su página de pago. */
@@ -82,7 +90,7 @@ export function registerPayments(app: FastifyInstance, { db, cfg }: Ctx, deps: {
     const c = await customerOf(o.clientId);
     const [p] = await db
       .insert(payments)
-      .values({ studioId: o.studioId, clientId: o.clientId, priceId: o.priceId, kind: o.kind, description: o.description, amountCents: o.amountCents, createdBy: o.createdBy, appointmentId: o.appointmentId ?? null })
+      .values({ studioId: o.studioId, clientId: o.clientId, clientName: c.name, priceId: o.priceId, kind: o.kind, description: o.description, amountCents: o.amountCents, createdBy: o.createdBy, appointmentId: o.appointmentId ?? null })
       .returning();
     const back = `${cfg.publicUrl}${o.returnPath}`;
     const s = await g.createCheckout({
@@ -102,16 +110,17 @@ export function registerPayments(app: FastifyInstance, { db, cfg }: Ctx, deps: {
     if (!p) throw notFound("Tarifa");
     return p;
   }
-  const listPayments = async (where: ReturnType<typeof eq>) =>
+  const listPayments = async (where: ReturnType<typeof eq>, limit = 500) =>
     (
       await db
         .select({ p: payments, name: clientProfiles.name })
         .from(payments)
-        .innerJoin(clientProfiles, eq(clientProfiles.id, payments.clientId))
+        // leftJoin: los cobros de clientes borrados siguen apareciendo con el nombre que tenían.
+        .leftJoin(clientProfiles, eq(clientProfiles.id, payments.clientId))
         .where(where)
         .orderBy(desc(payments.createdAt))
-        .limit(500)
-    ).map(({ p, name }) => toPayment(p, name));
+        .limit(limit)
+    ).map(({ p, name }) => toPayment(p, name ?? (p.clientName || "Cliente borrado")));
 
   api.get("/payments/info", { schema: { tags: ["cobros"], response: { 200: PaymentsInfo } } }, async (req) => {
     requireUser(req);
@@ -185,7 +194,10 @@ export function registerPayments(app: FastifyInstance, { db, cfg }: Ctx, deps: {
     const [p] = await db.select().from(payments).where(and(eq(payments.id, req.params.id), eq(payments.studioId, u.studioId)));
     if (!p) throw notFound("Cobro");
     if (p.status !== "pending" && p.status !== "expired") throw new HttpError(409, "not_pending", "Este cobro ya no está pendiente");
-    await db.update(payments).set({ status: "expired" }).where(eq(payments.id, p.id));
+    if (!p.clientId) throw new HttpError(409, "client_deleted", "El cliente de este cobro ya no existe");
+    // El enlace viejo deja de valer en Stripe: así no se puede pagar dos veces.
+    if (p.checkoutId) await need().expireCheckout(p.checkoutId);
+    await db.update(payments).set({ status: "expired" }).where(and(eq(payments.id, p.id), eq(payments.status, p.status)));
     return startPayment({ studioId: u.studioId, clientId: p.clientId, kind: p.kind, description: p.description, amountCents: p.amountCents, priceId: p.priceId, createdBy: u.id, returnPath: "/app/pagos" });
   });
 
@@ -205,7 +217,8 @@ export function registerPayments(app: FastifyInstance, { db, cfg }: Ctx, deps: {
   /** CSV para el gestor (cobros pagados y devueltos). */
   app.get("/payments.csv", async (req, reply: FastifyReply) => {
     const u = requireCoach(req);
-    const rows = (await listPayments(eq(payments.studioId, u.studioId))).filter((p) => p.status === "paid" || p.status === "refunded");
+    // Todos los pagados y devueltos (sin tope): el gestor necesita el año completo.
+    const rows = await listPayments(and(eq(payments.studioId, u.studioId), sql`${payments.status} in ('paid', 'refunded')`)! as ReturnType<typeof eq>, 100_000);
     // Comillas escapadas y, si empieza por = + - @ (fórmula en Excel), se neutraliza con una comilla simple delante.
     const esc = (s: string) => `"${(/^[=+\-@\t\r]/.test(s) ? `'${s}` : s).replace(/"/g, '""')}"`;
     const csv = ["fecha;cliente;concepto;importe;estado"]
@@ -227,10 +240,15 @@ export function registerPayments(app: FastifyInstance, { db, cfg }: Ctx, deps: {
       const g = need();
       const p = await ownedPrice(c.studioId, req.body.priceId);
       if (!p.active || p.kind !== "subscription") throw notFound("Tarifa");
-      const [already] = await db.select().from(subscriptions).where(and(eq(subscriptions.clientId, c.clientId), sql`${subscriptions.status} in ('active', 'past_due')`));
-      if (already) throw new HttpError(409, "already_subscribed", "Ya tienes una cuota activa. Puedes gestionarla desde «Gestionar mi cuota».");
       const cust = await customerOf(c.clientId);
-      const [row] = await db.insert(subscriptions).values({ studioId: c.studioId, clientId: c.clientId, priceId: p.id, name: p.name, amountCents: p.amountCents }).returning();
+      const row = await db.transaction(async (tx) => {
+        // Cerrojo por cliente: dos altas a la vez no crean dos cuotas.
+        await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${"subscribe:" + c.clientId}))`);
+        const [already] = await tx.select().from(subscriptions).where(and(eq(subscriptions.clientId, c.clientId), sql`${subscriptions.status} in ('active', 'past_due')`));
+        if (already) throw new HttpError(409, "already_subscribed", "Ya tienes una cuota activa. Puedes gestionarla desde «Gestionar mi cuota».");
+        const [r] = await tx.insert(subscriptions).values({ studioId: c.studioId, clientId: c.clientId, priceId: p.id, name: p.name, amountCents: p.amountCents }).returning();
+        return r!;
+      });
       const back = `${cfg.publicUrl}/app/pagos`;
       const s = await g.createSubscriptionCheckout({
         customerId: cust.customer,
@@ -262,42 +280,69 @@ export function registerPayments(app: FastifyInstance, { db, cfg }: Ctx, deps: {
   });
 
   // ── Webhook de Stripe ──
+  /**
+   * Da un cobro por pagado UNA sola vez: el cambio de estado es condicional dentro de la transacción, así que dos eventos
+   * de Stripe (p. ej. `completed` y `async_payment_succeeded`) o dos entregas a la vez no crean dos bonos.
+   */
   async function markPaid(p: PayRow, paymentIntentId: string | null) {
-    if (p.status === "paid") return;
     const today = madridClock(new Date()).date;
-    await db.transaction(async (tx) => {
-      let packId: string | null = p.packId;
-      if (!packId && p.priceId) {
-        const [pr] = await tx.select().from(prices).where(eq(prices.id, p.priceId));
+    const outcome = await db.transaction(async (tx) => {
+      const [won] = await tx
+        .update(payments)
+        .set({ status: "paid", paidAt: new Date(), paymentIntentId })
+        .where(and(eq(payments.id, p.id), sql`${payments.status} not in ('paid', 'refunded')`))
+        .returning();
+      if (!won) return null;
+      if (!won.clientId) return { lostBooking: false }; // cliente borrado entretanto: queda el cobro
+      if (won.priceId && !won.packId) {
+        const [pr] = await tx.select().from(prices).where(eq(prices.id, won.priceId));
         if (pr && (pr.kind === "pack" || pr.kind === "session")) {
           const [pack] = await tx
             .insert(sessionPacks)
             .values({
-              studioId: p.studioId,
-              clientId: p.clientId,
+              studioId: won.studioId,
+              clientId: won.clientId,
               name: pr.name,
               total: pr.sessions ?? 1,
               expires: pr.validDays ? addDays(today, pr.validDays) : null,
-              price: fromCents(p.amountCents),
+              price: fromCents(won.amountCents),
               paid: true,
               notes: "Pagado en la app",
             })
             .returning();
-          packId = pack!.id;
+          await tx.update(payments).set({ packId: pack!.id }).where(eq(payments.id, won.id));
         }
       }
-      await tx.update(payments).set({ status: "paid", paidAt: new Date(), paymentIntentId, packId }).where(eq(payments.id, p.id));
-      // Reserva pagada: se confirma (si la retención había caducado, se recupera y el entrenador lo ve en la agenda).
-      if (p.appointmentId) await tx.update(appointments).set({ paymentStatus: "paid", holdExpiresAt: null, status: "scheduled" }).where(eq(appointments.id, p.appointmentId));
+      let lostBooking = false;
+      if (won.appointmentId) {
+        // Solo se confirma una reserva que sigue retenida; una cancelada o liberada no se reactiva (el hueco puede estar ocupado).
+        const [ok] = await tx
+          .update(appointments)
+          .set({ paymentStatus: "paid", holdExpiresAt: null })
+          .where(and(eq(appointments.id, won.appointmentId), eq(appointments.status, "scheduled"), eq(appointments.paymentStatus, "pending")))
+          .returning({ id: appointments.id });
+        lostBooking = !ok;
+      }
+      return { lostBooking };
     });
+    if (!outcome) return;
     if (paymentIntentId && gw) {
       const url = await gw.receiptUrl(paymentIntentId).catch(() => null);
       if (url) await db.update(payments).set({ receiptUrl: url }).where(eq(payments.id, p.id));
     }
-    const [c] = await db.select({ name: clientProfiles.name }).from(clientProfiles).where(eq(clientProfiles.id, p.clientId));
     const coaches = await db.select({ id: users.id }).from(users).where(and(eq(users.studioId, p.studioId), eq(users.role, "coach"), isNull(users.deletedAt)));
-    void deps.push(coaches.map((x) => x.id), { title: "Pago recibido", body: `${c?.name ?? "Un cliente"} ha pagado ${fromCents(p.amountCents).toLocaleString("es-ES")} € (${p.description}).`, url: "/coach/informes", tag: "pago" }).catch(() => {});
+    const who = p.clientName || "Un cliente";
+    const amount = `${fromCents(p.amountCents).toLocaleString("es-ES")} €`;
+    void deps
+      .push(
+        coaches.map((x) => x.id),
+        outcome.lostBooking
+          ? { title: "Pago de una reserva que ya no existe", body: `${who} ha pagado ${amount} de una reserva cancelada o caducada. Devuélvele el dinero en Stripe o prográmale la sesión.`, url: "/coach/calendario", tag: "pago" }
+          : { title: "Pago recibido", body: `${who} ha pagado ${amount} (${p.description}).`, url: "/coach/informes", tag: "pago" },
+      )
+      .catch(() => {});
   }
+
 
   async function handle(ev: Stripe.Event) {
     const byCheckout = async (s: Stripe.Checkout.Session) => {
@@ -351,18 +396,21 @@ export function registerPayments(app: FastifyInstance, { db, cfg }: Ctx, deps: {
         const [sub] = await db.select().from(subscriptions).where(eq(subscriptions.stripeSubscriptionId, sid));
         if (!sub) return;
         const paid = ev.type === "invoice.paid";
-        const [dup] = await db.select({ id: payments.id }).from(payments).where(eq(payments.stripeInvoiceId, String(inv.id)));
         const values = {
           status: (paid ? "paid" : "failed") as "paid" | "failed",
           paidAt: paid ? new Date() : null,
           receiptUrl: (inv.hosted_invoice_url as string | undefined) ?? null,
         };
-        if (dup) await db.update(payments).set(values).where(eq(payments.id, dup.id));
-        else
-          await db.insert(payments).values({
-            studioId: sub.studioId, clientId: sub.clientId, priceId: sub.priceId, kind: "subscription", description: `${sub.name} (cuota)`,
+        const [cn] = await db.select({ name: clientProfiles.name }).from(clientProfiles).where(eq(clientProfiles.id, sub.clientId));
+        // Una fila por factura (índice único): si llegan «pagada» y «fallida» a la vez no se duplica,
+        // y una factura ya pagada no vuelve a «fallida».
+        await db
+          .insert(payments)
+          .values({
+            studioId: sub.studioId, clientId: sub.clientId, clientName: cn?.name ?? "", priceId: sub.priceId, kind: "subscription", description: `${sub.name} (cuota)`,
             amountCents: Number(inv.amount_paid || inv.amount_due || sub.amountCents), subscriptionId: sub.id, stripeInvoiceId: String(inv.id), ...values,
-          });
+          })
+          .onConflictDoUpdate({ target: payments.stripeInvoiceId, set: values, setWhere: sql`${payments.status} <> 'paid'` });
         await db.update(subscriptions).set({ status: paid ? "active" : "past_due" }).where(eq(subscriptions.id, sub.id));
         if (!paid) {
           const coaches = await db.select({ id: users.id }).from(users).where(and(eq(users.studioId, sub.studioId), eq(users.role, "coach"), isNull(users.deletedAt)));
@@ -416,5 +464,26 @@ export function registerPayments(app: FastifyInstance, { db, cfg }: Ctx, deps: {
   });
 
 
-  return { enabled: Boolean(gw), startPayment };
+  async function expireForAppointments(appointmentIds: string[]) {
+    if (!appointmentIds.length) return;
+    const rows = await db
+      .update(payments)
+      .set({ status: "expired" })
+      .where(and(inArray(payments.appointmentId, appointmentIds), eq(payments.status, "pending")))
+      .returning({ checkoutId: payments.checkoutId });
+    if (gw) for (const r of rows) if (r.checkoutId) await gw.expireCheckout(r.checkoutId).catch(() => {});
+  }
+  async function forgetClient(clientId: string) {
+    const [c] = await db.select({ customer: clientProfiles.stripeCustomerId }).from(clientProfiles).where(eq(clientProfiles.id, clientId));
+    const pending = await db
+      .update(payments)
+      .set({ status: "expired" })
+      .where(and(eq(payments.clientId, clientId), eq(payments.status, "pending")))
+      .returning({ checkoutId: payments.checkoutId });
+    if (!gw) return;
+    for (const r of pending) if (r.checkoutId) await gw.expireCheckout(r.checkoutId);
+    if (c?.customer) await gw.deleteCustomer(c.customer);
+  }
+
+  return { enabled: Boolean(gw), startPayment, expireForAppointments, forgetClient };
 }

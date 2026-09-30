@@ -16,6 +16,1225 @@
     "schemas": {}
   },
   "paths": {
+    "/api/v1/payments/info": {
+      "get": {
+        "tags": [
+          "cobros"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabled": {
+                      "type": "boolean"
+                    },
+                    "testMode": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "enabled",
+                    "testMode"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/prices": {
+      "get": {
+        "tags": [
+          "cobros"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "pack",
+                          "session",
+                          "subscription"
+                        ]
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "sessions": {
+                        "nullable": true,
+                        "type": "number"
+                      },
+                      "validDays": {
+                        "nullable": true,
+                        "type": "number"
+                      },
+                      "active": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name",
+                      "kind",
+                      "amount",
+                      "sessions",
+                      "validDays",
+                      "active"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "cobros"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "pack",
+                      "session",
+                      "subscription"
+                    ]
+                  },
+                  "amount": {
+                    "type": "number",
+                    "minimum": 0.5,
+                    "maximum": 10000
+                  },
+                  "sessions": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 200
+                  },
+                  "validDays": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 730
+                  },
+                  "active": {
+                    "default": true,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "name",
+                  "kind",
+                  "amount"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "pack",
+                        "session",
+                        "subscription"
+                      ]
+                    },
+                    "amount": {
+                      "type": "number"
+                    },
+                    "sessions": {
+                      "nullable": true,
+                      "type": "number"
+                    },
+                    "validDays": {
+                      "nullable": true,
+                      "type": "number"
+                    },
+                    "active": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "kind",
+                    "amount",
+                    "sessions",
+                    "validDays",
+                    "active"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/prices/{id}": {
+      "put": {
+        "tags": [
+          "cobros"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "pack",
+                      "session",
+                      "subscription"
+                    ]
+                  },
+                  "amount": {
+                    "type": "number",
+                    "minimum": 0.5,
+                    "maximum": 10000
+                  },
+                  "sessions": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 200
+                  },
+                  "validDays": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 730
+                  },
+                  "active": {
+                    "default": true,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "name",
+                  "kind",
+                  "amount"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "pack",
+                        "session",
+                        "subscription"
+                      ]
+                    },
+                    "amount": {
+                      "type": "number"
+                    },
+                    "sessions": {
+                      "nullable": true,
+                      "type": "number"
+                    },
+                    "validDays": {
+                      "nullable": true,
+                      "type": "number"
+                    },
+                    "active": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "kind",
+                    "amount",
+                    "sessions",
+                    "validDays",
+                    "active"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/prices": {
+      "get": {
+        "tags": [
+          "cobros"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "pack",
+                          "session",
+                          "subscription"
+                        ]
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "sessions": {
+                        "nullable": true,
+                        "type": "number"
+                      },
+                      "validDays": {
+                        "nullable": true,
+                        "type": "number"
+                      },
+                      "active": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name",
+                      "kind",
+                      "amount",
+                      "sessions",
+                      "validDays",
+                      "active"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/checkout": {
+      "post": {
+        "tags": [
+          "cobros"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "priceId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  }
+                },
+                "required": [
+                  "priceId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "clientId": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "clientName": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "pack",
+                        "session",
+                        "link",
+                        "subscription"
+                      ]
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "amount": {
+                      "type": "number"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "pending",
+                        "paid",
+                        "failed",
+                        "refunded",
+                        "expired"
+                      ]
+                    },
+                    "url": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "receiptUrl": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "paidAt": {
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "clientId",
+                    "clientName",
+                    "kind",
+                    "description",
+                    "amount",
+                    "status",
+                    "url",
+                    "receiptUrl",
+                    "createdAt",
+                    "paidAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/clients/{id}/payment-links": {
+      "post": {
+        "tags": [
+          "cobros"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "priceId": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "description": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "amount": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "number",
+                    "minimum": 0.5,
+                    "maximum": 10000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "clientId": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "clientName": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "pack",
+                        "session",
+                        "link",
+                        "subscription"
+                      ]
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "amount": {
+                      "type": "number"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "pending",
+                        "paid",
+                        "failed",
+                        "refunded",
+                        "expired"
+                      ]
+                    },
+                    "url": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "receiptUrl": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "paidAt": {
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "clientId",
+                    "clientName",
+                    "kind",
+                    "description",
+                    "amount",
+                    "status",
+                    "url",
+                    "receiptUrl",
+                    "createdAt",
+                    "paidAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payments/{id}/renew": {
+      "post": {
+        "tags": [
+          "cobros"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "clientId": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "clientName": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "pack",
+                        "session",
+                        "link",
+                        "subscription"
+                      ]
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "amount": {
+                      "type": "number"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "pending",
+                        "paid",
+                        "failed",
+                        "refunded",
+                        "expired"
+                      ]
+                    },
+                    "url": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "receiptUrl": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "paidAt": {
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "clientId",
+                    "clientName",
+                    "kind",
+                    "description",
+                    "amount",
+                    "status",
+                    "url",
+                    "receiptUrl",
+                    "createdAt",
+                    "paidAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/clients/{id}/payments": {
+      "get": {
+        "tags": [
+          "cobros"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "clientId": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "clientName": {
+                        "type": "string"
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "pack",
+                          "session",
+                          "link",
+                          "subscription"
+                        ]
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "pending",
+                          "paid",
+                          "failed",
+                          "refunded",
+                          "expired"
+                        ]
+                      },
+                      "url": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "receiptUrl": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "createdAt": {
+                        "type": "string"
+                      },
+                      "paidAt": {
+                        "nullable": true,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "clientId",
+                      "clientName",
+                      "kind",
+                      "description",
+                      "amount",
+                      "status",
+                      "url",
+                      "receiptUrl",
+                      "createdAt",
+                      "paidAt"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/payments": {
+      "get": {
+        "tags": [
+          "cobros"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "clientId": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "clientName": {
+                        "type": "string"
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "pack",
+                          "session",
+                          "link",
+                          "subscription"
+                        ]
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "pending",
+                          "paid",
+                          "failed",
+                          "refunded",
+                          "expired"
+                        ]
+                      },
+                      "url": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "receiptUrl": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "createdAt": {
+                        "type": "string"
+                      },
+                      "paidAt": {
+                        "nullable": true,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "clientId",
+                      "clientName",
+                      "kind",
+                      "description",
+                      "amount",
+                      "status",
+                      "url",
+                      "receiptUrl",
+                      "createdAt",
+                      "paidAt"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payments": {
+      "get": {
+        "tags": [
+          "cobros"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "clientId": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "clientName": {
+                        "type": "string"
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "pack",
+                          "session",
+                          "link",
+                          "subscription"
+                        ]
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "pending",
+                          "paid",
+                          "failed",
+                          "refunded",
+                          "expired"
+                        ]
+                      },
+                      "url": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "receiptUrl": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "createdAt": {
+                        "type": "string"
+                      },
+                      "paidAt": {
+                        "nullable": true,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "clientId",
+                      "clientName",
+                      "kind",
+                      "description",
+                      "amount",
+                      "status",
+                      "url",
+                      "receiptUrl",
+                      "createdAt",
+                      "paidAt"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payments.csv": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/v1/me/subscribe": {
+      "post": {
+        "tags": [
+          "cobros"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "priceId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  }
+                },
+                "required": [
+                  "priceId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/billing-portal": {
+      "post": {
+        "tags": [
+          "cobros"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/subscriptions": {
+      "get": {
+        "tags": [
+          "cobros"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "clientId": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "incomplete",
+                          "active",
+                          "past_due",
+                          "canceled",
+                          "unpaid"
+                        ]
+                      },
+                      "currentPeriodEnd": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "cancelAtPeriodEnd": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "clientId",
+                      "name",
+                      "amount",
+                      "status",
+                      "currentPeriodEnd",
+                      "cancelAtPeriodEnd"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/clients/{id}/subscriptions": {
+      "get": {
+        "tags": [
+          "cobros"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "clientId": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "incomplete",
+                          "active",
+                          "past_due",
+                          "canceled",
+                          "unpaid"
+                        ]
+                      },
+                      "currentPeriodEnd": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "cancelAtPeriodEnd": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "clientId",
+                      "name",
+                      "amount",
+                      "status",
+                      "currentPeriodEnd",
+                      "cancelAtPeriodEnd"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/setup-status": {
       "get": {
         "tags": [
@@ -15416,1219 +16635,6 @@
         }
       }
     },
-    "/api/v1/payments/info": {
-      "get": {
-        "tags": [
-          "cobros"
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "enabled": {
-                      "type": "boolean"
-                    },
-                    "testMode": {
-                      "type": "boolean"
-                    }
-                  },
-                  "required": [
-                    "enabled",
-                    "testMode"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/prices": {
-      "get": {
-        "tags": [
-          "cobros"
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "name": {
-                        "type": "string"
-                      },
-                      "kind": {
-                        "type": "string",
-                        "enum": [
-                          "pack",
-                          "session",
-                          "subscription"
-                        ]
-                      },
-                      "amount": {
-                        "type": "number"
-                      },
-                      "sessions": {
-                        "nullable": true,
-                        "type": "number"
-                      },
-                      "validDays": {
-                        "nullable": true,
-                        "type": "number"
-                      },
-                      "active": {
-                        "type": "boolean"
-                      }
-                    },
-                    "required": [
-                      "id",
-                      "name",
-                      "kind",
-                      "amount",
-                      "sessions",
-                      "validDays",
-                      "active"
-                    ],
-                    "additionalProperties": false
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "cobros"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 80
-                  },
-                  "kind": {
-                    "type": "string",
-                    "enum": [
-                      "pack",
-                      "session",
-                      "subscription"
-                    ]
-                  },
-                  "amount": {
-                    "type": "number",
-                    "minimum": 0.5,
-                    "maximum": 10000
-                  },
-                  "sessions": {
-                    "default": null,
-                    "nullable": true,
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 200
-                  },
-                  "validDays": {
-                    "default": null,
-                    "nullable": true,
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 730
-                  },
-                  "active": {
-                    "default": true,
-                    "type": "boolean"
-                  }
-                },
-                "required": [
-                  "name",
-                  "kind",
-                  "amount"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "kind": {
-                      "type": "string",
-                      "enum": [
-                        "pack",
-                        "session",
-                        "subscription"
-                      ]
-                    },
-                    "amount": {
-                      "type": "number"
-                    },
-                    "sessions": {
-                      "nullable": true,
-                      "type": "number"
-                    },
-                    "validDays": {
-                      "nullable": true,
-                      "type": "number"
-                    },
-                    "active": {
-                      "type": "boolean"
-                    }
-                  },
-                  "required": [
-                    "id",
-                    "name",
-                    "kind",
-                    "amount",
-                    "sessions",
-                    "validDays",
-                    "active"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/prices/{id}": {
-      "put": {
-        "tags": [
-          "cobros"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 80
-                  },
-                  "kind": {
-                    "type": "string",
-                    "enum": [
-                      "pack",
-                      "session",
-                      "subscription"
-                    ]
-                  },
-                  "amount": {
-                    "type": "number",
-                    "minimum": 0.5,
-                    "maximum": 10000
-                  },
-                  "sessions": {
-                    "default": null,
-                    "nullable": true,
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 200
-                  },
-                  "validDays": {
-                    "default": null,
-                    "nullable": true,
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 730
-                  },
-                  "active": {
-                    "default": true,
-                    "type": "boolean"
-                  }
-                },
-                "required": [
-                  "name",
-                  "kind",
-                  "amount"
-                ]
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-            },
-            "in": "path",
-            "name": "id",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "kind": {
-                      "type": "string",
-                      "enum": [
-                        "pack",
-                        "session",
-                        "subscription"
-                      ]
-                    },
-                    "amount": {
-                      "type": "number"
-                    },
-                    "sessions": {
-                      "nullable": true,
-                      "type": "number"
-                    },
-                    "validDays": {
-                      "nullable": true,
-                      "type": "number"
-                    },
-                    "active": {
-                      "type": "boolean"
-                    }
-                  },
-                  "required": [
-                    "id",
-                    "name",
-                    "kind",
-                    "amount",
-                    "sessions",
-                    "validDays",
-                    "active"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/me/prices": {
-      "get": {
-        "tags": [
-          "cobros"
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "name": {
-                        "type": "string"
-                      },
-                      "kind": {
-                        "type": "string",
-                        "enum": [
-                          "pack",
-                          "session",
-                          "subscription"
-                        ]
-                      },
-                      "amount": {
-                        "type": "number"
-                      },
-                      "sessions": {
-                        "nullable": true,
-                        "type": "number"
-                      },
-                      "validDays": {
-                        "nullable": true,
-                        "type": "number"
-                      },
-                      "active": {
-                        "type": "boolean"
-                      }
-                    },
-                    "required": [
-                      "id",
-                      "name",
-                      "kind",
-                      "amount",
-                      "sessions",
-                      "validDays",
-                      "active"
-                    ],
-                    "additionalProperties": false
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/me/checkout": {
-      "post": {
-        "tags": [
-          "cobros"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "priceId": {
-                    "type": "string",
-                    "format": "uuid",
-                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-                  }
-                },
-                "required": [
-                  "priceId"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string"
-                    },
-                    "clientId": {
-                      "type": "string"
-                    },
-                    "clientName": {
-                      "type": "string"
-                    },
-                    "kind": {
-                      "type": "string",
-                      "enum": [
-                        "pack",
-                        "session",
-                        "link",
-                        "subscription"
-                      ]
-                    },
-                    "description": {
-                      "type": "string"
-                    },
-                    "amount": {
-                      "type": "number"
-                    },
-                    "status": {
-                      "type": "string",
-                      "enum": [
-                        "pending",
-                        "paid",
-                        "failed",
-                        "refunded",
-                        "expired"
-                      ]
-                    },
-                    "url": {
-                      "nullable": true,
-                      "type": "string"
-                    },
-                    "receiptUrl": {
-                      "nullable": true,
-                      "type": "string"
-                    },
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "paidAt": {
-                      "nullable": true,
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "id",
-                    "clientId",
-                    "clientName",
-                    "kind",
-                    "description",
-                    "amount",
-                    "status",
-                    "url",
-                    "receiptUrl",
-                    "createdAt",
-                    "paidAt"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/clients/{id}/payment-links": {
-      "post": {
-        "tags": [
-          "cobros"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "priceId": {
-                    "default": null,
-                    "nullable": true,
-                    "type": "string",
-                    "format": "uuid",
-                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-                  },
-                  "description": {
-                    "default": "",
-                    "type": "string",
-                    "maxLength": 120
-                  },
-                  "amount": {
-                    "default": null,
-                    "nullable": true,
-                    "type": "number",
-                    "minimum": 0.5,
-                    "maximum": 10000
-                  }
-                }
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-            },
-            "in": "path",
-            "name": "id",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string"
-                    },
-                    "clientId": {
-                      "type": "string"
-                    },
-                    "clientName": {
-                      "type": "string"
-                    },
-                    "kind": {
-                      "type": "string",
-                      "enum": [
-                        "pack",
-                        "session",
-                        "link",
-                        "subscription"
-                      ]
-                    },
-                    "description": {
-                      "type": "string"
-                    },
-                    "amount": {
-                      "type": "number"
-                    },
-                    "status": {
-                      "type": "string",
-                      "enum": [
-                        "pending",
-                        "paid",
-                        "failed",
-                        "refunded",
-                        "expired"
-                      ]
-                    },
-                    "url": {
-                      "nullable": true,
-                      "type": "string"
-                    },
-                    "receiptUrl": {
-                      "nullable": true,
-                      "type": "string"
-                    },
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "paidAt": {
-                      "nullable": true,
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "id",
-                    "clientId",
-                    "clientName",
-                    "kind",
-                    "description",
-                    "amount",
-                    "status",
-                    "url",
-                    "receiptUrl",
-                    "createdAt",
-                    "paidAt"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/payments/{id}/renew": {
-      "post": {
-        "tags": [
-          "cobros"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-            },
-            "in": "path",
-            "name": "id",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string"
-                    },
-                    "clientId": {
-                      "type": "string"
-                    },
-                    "clientName": {
-                      "type": "string"
-                    },
-                    "kind": {
-                      "type": "string",
-                      "enum": [
-                        "pack",
-                        "session",
-                        "link",
-                        "subscription"
-                      ]
-                    },
-                    "description": {
-                      "type": "string"
-                    },
-                    "amount": {
-                      "type": "number"
-                    },
-                    "status": {
-                      "type": "string",
-                      "enum": [
-                        "pending",
-                        "paid",
-                        "failed",
-                        "refunded",
-                        "expired"
-                      ]
-                    },
-                    "url": {
-                      "nullable": true,
-                      "type": "string"
-                    },
-                    "receiptUrl": {
-                      "nullable": true,
-                      "type": "string"
-                    },
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "paidAt": {
-                      "nullable": true,
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "id",
-                    "clientId",
-                    "clientName",
-                    "kind",
-                    "description",
-                    "amount",
-                    "status",
-                    "url",
-                    "receiptUrl",
-                    "createdAt",
-                    "paidAt"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/clients/{id}/payments": {
-      "get": {
-        "tags": [
-          "cobros"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-            },
-            "in": "path",
-            "name": "id",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "clientId": {
-                        "type": "string"
-                      },
-                      "clientName": {
-                        "type": "string"
-                      },
-                      "kind": {
-                        "type": "string",
-                        "enum": [
-                          "pack",
-                          "session",
-                          "link",
-                          "subscription"
-                        ]
-                      },
-                      "description": {
-                        "type": "string"
-                      },
-                      "amount": {
-                        "type": "number"
-                      },
-                      "status": {
-                        "type": "string",
-                        "enum": [
-                          "pending",
-                          "paid",
-                          "failed",
-                          "refunded",
-                          "expired"
-                        ]
-                      },
-                      "url": {
-                        "nullable": true,
-                        "type": "string"
-                      },
-                      "receiptUrl": {
-                        "nullable": true,
-                        "type": "string"
-                      },
-                      "createdAt": {
-                        "type": "string"
-                      },
-                      "paidAt": {
-                        "nullable": true,
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "id",
-                      "clientId",
-                      "clientName",
-                      "kind",
-                      "description",
-                      "amount",
-                      "status",
-                      "url",
-                      "receiptUrl",
-                      "createdAt",
-                      "paidAt"
-                    ],
-                    "additionalProperties": false
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/me/payments": {
-      "get": {
-        "tags": [
-          "cobros"
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "clientId": {
-                        "type": "string"
-                      },
-                      "clientName": {
-                        "type": "string"
-                      },
-                      "kind": {
-                        "type": "string",
-                        "enum": [
-                          "pack",
-                          "session",
-                          "link",
-                          "subscription"
-                        ]
-                      },
-                      "description": {
-                        "type": "string"
-                      },
-                      "amount": {
-                        "type": "number"
-                      },
-                      "status": {
-                        "type": "string",
-                        "enum": [
-                          "pending",
-                          "paid",
-                          "failed",
-                          "refunded",
-                          "expired"
-                        ]
-                      },
-                      "url": {
-                        "nullable": true,
-                        "type": "string"
-                      },
-                      "receiptUrl": {
-                        "nullable": true,
-                        "type": "string"
-                      },
-                      "createdAt": {
-                        "type": "string"
-                      },
-                      "paidAt": {
-                        "nullable": true,
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "id",
-                      "clientId",
-                      "clientName",
-                      "kind",
-                      "description",
-                      "amount",
-                      "status",
-                      "url",
-                      "receiptUrl",
-                      "createdAt",
-                      "paidAt"
-                    ],
-                    "additionalProperties": false
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/payments": {
-      "get": {
-        "tags": [
-          "cobros"
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "clientId": {
-                        "type": "string"
-                      },
-                      "clientName": {
-                        "type": "string"
-                      },
-                      "kind": {
-                        "type": "string",
-                        "enum": [
-                          "pack",
-                          "session",
-                          "link",
-                          "subscription"
-                        ]
-                      },
-                      "description": {
-                        "type": "string"
-                      },
-                      "amount": {
-                        "type": "number"
-                      },
-                      "status": {
-                        "type": "string",
-                        "enum": [
-                          "pending",
-                          "paid",
-                          "failed",
-                          "refunded",
-                          "expired"
-                        ]
-                      },
-                      "url": {
-                        "nullable": true,
-                        "type": "string"
-                      },
-                      "receiptUrl": {
-                        "nullable": true,
-                        "type": "string"
-                      },
-                      "createdAt": {
-                        "type": "string"
-                      },
-                      "paidAt": {
-                        "nullable": true,
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "id",
-                      "clientId",
-                      "clientName",
-                      "kind",
-                      "description",
-                      "amount",
-                      "status",
-                      "url",
-                      "receiptUrl",
-                      "createdAt",
-                      "paidAt"
-                    ],
-                    "additionalProperties": false
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/payments.csv": {
-      "get": {
-        "responses": {
-          "200": {
-            "description": "Default Response"
-          }
-        }
-      }
-    },
-    "/api/v1/me/subscribe": {
-      "post": {
-        "tags": [
-          "cobros"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "priceId": {
-                    "type": "string",
-                    "format": "uuid",
-                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-                  }
-                },
-                "required": [
-                  "priceId"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "url": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "url"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/me/billing-portal": {
-      "post": {
-        "tags": [
-          "cobros"
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "url": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "url"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/me/subscriptions": {
-      "get": {
-        "tags": [
-          "cobros"
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "clientId": {
-                        "type": "string"
-                      },
-                      "name": {
-                        "type": "string"
-                      },
-                      "amount": {
-                        "type": "number"
-                      },
-                      "status": {
-                        "type": "string",
-                        "enum": [
-                          "incomplete",
-                          "active",
-                          "past_due",
-                          "canceled",
-                          "unpaid"
-                        ]
-                      },
-                      "currentPeriodEnd": {
-                        "nullable": true,
-                        "type": "string"
-                      },
-                      "cancelAtPeriodEnd": {
-                        "type": "boolean"
-                      }
-                    },
-                    "required": [
-                      "id",
-                      "clientId",
-                      "name",
-                      "amount",
-                      "status",
-                      "currentPeriodEnd",
-                      "cancelAtPeriodEnd"
-                    ],
-                    "additionalProperties": false
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/clients/{id}/subscriptions": {
-      "get": {
-        "tags": [
-          "cobros"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-            },
-            "in": "path",
-            "name": "id",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "clientId": {
-                        "type": "string"
-                      },
-                      "name": {
-                        "type": "string"
-                      },
-                      "amount": {
-                        "type": "number"
-                      },
-                      "status": {
-                        "type": "string",
-                        "enum": [
-                          "incomplete",
-                          "active",
-                          "past_due",
-                          "canceled",
-                          "unpaid"
-                        ]
-                      },
-                      "currentPeriodEnd": {
-                        "nullable": true,
-                        "type": "string"
-                      },
-                      "cancelAtPeriodEnd": {
-                        "type": "boolean"
-                      }
-                    },
-                    "required": [
-                      "id",
-                      "clientId",
-                      "name",
-                      "amount",
-                      "status",
-                      "currentPeriodEnd",
-                      "cancelAtPeriodEnd"
-                    ],
-                    "additionalProperties": false
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/studio/booking": {
       "get": {
         "tags": [
@@ -16708,6 +16714,12 @@
                       "type": "string",
                       "format": "uuid",
                       "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "maxFutureBookings": {
+                      "default": 4,
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 20
                     }
                   },
                   "required": [
@@ -16719,7 +16731,8 @@
                     "location",
                     "windows",
                     "payAtBooking",
-                    "sessionPriceId"
+                    "sessionPriceId",
+                    "maxFutureBookings"
                   ],
                   "additionalProperties": false
                 }
@@ -16804,6 +16817,12 @@
                     "type": "string",
                     "format": "uuid",
                     "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "maxFutureBookings": {
+                    "default": 4,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 20
                   }
                 },
                 "required": [
@@ -16892,6 +16911,12 @@
                       "type": "string",
                       "format": "uuid",
                       "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "maxFutureBookings": {
+                      "default": 4,
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 20
                     }
                   },
                   "required": [
@@ -16903,7 +16928,8 @@
                     "location",
                     "windows",
                     "payAtBooking",
-                    "sessionPriceId"
+                    "sessionPriceId",
+                    "maxFutureBookings"
                   ],
                   "additionalProperties": false
                 }

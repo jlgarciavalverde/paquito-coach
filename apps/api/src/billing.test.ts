@@ -76,8 +76,8 @@ describe("pagar al reservar", () => {
     await webhook({ type: "checkout.session.completed", data: { object: { id: co.id, object: "checkout.session", mode: "payment", amount_total: 3500, currency: "eur", payment_status: "paid", payment_intent: "pi_b", metadata: co.metadata } } });
     const [row] = await app.db.execute<{ payment_status: string }>(sql`select payment_status from appointments where id = ${b.body.id}`);
     expect(row!.payment_status).toBe("paid");
-    // Con la sesión pagada ya tiene «bono» de 1: no se le vuelve a cobrar
-    expect((await lucia.get(`/api/v1/me/booking?from=${day()}&days=1`)).body.payAmount).toBeNull();
+    // La sesión pagada (bono de 1) cubre la reserva que ya tiene: una reserva MÁS se vuelve a pagar
+    expect((await lucia.get(`/api/v1/me/booking?from=${day()}&days=1`)).body.payAmount).toBe(35);
 
     // Pepe reserva las 10 y no paga: al caducar la retención se libera
     const at10 = madridInstant(day(), 600).toISOString();

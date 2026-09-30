@@ -93,6 +93,7 @@ export function registerPrograms(app: FastifyInstance, { db }: Ctx) {
         .where(and(eq(clientProfiles.studioId, u.studioId), inArray(clientProfiles.id, req.body.clientIds)));
       if (clients.length !== new Set(req.body.clientIds).size) throw notFound("Cliente");
       const dates = programDates(req.body.start, p.slots);
+      if (dates.length * clients.length > 2000) throw new HttpError(400, "too_many", "Son demasiados entrenos de una vez (máximo 2.000). Aplícalo a menos clientes cada vez.");
       if (dates.length === 0) throw new HttpError(400, "empty", "El programa no tiene días a partir de esa fecha");
       let created = 0;
       await db.transaction(async (tx) => {

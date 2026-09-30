@@ -31,15 +31,16 @@ export function registerBooking(app: FastifyInstance, { db }: Ctx, deps: { push:
   async function settingsOf(studioId: string): Promise<BookingSettings> {
     const [s] = await db.select().from(bookingSettings).where(eq(bookingSettings.studioId, studioId));
     if (!s) return DEFAULT_BOOKING;
-    return { enabled: s.enabled, slotMinutes: s.slotMinutes, capacity: s.capacity, noticeHours: s.noticeHours, cancelHours: s.cancelHours, location: s.location, windows: s.windows, payAtBooking: s.payAtBooking, sessionPriceId: s.sessionPriceId };
+    return { enabled: s.enabled, slotMinutes: s.slotMinutes, capacity: s.capacity, noticeHours: s.noticeHours, cancelHours: s.cancelHours, location: s.location, windows: s.windows, payAtBooking: s.payAtBooking, sessionPriceId: s.sessionPriceId, maxFutureBookings: s.maxFutureBookings };
   }
 
   /** Huecos libres de `from` durante `days` días para `clientId` (sin los que ya tiene él ocupados). */
-  async function freeSlots(studioId: string, clientId: string, s: BookingSettings, from: string, days: number): Promise<BookingSlot[]> {
+  /** `q`: la transacción si la hay (dentro del cerrojo NO se pide otra conexión: con muchas reservas a la vez se agotaría el pool). */
+  async function freeSlots(studioId: string, clientId: string, s: BookingSettings, from: string, days: number, q: Pick<typeof db, "select"> = db): Promise<BookingSlot[]> {
     if (!s.enabled || s.windows.length === 0) return [];
     const start = madridInstant(from, 0);
     const end = madridInstant(addDays(from, days), 0);
-    const busy = await db
+    const busy = await q
       .select({ clientId: appointments.clientId, startsAt: appointments.startsAt, endsAt: appointments.endsAt })
       .from(appointments)
       .where(
@@ -69,11 +70,31 @@ export function registerBooking(app: FastifyInstance, { db }: Ctx, deps: { push:
     return out;
   }
 
-  /** Tarifa a pagar al reservar, si el entrenador cobra al reservar y el cliente no tiene bono utilizable. */
+  /** Reservas futuras vivas del cliente (no canceladas y, si están retenidas para pagar, sin caducar). */
+  async function futureBookings(clientId: string, q: Pick<typeof db, "select"> = db) {
+    const [r] = await q
+      .select({ n: sql<number>`count(*)::int` })
+      .from(appointments)
+      .where(
+        and(
+          eq(appointments.clientId, clientId),
+          ne(appointments.status, "cancelled"),
+          gt(appointments.startsAt, sql`now()`),
+          sql`(${appointments.paymentStatus} is distinct from 'pending' or ${appointments.holdExpiresAt} > now())`,
+        ),
+      );
+    return r?.n ?? 0;
+  }
+
+  /**
+   * Tarifa a pagar al reservar: si el entrenador cobra al reservar y el bono del cliente no cubre esta reserva además de las
+   * que ya tiene (las sesiones del bono se descuentan al hacerlas, así que se reservan contra lo que queda).
+   */
   async function payFor(studioId: string, clientId: string, s: BookingSettings) {
     if (!s.payAtBooking || !s.sessionPriceId || !deps.billing.enabled) return null;
     const today = madridClock(new Date()).date;
-    if ((await packsOf(db, clientId)).some((p) => packUsable(p, today))) return null;
+    const left = (await packsOf(db, clientId)).filter((p) => packUsable(p, today)).reduce((n, p) => n + p.remaining, 0);
+    if (left >= (await futureBookings(clientId)) + 1) return null;
     const [p] = await db.select().from(prices).where(and(eq(prices.id, s.sessionPriceId), eq(prices.studioId, studioId), eq(prices.active, true)));
     return p ?? null;
   }
@@ -108,7 +129,9 @@ export function registerBooking(app: FastifyInstance, { db }: Ctx, deps: { push:
       const row = await db.transaction(async (tx) => {
         // Un cerrojo por estudio: dos reservas a la vez no pueden quedarse con la última plaza.
         await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${c.studioId}))`);
-        const slot = (await freeSlots(c.studioId, c.clientId, s, date, 1)).find((x) => new Date(x.startsAt).getTime() === at.getTime());
+        if ((await futureBookings(c.clientId, tx)) >= s.maxFutureBookings)
+          throw new HttpError(409, "too_many_bookings", `Ya tienes ${s.maxFutureBookings} sesiones reservadas. Cuando hagas alguna podrás reservar más.`);
+        const slot = (await freeSlots(c.studioId, c.clientId, s, date, 1, tx)).find((x) => new Date(x.startsAt).getTime() === at.getTime());
         if (!slot) throw new HttpError(409, "slot_taken", "Ese hueco ya no está libre. Elige otro.");
         const [a] = await tx
           .insert(appointments)
@@ -146,6 +169,8 @@ export function registerBooking(app: FastifyInstance, { db }: Ctx, deps: { push:
     if (a.startsAt.getTime() - Date.now() < s.cancelHours * 3600_000)
       throw new HttpError(409, "too_late", `Solo se puede cancelar con ${s.cancelHours} horas de antelación. Escribe a tu entrenador.`);
     await db.update(appointments).set({ status: "cancelled", updatedAt: new Date() }).where(eq(appointments.id, a.id));
+    // Si estaba pendiente de pago, el enlace deja de valer (si no, podría pagarse una reserva que ya no existe).
+    await deps.billing.expireForAppointments([a.id]);
     const coaches = await db.select({ id: users.id }).from(users).where(and(eq(users.studioId, c.studioId), eq(users.role, "coach")));
     const when = new Intl.DateTimeFormat("es-ES", { timeZone: "Europe/Madrid", weekday: "long", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(a.startsAt);
     void deps.push(coaches.map((x) => x.id), { title: "Cita cancelada", body: `${c.name} ha cancelado la del ${when}.`, url: "/coach/calendario", tag: "reserva" }).catch(() => {});

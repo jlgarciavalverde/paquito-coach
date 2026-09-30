@@ -16,6 +16,10 @@ export interface PaymentGateway {
   createSubscriptionCheckout(o: { customerId: string; description: string; amountCents: number; successUrl: string; cancelUrl: string; metadata: Record<string, string> }): Promise<{ id: string; url: string }>;
   /** Portal de Stripe para que el cliente cambie la tarjeta o se dé de baja. */
   portalUrl(customerId: string, returnUrl: string): Promise<string>;
+  /** Caduca una página de pago para que ya no se pueda pagar (enlace renovado, reserva cancelada o liberada). */
+  expireCheckout(checkoutId: string): Promise<void>;
+  /** Borra el cliente en Stripe: cancela sus suscripciones y ya no se le puede cobrar (al borrar la ficha). */
+  deleteCustomer(customerId: string): Promise<void>;
   /** Recibo de un pago (URL de Stripe), si existe. */
   receiptUrl(paymentIntentId: string): Promise<string | null>;
   /** Verifica la firma del webhook y devuelve el evento. Lanza si no es válida. */
@@ -62,6 +66,21 @@ export function createStripeGateway(o: { secretKey: string; webhookSecret: strin
       const s = await stripe.billingPortal.sessions.create({ customer: customerId, return_url: returnUrl, locale: "es" });
       return s.url;
     },
+    async expireCheckout(checkoutId) {
+      try {
+        await stripe.checkout.sessions.expire(checkoutId);
+      } catch (e) {
+        // Ya caducada, pagada o inexistente: no hay nada que caducar.
+        if ((e as { type?: string }).type !== "StripeInvalidRequestError") throw e;
+      }
+    },
+    async deleteCustomer(customerId) {
+      try {
+        await stripe.customers.del(customerId);
+      } catch (e) {
+        if ((e as { type?: string }).type !== "StripeInvalidRequestError") throw e;
+      }
+    },
     async receiptUrl(paymentIntentId) {
       const pi = await stripe.paymentIntents.retrieve(paymentIntentId, { expand: ["latest_charge"] });
       const ch = pi.latest_charge as Stripe.Charge | null;
@@ -74,13 +93,28 @@ export function createStripeGateway(o: { secretKey: string; webhookSecret: strin
 }
 
 /** Pasarela falsa para tests y e2e: no llama a Stripe, pero verifica las firmas como la real. */
-export function createFakeGateway(webhookSecret = "whsec_test_fake"): PaymentGateway & { sign(payload: string): string; checkouts: { id: string; metadata: Record<string, string>; amountCents: number }[] } {
+export function createFakeGateway(webhookSecret = "whsec_test_fake"): PaymentGateway & {
+  sign(payload: string): string;
+  checkouts: { id: string; metadata: Record<string, string>; amountCents: number }[];
+  expired: string[];
+  deletedCustomers: string[];
+} {
   const stripe = new Stripe("sk_test_fake");
   const checkouts: { id: string; metadata: Record<string, string>; amountCents: number }[] = [];
+  const expired: string[] = [];
+  const deletedCustomers: string[] = [];
   let n = 0;
   return {
     testMode: true,
     checkouts,
+    expired,
+    deletedCustomers,
+    async expireCheckout(id) {
+      expired.push(id);
+    },
+    async deleteCustomer(id) {
+      deletedCustomers.push(id);
+    },
     async ensureCustomer() {
       return `cus_fake_${++n}`;
     },

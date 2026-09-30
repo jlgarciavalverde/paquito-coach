@@ -67,7 +67,7 @@ function Form({ initial }: { initial: BookingSettings }) {
               Añadir franja
             </Button>
           </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
             <Select label="Cada sesión" value={String(f.slotMinutes)} onChange={(e) => setF({ ...f, slotMinutes: Number(e.target.value) })}>
               {[30, 45, 60, 75, 90].map((m) => (
                 <option key={m} value={m}>
@@ -78,6 +78,15 @@ function Form({ initial }: { initial: BookingSettings }) {
             <TextField label="Plazas" type="number" min={1} max={20} value={f.capacity} onChange={(e) => setF({ ...f, capacity: Math.max(1, Math.min(20, Number(e.target.value) || 1)) })} />
             <TextField label="Reservar con" aside="h antes" type="number" min={0} max={72} value={f.noticeHours} onChange={(e) => setF({ ...f, noticeHours: Math.max(0, Math.min(72, Number(e.target.value) || 0)) })} />
             <TextField label="Cancelar hasta" aside="h antes" type="number" min={0} max={72} value={f.cancelHours} onChange={(e) => setF({ ...f, cancelHours: Math.max(0, Math.min(72, Number(e.target.value) || 0)) })} />
+            <TextField
+              label="Reservas por cliente"
+              aside="a la vez"
+              type="number"
+              min={1}
+              max={20}
+              value={f.maxFutureBookings}
+              onChange={(e) => setF({ ...f, maxFutureBookings: Math.max(1, Math.min(20, Number(e.target.value) || 1)) })}
+            />
           </div>
           {paymentsOn && (
             <div className="flex flex-col gap-3">
