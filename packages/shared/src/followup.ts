@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DateOnly } from "./common";
+import { DateOnly, SafeId } from "./common";
 
 // ── Fotos de progreso ─────────────────────────────────────────────────────────
 export const PhotoPose = z.enum(["front", "side", "back"]);
@@ -48,7 +48,7 @@ export const QUESTION_KIND_LABEL: Record<QuestionKind, string> = {
 };
 
 export const CheckinQuestion = z.object({
-  id: z.string().min(1).max(40),
+  id: SafeId,
   kind: QuestionKind,
   label: z.string().trim().min(1, "Escribe la pregunta").max(200),
   required: z.boolean().default(true),
@@ -77,7 +77,7 @@ export type CheckinAssignInput = z.infer<typeof CheckinAssignInput>;
 
 /** Respuesta a una pregunta: texto, número (escala/número), sí/no o id de foto. */
 export const CheckinAnswer = z.union([z.string().max(2000), z.number(), z.boolean(), z.null()]);
-export const CheckinAnswers = z.record(z.string(), CheckinAnswer);
+export const CheckinAnswers = z.record(SafeId, CheckinAnswer);
 export type CheckinAnswers = z.infer<typeof CheckinAnswers>;
 
 export const CheckinAssignment = z.object({

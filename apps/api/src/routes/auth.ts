@@ -54,7 +54,7 @@ export function registerAuth(app: FastifyInstance, ctx: Ctx) {
         .returning();
       return user!.id;
     });
-    await createSession(db, cfg, reply, userId, req.headers["user-agent"]);
+    await createSession(db, cfg, reply, userId, req.headers["user-agent"], req.cookies[cookieName(cfg)]);
     return meOf(db, userId);
   });
 
@@ -74,7 +74,7 @@ export function registerAuth(app: FastifyInstance, ctx: Ctx) {
       throw INVALID_LOGIN;
     }
     clearFailures(key);
-    await createSession(db, cfg, reply, user.id, req.headers["user-agent"]);
+    await createSession(db, cfg, reply, user.id, req.headers["user-agent"], req.cookies[cookieName(cfg)]);
     return meOf(db, user.id);
   });
 
@@ -87,7 +87,7 @@ export function registerAuth(app: FastifyInstance, ctx: Ctx) {
         const email = req.body.as === "coach" ? DEMO_COACH.email : DEMO_CLIENT.email;
         const [u] = await db.select({ id: users.id }).from(users).where(eq(users.email, email));
         if (!u) throw new HttpError(503, "demo_resetting", "La demo se está reiniciando. Prueba en un minuto.");
-        await createSession(db, cfg, reply, u.id, req.headers["user-agent"]);
+        await createSession(db, cfg, reply, u.id, req.headers["user-agent"], req.cookies[cookieName(cfg)]);
         return meOf(db, u.id);
       },
     );
@@ -137,7 +137,7 @@ export function registerAuth(app: FastifyInstance, ctx: Ctx) {
         await tx.delete(sessions).where(eq(sessions.userId, used.userId));
         return used.userId;
       });
-      await createSession(db, cfg, reply, userId, req.headers["user-agent"]);
+      await createSession(db, cfg, reply, userId, req.headers["user-agent"], req.cookies[cookieName(cfg)]);
       return meOf(db, userId);
     },
   );
@@ -176,7 +176,7 @@ export function registerAuth(app: FastifyInstance, ctx: Ctx) {
       await tx.insert(clientProfiles).values({ studioId: studio.id, userId: user!.id, name: b.name, email: b.email, status: "pending" });
       return user!.id;
     });
-    await createSession(db, cfg, reply, userId, req.headers["user-agent"]);
+    await createSession(db, cfg, reply, userId, req.headers["user-agent"], req.cookies[cookieName(cfg)]);
     req.user = null;
     await audit(db, req, b.inviteToken ? "client.register.invite" : "client.register.code", { type: "user", id: userId });
     return meOf(db, userId);

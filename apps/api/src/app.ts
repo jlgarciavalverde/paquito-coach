@@ -22,6 +22,9 @@ import { BRAND } from "@coach/shared";
 import type { AppConfig } from "./config";
 import { createDb, runMigrations, type DB } from "./db/client";
 import { HttpError, notFound } from "./lib/errors";
+import { redactUrl } from "./lib/redact";
+import { gate } from "./lib/access";
+import { stripNul } from "./lib/sanitize";
 import { authenticate, cookieName } from "./lib/session";
 import { registerAuth } from "./routes/auth";
 import { registerClients } from "./routes/clients";
@@ -52,7 +55,7 @@ import { createPushSender, type PushSender } from "./lib/push";
 import { seedExercises } from "./db/seed";
 import type { Ctx } from "./routes/ctx";
 
-export type App = FastifyInstance & { db: DB; push: PushSender };
+export type App = FastifyInstance & { db: DB; push: PushSender; routeList: { method: string; url: string }[] };
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
@@ -81,16 +84,26 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
         : (fakeGateway ?? (cfg.stripeSecretKey && cfg.stripeWebhookSecret ? createStripeGateway({ secretKey: cfg.stripeSecretKey, webhookSecret: cfg.stripeWebhookSecret }) : null));
   const push = opts.push ?? createPushSender(db, { publicKey: cfg.vapidPublicKey, privateKey: cfg.vapidPrivateKey, subject: cfg.vapidSubject ?? "mailto:admin@example.com" });
 
+  const routeList: { method: string; url: string }[] = [];
   const app = Fastify({
     logger:
       cfg.logLevel === "silent"
         ? false
-        : { level: cfg.logLevel ?? "info", redact: ["req.headers.cookie", 'res.headers["set-cookie"]'] },
+        : {
+            level: cfg.logLevel ?? "info",
+            redact: ["req.headers.cookie", 'res.headers["set-cookie"]', 'req.headers["stripe-signature"]'],
+            // Los tokens de invitación y de restablecer viajan en la URL: no deben quedar en los logs.
+            serializers: { req: (r: { method: string; url: string }) => ({ method: r.method, url: redactUrl(r.url) }) },
+          },
     // Detrás del túnel de Cloudflare la IP real llega en CF-Connecting-IP (ver keyGenerator).
     trustProxy: true,
     bodyLimit: 256 * 1024,
     // El healthcheck de Docker no debe llenar los logs.
     logController: new LogController({ disableRequestLogging: (req) => req.url === "/health" }),
+  });
+  // Registro de rutas (lo usan los tests de seguridad para recorrer todos los endpoints).
+  app.addHook("onRoute", (r) => {
+    for (const m of [r.method].flat()) if (m !== "HEAD") routeList.push({ method: m, url: r.url });
   });
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
@@ -130,6 +143,11 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
     referrerPolicy: { policy: "strict-origin-when-cross-origin" },
     crossOriginEmbedderPolicy: false,
   });
+  // Datos privados: que ningún navegador ni proxy (Cloudflare) guarde respuestas de la API. Sin cámara ni micro para nadie.
+  app.addHook("onSend", async (req, reply) => {
+    if (req.url.startsWith("/api/") && !reply.hasHeader("cache-control")) reply.header("Cache-Control", "no-store");
+    reply.header("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()");
+  });
   await app.register(cookie);
   await app.register(multipart, { limits: { fileSize: 8 * 1024 * 1024, files: 1, fields: 5 } });
   await app.register(websocket, { options: { maxPayload: 1024 } });
@@ -165,6 +183,20 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
     req.user = token ? await authenticate(db, token) : null;
   });
 
+  // Postgres no admite el carácter NUL en textos: se quita de todo lo que entra (cuerpo, consulta y parámetros).
+  app.addHook("preValidation", async (req) => {
+    if (req.body && typeof req.body === "object" && !Buffer.isBuffer(req.body)) req.body = stripNul(req.body);
+    req.query = stripNul(req.query) as typeof req.query;
+    req.params = stripNul(req.params) as typeof req.params;
+  });
+
+  // Acceso denegado por defecto antes de validar el cuerpo (ver lib/access.ts).
+  app.addHook("preValidation", async (req, reply) => {
+    const g = gate(req.method, req.routeOptions.url, req.user);
+    if (g === "login") return reply.code(401).send({ error: "unauthorized", message: "Inicia sesión para continuar" });
+    if (g === "coach-only") return reply.code(403).send({ error: "forbidden", message: "No tienes permiso para esto" });
+  });
+
   // CSRF: además de SameSite=Lax, toda petición que modifica datos debe venir de un origen permitido.
   app.addHook("onRequest", async (req, reply) => {
     if (SAFE_METHODS.has(req.method)) return;
@@ -197,6 +229,12 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
     }
     if (err instanceof ZodError) return reply.code(400).send({ error: "validation", message: err.issues[0]?.message ?? "Datos no válidos" });
     if (err instanceof HttpError) return reply.code(err.status).send({ error: err.code, message: err.message });
+    // Carreras entre dos peticiones iguales (p. ej. dos registros con el mismo correo a la vez): conflicto, no error del servidor.
+    const pg = (err as { code?: string; cause?: { code?: string } }).cause?.code ?? (err as { code?: string }).code;
+    if (pg === "23505") return reply.code(409).send({ error: "conflict", message: "Eso ya existe o se acaba de hacer. Vuelve a cargar e inténtalo de nuevo." });
+    if (pg === "22021" || pg === "22P05" || pg === "22P02" || pg === "22007" || pg === "22008" || pg === "22003")
+      return reply.code(400).send({ error: "validation", message: "Hay un dato con un formato que no se puede guardar" });
+    if (pg === "23503") return reply.code(409).send({ error: "conflict", message: "Algo relacionado ya no existe. Vuelve a cargar." });
     const e = err as { statusCode?: number; message?: string; code?: string };
     if (e.statusCode === 429) return reply.code(429).send({ error: "rate_limited", message: e.message ?? "Demasiadas peticiones" });
     if (e.statusCode && e.statusCode < 500) return reply.code(e.statusCode).send({ error: "request", message: e.message ?? "Petición no válida" });
@@ -287,5 +325,5 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
     await pg.end({ timeout: 5 });
   });
 
-  return Object.assign(app, { db, push }) as App;
+  return Object.assign(app, { db, push, routeList }) as App;
 }

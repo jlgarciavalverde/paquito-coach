@@ -206,7 +206,8 @@ export function registerPayments(app: FastifyInstance, { db, cfg }: Ctx, deps: {
   app.get("/payments.csv", async (req, reply: FastifyReply) => {
     const u = requireCoach(req);
     const rows = (await listPayments(eq(payments.studioId, u.studioId))).filter((p) => p.status === "paid" || p.status === "refunded");
-    const esc = (s: string) => `"${s.replace(/"/g, '""')}"`;
+    // Comillas escapadas y, si empieza por = + - @ (fórmula en Excel), se neutraliza con una comilla simple delante.
+    const esc = (s: string) => `"${(/^[=+\-@\t\r]/.test(s) ? `'${s}` : s).replace(/"/g, '""')}"`;
     const csv = ["fecha;cliente;concepto;importe;estado"]
       .concat(rows.map((p) => [p.paidAt?.slice(0, 10) ?? "", esc(p.clientName), esc(p.description), p.amount.toFixed(2).replace(".", ","), p.status === "paid" ? "pagado" : "devuelto"].join(";")))
       .join("\n");

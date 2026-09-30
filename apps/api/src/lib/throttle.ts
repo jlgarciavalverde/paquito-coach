@@ -13,7 +13,14 @@ export function isLocked(key: string, now = Date.now()) {
   return list.length >= MAX_FAILS;
 }
 
+/** Tope de correos vigilados a la vez: sin él, miles de correos inventados llenarían la memoria. */
+const MAX_KEYS = 10_000;
+
 export function recordFailure(key: string, now = Date.now()) {
+  if (!fails.has(key) && fails.size >= MAX_KEYS) {
+    for (const [k, list] of fails) if (!list.some((t) => now - t < WINDOW_MS)) fails.delete(k);
+    if (fails.size >= MAX_KEYS) fails.delete(fails.keys().next().value!);
+  }
   const list = (fails.get(key) ?? []).filter((t) => now - t < WINDOW_MS);
   list.push(now);
   fails.set(key, list);
@@ -21,3 +28,4 @@ export function recordFailure(key: string, now = Date.now()) {
 
 export const clearFailures = (key: string) => fails.delete(key);
 export const resetThrottle = () => fails.clear();
+export const trackedKeys = () => fails.size;

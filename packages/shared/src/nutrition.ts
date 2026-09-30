@@ -1,17 +1,17 @@
 import { z } from "zod";
-import { DateOnly } from "./common";
+import { DateOnly, SafeId } from "./common";
 
 const text = (max: number) => z.string().trim().max(max).default("");
 
 export const FoodItem = z.object({
-  id: z.string().min(1).max(40),
+  id: SafeId,
   food: z.string().trim().min(1, "Escribe el alimento").max(120),
   qty: text(40), // «80 g», «1 taza», «al gusto»
 });
 export type FoodItem = z.infer<typeof FoodItem>;
 
 export const Meal = z.object({
-  id: z.string().min(1).max(40),
+  id: SafeId,
   name: z.string().trim().min(1, "Ponle nombre a la comida").max(60),
   time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable().default(null),
   items: z.array(FoodItem).max(30),

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Progression } from "./progression";
-import { DateOnly } from "./common";
+import { DateOnly, SafeId } from "./common";
 
 export const MUSCLES = [
   "chest", "lats", "middleBack", "lowerBack", "traps", "shoulders", "biceps", "triceps", "forearms",
@@ -66,7 +66,7 @@ const shortText = (max: number) => z.string().trim().max(max).default("");
 
 /** Una línea de la rutina: un ejercicio con su prescripción. Texto libre en reps/carga para admitir «8-10», «30 s», «70 % 1RM». */
 export const RoutineItem = z.object({
-  id: z.string().min(1).max(40),
+  id: SafeId,
   exerciseId: z.string().uuid(),
   exerciseName: z.string().max(120),
   sets: z.number().int().min(1).max(20),
@@ -82,7 +82,7 @@ export const RoutineItem = z.object({
 export type RoutineItem = z.infer<typeof RoutineItem>;
 
 export const RoutineBlock = z.object({
-  id: z.string().min(1).max(40),
+  id: SafeId,
   name: z.string().trim().max(60),
   items: z.array(RoutineItem).max(30),
 });
@@ -121,7 +121,7 @@ export const SetLog = z.object({
 export type SetLog = z.infer<typeof SetLog>;
 
 /** itemId → series anotadas. */
-export const WorkoutLog = z.record(z.string().max(40), z.array(SetLog).max(20));
+export const WorkoutLog = z.record(SafeId, z.array(SetLog).max(20));
 export type WorkoutLog = z.infer<typeof WorkoutLog>;
 
 export const WorkoutStatus = z.enum(["planned", "done", "skipped"]);

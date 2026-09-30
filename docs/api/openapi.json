@@ -2867,8 +2867,7 @@
                           "properties": {
                             "id": {
                               "type": "string",
-                              "minLength": 1,
-                              "maxLength": 40
+                              "pattern": "^[A-Za-z0-9_-]{1,40}$"
                             },
                             "name": {
                               "type": "string",
@@ -2882,8 +2881,7 @@
                                 "properties": {
                                   "id": {
                                     "type": "string",
-                                    "minLength": 1,
-                                    "maxLength": 40
+                                    "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                   },
                                   "exerciseId": {
                                     "type": "string",
@@ -3022,8 +3020,7 @@
                       "properties": {
                         "id": {
                           "type": "string",
-                          "minLength": 1,
-                          "maxLength": 40
+                          "pattern": "^[A-Za-z0-9_-]{1,40}$"
                         },
                         "name": {
                           "type": "string",
@@ -3037,8 +3034,7 @@
                             "properties": {
                               "id": {
                                 "type": "string",
-                                "minLength": 1,
-                                "maxLength": 40
+                                "pattern": "^[A-Za-z0-9_-]{1,40}$"
                               },
                               "exerciseId": {
                                 "type": "string",
@@ -3144,8 +3140,7 @@
                         "properties": {
                           "id": {
                             "type": "string",
-                            "minLength": 1,
-                            "maxLength": 40
+                            "pattern": "^[A-Za-z0-9_-]{1,40}$"
                           },
                           "name": {
                             "type": "string",
@@ -3159,8 +3154,7 @@
                               "properties": {
                                 "id": {
                                   "type": "string",
-                                  "minLength": 1,
-                                  "maxLength": 40
+                                  "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                 },
                                 "exerciseId": {
                                   "type": "string",
@@ -3313,8 +3307,7 @@
                         "properties": {
                           "id": {
                             "type": "string",
-                            "minLength": 1,
-                            "maxLength": 40
+                            "pattern": "^[A-Za-z0-9_-]{1,40}$"
                           },
                           "name": {
                             "type": "string",
@@ -3328,8 +3321,7 @@
                               "properties": {
                                 "id": {
                                   "type": "string",
-                                  "minLength": 1,
-                                  "maxLength": 40
+                                  "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                 },
                                 "exerciseId": {
                                   "type": "string",
@@ -3467,8 +3459,7 @@
                       "properties": {
                         "id": {
                           "type": "string",
-                          "minLength": 1,
-                          "maxLength": 40
+                          "pattern": "^[A-Za-z0-9_-]{1,40}$"
                         },
                         "name": {
                           "type": "string",
@@ -3482,8 +3473,7 @@
                             "properties": {
                               "id": {
                                 "type": "string",
-                                "minLength": 1,
-                                "maxLength": 40
+                                "pattern": "^[A-Za-z0-9_-]{1,40}$"
                               },
                               "exerciseId": {
                                 "type": "string",
@@ -3601,8 +3591,7 @@
                         "properties": {
                           "id": {
                             "type": "string",
-                            "minLength": 1,
-                            "maxLength": 40
+                            "pattern": "^[A-Za-z0-9_-]{1,40}$"
                           },
                           "name": {
                             "type": "string",
@@ -3616,8 +3605,7 @@
                               "properties": {
                                 "id": {
                                   "type": "string",
-                                  "minLength": 1,
-                                  "maxLength": 40
+                                  "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                 },
                                 "exerciseId": {
                                   "type": "string",
@@ -3811,8 +3799,7 @@
                         "properties": {
                           "id": {
                             "type": "string",
-                            "minLength": 1,
-                            "maxLength": 40
+                            "pattern": "^[A-Za-z0-9_-]{1,40}$"
                           },
                           "name": {
                             "type": "string",
@@ -3826,8 +3813,7 @@
                               "properties": {
                                 "id": {
                                   "type": "string",
-                                  "minLength": 1,
-                                  "maxLength": 40
+                                  "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                 },
                                 "exerciseId": {
                                   "type": "string",
@@ -4106,8 +4092,7 @@
                           "properties": {
                             "id": {
                               "type": "string",
-                              "minLength": 1,
-                              "maxLength": 40
+                              "pattern": "^[A-Za-z0-9_-]{1,40}$"
                             },
                             "name": {
                               "type": "string",
@@ -4121,8 +4106,7 @@
                                 "properties": {
                                   "id": {
                                     "type": "string",
-                                    "minLength": 1,
-                                    "maxLength": 40
+                                    "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                   },
                                   "exerciseId": {
                                     "type": "string",
@@ -4352,8 +4336,7 @@
                           "properties": {
                             "id": {
                               "type": "string",
-                              "minLength": 1,
-                              "maxLength": 40
+                              "pattern": "^[A-Za-z0-9_-]{1,40}$"
                             },
                             "name": {
                               "type": "string",
@@ -4367,8 +4350,7 @@
                                 "properties": {
                                   "id": {
                                     "type": "string",
-                                    "minLength": 1,
-                                    "maxLength": 40
+                                    "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                   },
                                   "exerciseId": {
                                     "type": "string",
@@ -4588,8 +4570,7 @@
                         "properties": {
                           "id": {
                             "type": "string",
-                            "minLength": 1,
-                            "maxLength": 40
+                            "pattern": "^[A-Za-z0-9_-]{1,40}$"
                           },
                           "name": {
                             "type": "string",
@@ -4603,8 +4584,7 @@
                               "properties": {
                                 "id": {
                                   "type": "string",
-                                  "minLength": 1,
-                                  "maxLength": 40
+                                  "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                 },
                                 "exerciseId": {
                                   "type": "string",
@@ -4803,8 +4783,7 @@
                       "properties": {
                         "id": {
                           "type": "string",
-                          "minLength": 1,
-                          "maxLength": 40
+                          "pattern": "^[A-Za-z0-9_-]{1,40}$"
                         },
                         "name": {
                           "type": "string",
@@ -4818,8 +4797,7 @@
                             "properties": {
                               "id": {
                                 "type": "string",
-                                "minLength": 1,
-                                "maxLength": 40
+                                "pattern": "^[A-Za-z0-9_-]{1,40}$"
                               },
                               "exerciseId": {
                                 "type": "string",
@@ -4941,8 +4919,7 @@
                         "properties": {
                           "id": {
                             "type": "string",
-                            "minLength": 1,
-                            "maxLength": 40
+                            "pattern": "^[A-Za-z0-9_-]{1,40}$"
                           },
                           "name": {
                             "type": "string",
@@ -4956,8 +4933,7 @@
                               "properties": {
                                 "id": {
                                   "type": "string",
-                                  "minLength": 1,
-                                  "maxLength": 40
+                                  "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                 },
                                 "exerciseId": {
                                   "type": "string",
@@ -5331,8 +5307,7 @@
                         "properties": {
                           "id": {
                             "type": "string",
-                            "minLength": 1,
-                            "maxLength": 40
+                            "pattern": "^[A-Za-z0-9_-]{1,40}$"
                           },
                           "name": {
                             "type": "string",
@@ -5346,8 +5321,7 @@
                               "properties": {
                                 "id": {
                                   "type": "string",
-                                  "minLength": 1,
-                                  "maxLength": 40
+                                  "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                 },
                                 "exerciseId": {
                                   "type": "string",
@@ -5566,8 +5540,7 @@
                         "properties": {
                           "id": {
                             "type": "string",
-                            "minLength": 1,
-                            "maxLength": 40
+                            "pattern": "^[A-Za-z0-9_-]{1,40}$"
                           },
                           "name": {
                             "type": "string",
@@ -5581,8 +5554,7 @@
                               "properties": {
                                 "id": {
                                   "type": "string",
-                                  "minLength": 1,
-                                  "maxLength": 40
+                                  "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                 },
                                 "exerciseId": {
                                   "type": "string",
@@ -5906,8 +5878,7 @@
                           "properties": {
                             "id": {
                               "type": "string",
-                              "minLength": 1,
-                              "maxLength": 40
+                              "pattern": "^[A-Za-z0-9_-]{1,40}$"
                             },
                             "name": {
                               "type": "string",
@@ -5921,8 +5892,7 @@
                                 "properties": {
                                   "id": {
                                     "type": "string",
-                                    "minLength": 1,
-                                    "maxLength": 40
+                                    "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                   },
                                   "exerciseId": {
                                     "type": "string",
@@ -6143,8 +6113,7 @@
                           "properties": {
                             "id": {
                               "type": "string",
-                              "minLength": 1,
-                              "maxLength": 40
+                              "pattern": "^[A-Za-z0-9_-]{1,40}$"
                             },
                             "name": {
                               "type": "string",
@@ -6158,8 +6127,7 @@
                                 "properties": {
                                   "id": {
                                     "type": "string",
-                                    "minLength": 1,
-                                    "maxLength": 40
+                                    "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                   },
                                   "exerciseId": {
                                     "type": "string",
@@ -6421,8 +6389,7 @@
                                 "properties": {
                                   "id": {
                                     "type": "string",
-                                    "minLength": 1,
-                                    "maxLength": 40
+                                    "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                   },
                                   "name": {
                                     "type": "string",
@@ -6443,8 +6410,7 @@
                                       "properties": {
                                         "id": {
                                           "type": "string",
-                                          "minLength": 1,
-                                          "maxLength": 40
+                                          "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                         },
                                         "food": {
                                           "type": "string",
@@ -6620,8 +6586,7 @@
                                 "properties": {
                                   "id": {
                                     "type": "string",
-                                    "minLength": 1,
-                                    "maxLength": 40
+                                    "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                   },
                                   "name": {
                                     "type": "string",
@@ -6642,8 +6607,7 @@
                                       "properties": {
                                         "id": {
                                           "type": "string",
-                                          "minLength": 1,
-                                          "maxLength": 40
+                                          "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                         },
                                         "food": {
                                           "type": "string",
@@ -6789,8 +6753,7 @@
                               "properties": {
                                 "id": {
                                   "type": "string",
-                                  "minLength": 1,
-                                  "maxLength": 40
+                                  "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                 },
                                 "name": {
                                   "type": "string",
@@ -6811,8 +6774,7 @@
                                     "properties": {
                                       "id": {
                                         "type": "string",
-                                        "minLength": 1,
-                                        "maxLength": 40
+                                        "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                       },
                                       "food": {
                                         "type": "string",
@@ -6996,8 +6958,7 @@
                               "properties": {
                                 "id": {
                                   "type": "string",
-                                  "minLength": 1,
-                                  "maxLength": 40
+                                  "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                 },
                                 "name": {
                                   "type": "string",
@@ -7018,8 +6979,7 @@
                                     "properties": {
                                       "id": {
                                         "type": "string",
-                                        "minLength": 1,
-                                        "maxLength": 40
+                                        "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                       },
                                       "food": {
                                         "type": "string",
@@ -7180,8 +7140,7 @@
                             "properties": {
                               "id": {
                                 "type": "string",
-                                "minLength": 1,
-                                "maxLength": 40
+                                "pattern": "^[A-Za-z0-9_-]{1,40}$"
                               },
                               "name": {
                                 "type": "string",
@@ -7202,8 +7161,7 @@
                                   "properties": {
                                     "id": {
                                       "type": "string",
-                                      "minLength": 1,
-                                      "maxLength": 40
+                                      "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                     },
                                     "food": {
                                       "type": "string",
@@ -7356,8 +7314,7 @@
                               "properties": {
                                 "id": {
                                   "type": "string",
-                                  "minLength": 1,
-                                  "maxLength": 40
+                                  "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                 },
                                 "name": {
                                   "type": "string",
@@ -7378,8 +7335,7 @@
                                     "properties": {
                                       "id": {
                                         "type": "string",
-                                        "minLength": 1,
-                                        "maxLength": 40
+                                        "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                       },
                                       "food": {
                                         "type": "string",
@@ -7670,8 +7626,7 @@
                               "properties": {
                                 "id": {
                                   "type": "string",
-                                  "minLength": 1,
-                                  "maxLength": 40
+                                  "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                 },
                                 "name": {
                                   "type": "string",
@@ -7692,8 +7647,7 @@
                                     "properties": {
                                       "id": {
                                         "type": "string",
-                                        "minLength": 1,
-                                        "maxLength": 40
+                                        "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                       },
                                       "food": {
                                         "type": "string",
@@ -7942,8 +7896,7 @@
                               "properties": {
                                 "id": {
                                   "type": "string",
-                                  "minLength": 1,
-                                  "maxLength": 40
+                                  "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                 },
                                 "name": {
                                   "type": "string",
@@ -7964,8 +7917,7 @@
                                     "properties": {
                                       "id": {
                                         "type": "string",
-                                        "minLength": 1,
-                                        "maxLength": 40
+                                        "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                       },
                                       "food": {
                                         "type": "string",
@@ -11409,8 +11361,7 @@
                           "properties": {
                             "id": {
                               "type": "string",
-                              "minLength": 1,
-                              "maxLength": 40
+                              "pattern": "^[A-Za-z0-9_-]{1,40}$"
                             },
                             "kind": {
                               "type": "string",
@@ -11497,8 +11448,7 @@
                       "properties": {
                         "id": {
                           "type": "string",
-                          "minLength": 1,
-                          "maxLength": 40
+                          "pattern": "^[A-Za-z0-9_-]{1,40}$"
                         },
                         "kind": {
                           "type": "string",
@@ -11563,8 +11513,7 @@
                         "properties": {
                           "id": {
                             "type": "string",
-                            "minLength": 1,
-                            "maxLength": 40
+                            "pattern": "^[A-Za-z0-9_-]{1,40}$"
                           },
                           "kind": {
                             "type": "string",
@@ -11652,8 +11601,7 @@
                       "properties": {
                         "id": {
                           "type": "string",
-                          "minLength": 1,
-                          "maxLength": 40
+                          "pattern": "^[A-Za-z0-9_-]{1,40}$"
                         },
                         "kind": {
                           "type": "string",
@@ -11929,8 +11877,7 @@
                               "properties": {
                                 "id": {
                                   "type": "string",
-                                  "minLength": 1,
-                                  "maxLength": 40
+                                  "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                 },
                                 "kind": {
                                   "type": "string",
@@ -12133,8 +12080,7 @@
                           "properties": {
                             "id": {
                               "type": "string",
-                              "minLength": 1,
-                              "maxLength": 40
+                              "pattern": "^[A-Za-z0-9_-]{1,40}$"
                             },
                             "kind": {
                               "type": "string",
@@ -12261,8 +12207,7 @@
                         "properties": {
                           "id": {
                             "type": "string",
-                            "minLength": 1,
-                            "maxLength": 40
+                            "pattern": "^[A-Za-z0-9_-]{1,40}$"
                           },
                           "kind": {
                             "type": "string",
@@ -14653,8 +14598,7 @@
                             "properties": {
                               "id": {
                                 "type": "string",
-                                "minLength": 1,
-                                "maxLength": 40
+                                "pattern": "^[A-Za-z0-9_-]{1,40}$"
                               },
                               "name": {
                                 "type": "string",
@@ -14668,8 +14612,7 @@
                                   "properties": {
                                     "id": {
                                       "type": "string",
-                                      "minLength": 1,
-                                      "maxLength": 40
+                                      "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                     },
                                     "exerciseId": {
                                       "type": "string",
@@ -14943,8 +14886,7 @@
                                   "properties": {
                                     "id": {
                                       "type": "string",
-                                      "minLength": 1,
-                                      "maxLength": 40
+                                      "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                     },
                                     "name": {
                                       "type": "string",
@@ -14958,8 +14900,7 @@
                                         "properties": {
                                           "id": {
                                             "type": "string",
-                                            "minLength": 1,
-                                            "maxLength": 40
+                                            "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                           },
                                           "exerciseId": {
                                             "type": "string",
@@ -15257,8 +15198,7 @@
                                   "properties": {
                                     "id": {
                                       "type": "string",
-                                      "minLength": 1,
-                                      "maxLength": 40
+                                      "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                     },
                                     "name": {
                                       "type": "string",
@@ -15279,8 +15219,7 @@
                                         "properties": {
                                           "id": {
                                             "type": "string",
-                                            "minLength": 1,
-                                            "maxLength": 40
+                                            "pattern": "^[A-Za-z0-9_-]{1,40}$"
                                           },
                                           "food": {
                                             "type": "string",

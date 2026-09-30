@@ -1,6 +1,15 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [1.11.0] — 2026-09-30 · Seguridad por capas y batería de pruebas
+### Seguridad
+- **Acceso denegado por defecto** antes de validar nada: sin sesión solo lo público; un cliente solo lo suyo. Los handlers siguen comprobando (ADR 0014).
+- Sesiones: al entrar se invalida la sesión anterior del navegador; edad máxima de 180 días; tokens ocultos en los logs; `Cache-Control: no-store` y `Permissions-Policy` en la API.
+- Entradas: se quita el carácter NUL (daba error 500), ids seguros como claves (`__proto__`…), fechas imposibles rechazadas, conflictos por carreras como 409 en lugar de 500.
+- CSV de cobros protegido contra inyección de fórmulas. Freno de fuerza bruta con tope de memoria.
+### Pruebas
+- Matriz de autorización y fuzz generados desde el registro de rutas (cada endpoint, cada rol, datos basura), batería de ataques web, sesiones y tokens, carreras, cambios de hora, textos extremos y fallos de la IA. API: 181 tests.
+
 ## [1.10.0] — 2026-09-29 · Cuotas mensuales y pagar al reservar
 ### Añadido
 - **Cuota mensual**: el cliente se suscribe desde Pagos (se cobra sola cada mes) y la gestiona él mismo en el portal de Stripe («Gestionar mi cuota»: cambiar tarjeta o darse de baja). Cada mes aparece el cobro con su factura; si falla, aviso al entrenador y en «Necesitan atención».

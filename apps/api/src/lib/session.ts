@@ -7,6 +7,8 @@ import { forbidden, unauthorized } from "./errors";
 import type { AppConfig } from "../config";
 
 export const SESSION_TTL_MS = 60 * 24 * 3600 * 1000; // 60 días desde el último uso
+/** Vida máxima de una sesión aunque se use a diario: pasado este tiempo hay que volver a entrar. */
+export const SESSION_MAX_AGE_MS = 180 * 24 * 3600 * 1000;
 const TOUCH_EVERY_MS = 3600 * 1000;
 
 export interface AuthUser {
@@ -24,7 +26,9 @@ export interface AuthUser {
 
 export const cookieName = (cfg: AppConfig) => (cfg.secureCookies ? "__Host-sid" : "sid");
 
-export async function createSession(db: DB, cfg: AppConfig, reply: FastifyReply, userId: string, userAgent?: string) {
+export async function createSession(db: DB, cfg: AppConfig, reply: FastifyReply, userId: string, userAgent?: string, previousToken?: string) {
+  // Al entrar se descarta la sesión que traía el navegador (si la había): nunca se reutiliza un token anterior.
+  if (previousToken && previousToken.length <= 200) await db.delete(sessions).where(eq(sessions.tokenHash, hashToken(previousToken)));
   const token = newToken();
   await db.insert(sessions).values({ tokenHash: hashToken(token), userId, userAgent: userAgent?.slice(0, 200) ?? null });
   reply.setCookie(cookieName(cfg), token, {
@@ -53,7 +57,7 @@ export async function authenticate(db: DB, token: string | undefined): Promise<A
   const row = rows[0];
   if (!row) return null;
   const now = Date.now();
-  if (now - row.s.lastUsedAt.getTime() > SESSION_TTL_MS) {
+  if (now - row.s.lastUsedAt.getTime() > SESSION_TTL_MS || now - row.s.createdAt.getTime() > SESSION_MAX_AGE_MS) {
     await db.delete(sessions).where(eq(sessions.id, row.s.id));
     return null;
   }
