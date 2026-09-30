@@ -3,11 +3,13 @@ import type { QueryClient } from "@tanstack/react-query";
 import { Button } from "../components/ui/button";
 import { Brand } from "../components/brand";
 import { DemoBanner } from "../components/demo-banner";
+import { OfflineBanner } from "../components/offline-banner";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   component: () => (
     <>
       <DemoBanner />
+      <OfflineBanner />
       <Outlet />
     </>
   ),

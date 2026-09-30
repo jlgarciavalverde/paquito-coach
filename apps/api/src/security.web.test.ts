@@ -90,6 +90,14 @@ describe("sesiones", () => {
     expect((await lucia.get("/api/v1/me")).status).toBe(200);
   });
 
+  it("«cerrar las demás sesiones» deja solo la actual", async () => {
+    const other = sidOf((await login("paquito@example.com", PASSWORD)).headers["set-cookie"]);
+    const r = await coach.post("/api/v1/me/sessions/revoke-others");
+    expect(r.body.closed).toBeGreaterThanOrEqual(1);
+    expect((await app.inject({ method: "GET", url: "/api/v1/me", headers: { cookie: other } })).statusCode).toBe(401);
+    expect((await coach.get("/api/v1/me")).status).toBe(200);
+  });
+
   it("archivar a un cliente lo saca de todas sus sesiones", async () => {
     const { client: ana, clientId: anaId } = await inviteAndRegister(app, coach, "Ana", "ana@example.com");
     expect((await ana.get("/api/v1/me")).status).toBe(200);

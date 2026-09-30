@@ -11,8 +11,10 @@ import { homeFor, meQuery } from "../lib/auth";
 import { useSubmit } from "../lib/use-form";
 import { statusQuery } from "../lib/status";
 import { useQuery } from "@tanstack/react-query";
+import { z } from "zod";
 
 export const Route = createFileRoute("/acceso")({
+  validateSearch: z.object({ caducada: z.boolean().optional() }),
   beforeLoad: async ({ context }) => {
     const me = await context.queryClient.ensureQueryData(meQuery);
     if (me) throw redirect({ to: homeFor(me) });
@@ -23,6 +25,7 @@ export const Route = createFileRoute("/acceso")({
 });
 
 function Login() {
+  const { caducada } = Route.useSearch();
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -82,6 +85,11 @@ function Login() {
       }
     >
       <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
+        {caducada && (
+          <p role="status" className="border-l-[5px] border-plate-yellow bg-tray px-3 py-2 text-sm">
+            Tu sesión ha caducado o se ha cerrado desde otro dispositivo. Vuelve a entrar.
+          </p>
+        )}
         <TextField label="Correo electrónico" type="email" autoComplete="email" inputMode="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
         <TextField label="Contraseña" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
         <FormError message={error} />

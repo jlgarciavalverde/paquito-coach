@@ -81,9 +81,27 @@ export function SessionsSetting() {
     mutationFn: (id: string) => api(`/me/sessions/${id}`, { method: "DELETE" }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["sessions"] }),
   });
+  const toast = useToast();
+  const others = useMutation({
+    mutationFn: () => api("/me/sessions/revoke-others", { body: {} }),
+    onSuccess: () => (qc.invalidateQueries({ queryKey: ["sessions"] }), toast("Sesiones cerradas en los demás dispositivos")),
+    onError: (e) => toast(errorMessage(e), "error"),
+  });
+  const count = (q.data ?? []).filter((s) => !s.current).length;
   return (
     <section>
-      <BlockTitle>Dónde tienes la sesión abierta</BlockTitle>
+      <BlockTitle
+        action={
+          count > 0 && (
+            <Button size="sm" variant="secondary" loading={others.isPending} onClick={() => others.mutate()}>
+              Cerrar las demás sesiones
+            </Button>
+          )
+        }
+      >
+        Dónde tienes la sesión abierta
+      </BlockTitle>
+      <p className="mb-3 text-[13px] text-ink-2">Si has perdido el móvil o entraste en un ordenador ajeno, ciérralas desde aquí.</p>
       <ul className="divide-y divide-rule border-y border-rule">
         {(q.data ?? []).map((s) => (
           <li key={s.id} className="flex items-center gap-3 py-3">

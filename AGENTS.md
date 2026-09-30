@@ -84,6 +84,8 @@ deploy/             docker-compose.yml y .env.example de producción · tools/ s
 - **WebSocket**: `/ws` exige cookie de sesión y `Origin` permitido (si no, 4401). En tests se usa `app.injectWS`; el `keyGenerator` del rate-limit tolera peticiones sin socket.
 - La semilla de ejercicios (`apps/api/src/db/exercise-seed.json`, ~2.500) solo se carga si la biblioteca común está vacía. Los tests la desactivan (`seedExercises: false`) salvo `training.test.ts`.
 - `cn()` solo concatena (sin tailwind-merge): una clase de anchura no sustituye al `w-full` de `controlClass`; da la anchura con el contenedor (rejilla).
+- **Pruebas de componentes**: `// @vitest-environment jsdom` al principio del archivo y `renderWithProviders`/`mockFetch` de `src/test/render.tsx`. TanStack Query pausa las mutaciones sin red salvo `networkMode: "always"` (así está en `main.tsx`).
+- **Rutas y permisos**: toda ruta nueva de cliente o pública va en `apps/api/src/lib/access.ts`; si no, el acceso por defecto la deniega (y `security.matrix.test.ts` lo comprueba).
 - Fastify 5: `disableRequestLogging` está obsoleto → `logController: new LogController(...)`.
 - VPS: Docker **rootless**, sin compilar allí (temperatura), Cloudflare cachea por extensión (HTML y `/health` van con `no-store`).
 

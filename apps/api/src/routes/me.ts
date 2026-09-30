@@ -1,3 +1,4 @@
+import { audit } from "../lib/audit";
 import type { FastifyInstance } from "fastify";
 import { and, desc, eq, ne } from "drizzle-orm";
 import { z } from "zod";
@@ -72,6 +73,18 @@ export function registerMe(app: FastifyInstance, { db }: Ctx) {
       const u = requireUser(req);
       await db.delete(sessions).where(and(eq(sessions.id, req.params.id), eq(sessions.userId, u.id)));
       return { ok: true as const };
+    },
+  );
+
+  /** Cerrar la sesión en todos los demás dispositivos (móvil perdido, ordenador ajeno…). */
+  api.post(
+    "/me/sessions/revoke-others",
+    { schema: { tags: ["cuenta"], response: { 200: z.object({ closed: z.number() }) } }, config: { rateLimit: { max: 10, timeWindow: "1 minute" } } },
+    async (req) => {
+      const u = requireUser(req);
+      const r = await db.delete(sessions).where(and(eq(sessions.userId, u.id), ne(sessions.id, u.sessionId))).returning({ id: sessions.id });
+      await audit(db, req, "sessions.revoke_others", { type: "user", id: u.id }, { closed: r.length });
+      return { closed: r.length };
     },
   );
 

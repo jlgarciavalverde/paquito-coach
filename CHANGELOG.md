@@ -1,6 +1,17 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [1.12.0] — 2026-09-30 · Robustez en la web y pruebas de componentes
+### Añadido
+- **Cerrar las demás sesiones** (Ajustes o Perfil): para un móvil perdido o un ordenador ajeno.
+- Aviso fijo **sin conexión**; sin red, las acciones fallan al momento con un mensaje claro (antes se quedaban «cargando»).
+- **Sesión caducada o cerrada desde otro dispositivo**: vuelta a la pantalla de entrar con un aviso, sin datos en memoria.
+### Corregido
+- Respuestas que no son JSON (páginas de error de un proxy) ya no muestran «Unexpected token <»; peticiones con tiempo máximo de 30 s; mensajes propios para 401, 403, 404, 408, 413, 429, 502–504.
+- El aviso de sin conexión no se enteraba si la red caía mientras cargaba la pantalla.
+### Pruebas
+- Pruebas de componentes (Testing Library + jsdom): botones, confirmación, avisos con «Deshacer», atajos, paleta ⌘K, asistencia con vuelta atrás si falla, diferencias prescrito/hecho, cuaderno (sugerencias y ±), cliente de la API. Web: 58 tests (antes 15). e2e de robustez: sesión cerrada desde otro dispositivo, sin conexión, páginas y recursos inexistentes (43 e2e).
+
 ## [1.11.0] — 2026-09-30 · Seguridad por capas y batería de pruebas
 ### Seguridad
 - **Acceso denegado por defecto** antes de validar nada: sin sesión solo lo público; un cliente solo lo suyo. Los handlers siguen comprobando (ADR 0014).

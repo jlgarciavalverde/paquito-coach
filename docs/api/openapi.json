@@ -930,6 +930,34 @@
         }
       }
     },
+    "/api/v1/me/sessions/revoke-others": {
+      "post": {
+        "tags": [
+          "cuenta"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "closed": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "closed"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/password/change": {
       "post": {
         "tags": [
