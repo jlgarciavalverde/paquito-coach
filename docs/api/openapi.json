@@ -1253,11 +1253,15 @@
                     },
                     "demo": {
                       "type": "boolean"
+                    },
+                    "mail": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
                     "needsSetup",
-                    "demo"
+                    "demo",
+                    "mail"
                   ],
                   "additionalProperties": false
                 }
@@ -1374,6 +1378,12 @@
                     },
                     "reminders": {
                       "type": "boolean"
+                    },
+                    "emailNotifications": {
+                      "type": "boolean"
+                    },
+                    "twoFactor": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -1383,7 +1393,9 @@
                     "role",
                     "studio",
                     "clientStatus",
-                    "reminders"
+                    "reminders",
+                    "emailNotifications",
+                    "twoFactor"
                   ],
                   "additionalProperties": false
                 }
@@ -1420,6 +1432,144 @@
                 "required": [
                   "email",
                   "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "role": {
+                          "type": "string",
+                          "enum": [
+                            "coach",
+                            "client"
+                          ]
+                        },
+                        "studio": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "coachName": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name",
+                            "coachName"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "clientStatus": {
+                          "nullable": true,
+                          "type": "string",
+                          "enum": [
+                            "invited",
+                            "pending",
+                            "active",
+                            "archived",
+                            "no_account"
+                          ]
+                        },
+                        "reminders": {
+                          "type": "boolean"
+                        },
+                        "emailNotifications": {
+                          "type": "boolean"
+                        },
+                        "twoFactor": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "email",
+                        "role",
+                        "studio",
+                        "clientStatus",
+                        "reminders",
+                        "emailNotifications",
+                        "twoFactor"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "twoFactorRequired": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ]
+                        },
+                        "challenge": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "twoFactorRequired",
+                        "challenge"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login/2fa": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "challenge": {
+                    "type": "string",
+                    "minLength": 20,
+                    "maxLength": 200
+                  },
+                  "code": {
+                    "type": "string",
+                    "minLength": 6,
+                    "maxLength": 20
+                  }
+                },
+                "required": [
+                  "challenge",
+                  "code"
                 ]
               }
             }
@@ -1482,6 +1632,12 @@
                     },
                     "reminders": {
                       "type": "boolean"
+                    },
+                    "emailNotifications": {
+                      "type": "boolean"
+                    },
+                    "twoFactor": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -1491,7 +1647,163 @@
                     "role",
                     "studio",
                     "clientStatus",
-                    "reminders"
+                    "reminders",
+                    "emailNotifications",
+                    "twoFactor"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password/forgot": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "maxLength": 254,
+                    "format": "email",
+                    "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  }
+                },
+                "required": [
+                  "email"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/email/confirm": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "minLength": 20,
+                    "maxLength": 200
+                  }
+                },
+                "required": [
+                  "token"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/unsubscribe": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  }
+                },
+                "required": [
+                  "token"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
                   ],
                   "additionalProperties": false
                 }
@@ -1677,25 +1989,8 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "email": {
-                      "type": "string"
-                    },
-                    "role": {
-                      "type": "string",
-                      "enum": [
-                        "coach",
-                        "client"
-                      ]
-                    },
-                    "studio": {
+                  "anyOf": [
+                    {
                       "type": "object",
                       "properties": {
                         "id": {
@@ -1704,42 +1999,90 @@
                         "name": {
                           "type": "string"
                         },
-                        "coachName": {
+                        "email": {
                           "type": "string"
+                        },
+                        "role": {
+                          "type": "string",
+                          "enum": [
+                            "coach",
+                            "client"
+                          ]
+                        },
+                        "studio": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "coachName": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name",
+                            "coachName"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "clientStatus": {
+                          "nullable": true,
+                          "type": "string",
+                          "enum": [
+                            "invited",
+                            "pending",
+                            "active",
+                            "archived",
+                            "no_account"
+                          ]
+                        },
+                        "reminders": {
+                          "type": "boolean"
+                        },
+                        "emailNotifications": {
+                          "type": "boolean"
+                        },
+                        "twoFactor": {
+                          "type": "boolean"
                         }
                       },
                       "required": [
                         "id",
                         "name",
-                        "coachName"
+                        "email",
+                        "role",
+                        "studio",
+                        "clientStatus",
+                        "reminders",
+                        "emailNotifications",
+                        "twoFactor"
                       ],
                       "additionalProperties": false
                     },
-                    "clientStatus": {
-                      "nullable": true,
-                      "type": "string",
-                      "enum": [
-                        "invited",
-                        "pending",
-                        "active",
-                        "archived",
-                        "no_account"
-                      ]
-                    },
-                    "reminders": {
-                      "type": "boolean"
+                    {
+                      "type": "object",
+                      "properties": {
+                        "twoFactorRequired": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ]
+                        },
+                        "challenge": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "twoFactorRequired",
+                        "challenge"
+                      ],
+                      "additionalProperties": false
                     }
-                  },
-                  "required": [
-                    "id",
-                    "name",
-                    "email",
-                    "role",
-                    "studio",
-                    "clientStatus",
-                    "reminders"
-                  ],
-                  "additionalProperties": false
+                  ]
                 }
               }
             }
@@ -1859,6 +2202,12 @@
                     },
                     "reminders": {
                       "type": "boolean"
+                    },
+                    "emailNotifications": {
+                      "type": "boolean"
+                    },
+                    "twoFactor": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -1868,7 +2217,9 @@
                     "role",
                     "studio",
                     "clientStatus",
-                    "reminders"
+                    "reminders",
+                    "emailNotifications",
+                    "twoFactor"
                   ],
                   "additionalProperties": false
                 }
@@ -1940,6 +2291,12 @@
                     },
                     "reminders": {
                       "type": "boolean"
+                    },
+                    "emailNotifications": {
+                      "type": "boolean"
+                    },
+                    "twoFactor": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -1949,7 +2306,9 @@
                     "role",
                     "studio",
                     "clientStatus",
-                    "reminders"
+                    "reminders",
+                    "emailNotifications",
+                    "twoFactor"
                   ],
                   "additionalProperties": false
                 }
@@ -1973,11 +2332,11 @@
                 "properties": {
                   "reminders": {
                     "type": "boolean"
+                  },
+                  "emailNotifications": {
+                    "type": "boolean"
                   }
-                },
-                "required": [
-                  "reminders"
-                ]
+                }
               }
             }
           }
@@ -2039,6 +2398,12 @@
                     },
                     "reminders": {
                       "type": "boolean"
+                    },
+                    "emailNotifications": {
+                      "type": "boolean"
+                    },
+                    "twoFactor": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -2048,7 +2413,258 @@
                     "role",
                     "studio",
                     "clientStatus",
-                    "reminders"
+                    "reminders",
+                    "emailNotifications",
+                    "twoFactor"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/2fa/setup": {
+      "post": {
+        "tags": [
+          "cuenta"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "secret": {
+                      "type": "string"
+                    },
+                    "otpauthUrl": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "secret",
+                    "otpauthUrl"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/2fa/enable": {
+      "post": {
+        "tags": [
+          "cuenta"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "minLength": 6,
+                    "maxLength": 10
+                  }
+                },
+                "required": [
+                  "code"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "codes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "codes"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/2fa/disable": {
+      "post": {
+        "tags": [
+          "cuenta"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "code": {
+                    "type": "string",
+                    "minLength": 6,
+                    "maxLength": 20
+                  }
+                },
+                "required": [
+                  "password",
+                  "code"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/2fa/recovery": {
+      "post": {
+        "tags": [
+          "cuenta"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  }
+                },
+                "required": [
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "codes": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "codes"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/email": {
+      "post": {
+        "tags": [
+          "cuenta"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "maxLength": 254,
+                    "format": "email",
+                    "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  }
+                },
+                "required": [
+                  "email",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
                   ],
                   "additionalProperties": false
                 }
@@ -2518,6 +3134,10 @@
                         },
                         "expiresAt": {
                           "type": "string"
+                        },
+                        "emailedTo": {
+                          "nullable": true,
+                          "type": "string"
                         }
                       },
                       "required": [
@@ -2835,6 +3455,10 @@
                     },
                     "expiresAt": {
                       "type": "string"
+                    },
+                    "emailedTo": {
+                      "nullable": true,
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -2878,6 +3502,10 @@
                       "type": "string"
                     },
                     "expiresAt": {
+                      "type": "string"
+                    },
+                    "emailedTo": {
+                      "nullable": true,
                       "type": "string"
                     }
                   },

@@ -62,6 +62,8 @@ export const ClientListQuery = z.object({
 export const InviteLink = z.object({
   url: z.string(),
   expiresAt: z.string(),
+  /** Si además se ha enviado por correo, a qué dirección. */
+  emailedTo: z.string().nullable().optional(),
 });
 export type InviteLink = z.infer<typeof InviteLink>;
 

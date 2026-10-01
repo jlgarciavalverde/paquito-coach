@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccesoRouteImport } from './routes/acceso'
 import { Route as AppRouteImport } from './routes/app'
+import { Route as BajaRouteImport } from './routes/baja'
 import { Route as CoachRouteImport } from './routes/coach'
+import { Route as ConfirmarCorreoRouteImport } from './routes/confirmar-correo'
 import { Route as GaleriaRouteImport } from './routes/galeria'
 import { Route as InstalarRouteImport } from './routes/instalar'
 import { Route as PrivacidadRouteImport } from './routes/privacidad'
@@ -63,9 +65,19 @@ const AppRoute = AppRouteImport.update({
   path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BajaRoute = BajaRouteImport.update({
+  id: '/baja',
+  path: '/baja',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CoachRoute = CoachRouteImport.update({
   id: '/coach',
   path: '/coach',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfirmarCorreoRoute = ConfirmarCorreoRouteImport.update({
+  id: '/confirmar-correo',
+  path: '/confirmar-correo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GaleriaRoute = GaleriaRouteImport.update({
@@ -244,7 +256,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/acceso': typeof AccesoRoute
   '/app': typeof AppRouteWithChildren
+  '/baja': typeof BajaRoute
   '/coach': typeof CoachRouteWithChildren
+  '/confirmar-correo': typeof ConfirmarCorreoRoute
   '/galeria': typeof GaleriaRoute
   '/instalar': typeof InstalarRoute
   '/privacidad': typeof PrivacidadRoute
@@ -283,6 +297,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/acceso': typeof AccesoRoute
+  '/baja': typeof BajaRoute
+  '/confirmar-correo': typeof ConfirmarCorreoRoute
   '/galeria': typeof GaleriaRoute
   '/instalar': typeof InstalarRoute
   '/privacidad': typeof PrivacidadRoute
@@ -322,7 +338,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/acceso': typeof AccesoRoute
   '/app': typeof AppRouteWithChildren
+  '/baja': typeof BajaRoute
   '/coach': typeof CoachRouteWithChildren
+  '/confirmar-correo': typeof ConfirmarCorreoRoute
   '/galeria': typeof GaleriaRoute
   '/instalar': typeof InstalarRoute
   '/privacidad': typeof PrivacidadRoute
@@ -364,7 +382,9 @@ export interface FileRouteTypes {
     | '/'
     | '/acceso'
     | '/app'
+    | '/baja'
     | '/coach'
+    | '/confirmar-correo'
     | '/galeria'
     | '/instalar'
     | '/privacidad'
@@ -403,6 +423,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/acceso'
+    | '/baja'
+    | '/confirmar-correo'
     | '/galeria'
     | '/instalar'
     | '/privacidad'
@@ -441,7 +463,9 @@ export interface FileRouteTypes {
     | '/'
     | '/acceso'
     | '/app'
+    | '/baja'
     | '/coach'
+    | '/confirmar-correo'
     | '/galeria'
     | '/instalar'
     | '/privacidad'
@@ -482,7 +506,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccesoRoute: typeof AccesoRoute
   AppRoute: typeof AppRouteWithChildren
+  BajaRoute: typeof BajaRoute
   CoachRoute: typeof CoachRouteWithChildren
+  ConfirmarCorreoRoute: typeof ConfirmarCorreoRoute
   GaleriaRoute: typeof GaleriaRoute
   InstalarRoute: typeof InstalarRoute
   PrivacidadRoute: typeof PrivacidadRoute
@@ -513,11 +539,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/baja': {
+      id: '/baja'
+      path: '/baja'
+      fullPath: '/baja'
+      preLoaderRoute: typeof BajaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/coach': {
       id: '/coach'
       path: '/coach'
       fullPath: '/coach'
       preLoaderRoute: typeof CoachRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/confirmar-correo': {
+      id: '/confirmar-correo'
+      path: '/confirmar-correo'
+      fullPath: '/confirmar-correo'
+      preLoaderRoute: typeof ConfirmarCorreoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/galeria': {
@@ -849,7 +889,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccesoRoute: AccesoRoute,
   AppRoute: AppRouteWithChildren,
+  BajaRoute: BajaRoute,
   CoachRoute: CoachRouteWithChildren,
+  ConfirmarCorreoRoute: ConfirmarCorreoRoute,
   GaleriaRoute: GaleriaRoute,
   InstalarRoute: InstalarRoute,
   PrivacidadRoute: PrivacidadRoute,

@@ -11,6 +11,7 @@ import type { PushSender } from "../lib/push";
 import { madridClock } from "../lib/scheduler";
 import { requireActiveClient, requireCoach, requireUser } from "../lib/session";
 import { typed, type Ctx } from "./ctx";
+import { sendBookingMail } from "../lib/booking-mail";
 
 const IdParams = z.object({ id: z.string().uuid() });
 type PriceRow = typeof prices.$inferSelect;
@@ -59,7 +60,7 @@ const toSub = (s: SubRow): Subscription => ({
   cancelAtPeriodEnd: s.cancelAtPeriodEnd,
 });
 
-export function registerPayments(app: FastifyInstance, { db, cfg }: Ctx, deps: { gateway: PaymentGateway | null; push: PushSender }): Billing {
+export function registerPayments(app: FastifyInstance, { db, cfg, mail }: Ctx, deps: { gateway: PaymentGateway | null; push: PushSender }): Billing {
   const api = typed(app);
   const gw = deps.gateway;
   const need = () => {
@@ -293,7 +294,7 @@ export function registerPayments(app: FastifyInstance, { db, cfg }: Ctx, deps: {
         .where(and(eq(payments.id, p.id), sql`${payments.status} not in ('paid', 'refunded')`))
         .returning();
       if (!won) return null;
-      if (!won.clientId) return { lostBooking: false }; // cliente borrado entretanto: queda el cobro
+      if (!won.clientId) return { lostBooking: false, confirmed: null }; // cliente borrado entretanto: queda el cobro
       if (won.priceId && !won.packId) {
         const [pr] = await tx.select().from(prices).where(eq(prices.id, won.priceId));
         if (pr && (pr.kind === "pack" || pr.kind === "session")) {
@@ -323,9 +324,10 @@ export function registerPayments(app: FastifyInstance, { db, cfg }: Ctx, deps: {
           .returning({ id: appointments.id });
         lostBooking = !ok;
       }
-      return { lostBooking };
+      return { lostBooking, confirmed: Boolean(won.appointmentId) && !lostBooking ? won.appointmentId : null };
     });
     if (!outcome) return;
+    if (outcome.confirmed) void sendBookingMail(db, mail, cfg, outcome.confirmed, "confirmed").catch((e) => app.log.error(e, "correo de reserva"));
     if (paymentIntentId && gw) {
       const url = await gw.receiptUrl(paymentIntentId).catch(() => null);
       if (url) await db.update(payments).set({ receiptUrl: url }).where(eq(payments.id, p.id));

@@ -10,6 +10,7 @@ import { useSubmit } from "../../lib/use-form";
 import { Button, buttonClass } from "../../components/ui/button";
 import { Monogram } from "../../components/ui/layout";
 import { PasswordSetting, PushSetting, SessionsSetting, ThemeSetting } from "../../components/account-settings";
+import { EmailSetting, TwoFactorSetting } from "../../components/security-settings";
 import { useLogout, useMe } from "../../lib/auth";
 import { useDocumentTitle } from "../../lib/title";
 
@@ -56,7 +57,9 @@ function Profile() {
         </section>
         <PushSetting />
         <ThemeSetting />
-        <PasswordSetting />
+        <EmailSetting />
+          <PasswordSetting />
+          <TwoFactorSetting />
         <SessionsSetting />
         <MyData />
         <Button variant="secondary" onClick={logout} className="self-start">

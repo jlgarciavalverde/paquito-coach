@@ -1,14 +1,21 @@
 import { clientIp } from "../lib/ip";
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { and, count, eq, gt, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
-import { InvitePreview, LoginInput, Me, Ok, RegisterInput, ResetPasswordInput, SetupInput, SetupStatus } from "@coach/shared";
-import { clientProfiles, invites, passwordResets, sessions, studios, users } from "../db/schema";
+import {
+  EmailChangeInput, ForgotPasswordInput, InvitePreview, LoginInput, LoginResult, Me, Ok, RegisterInput, ResetPasswordInput, SetupInput, SetupStatus,
+  TwoFactorLoginInput,
+} from "@coach/shared";
+import { clientProfiles, emailTokens, invites, passwordResets, sessions, studios, users } from "../db/schema";
+import { endChallenge, newChallenge, useChallengeAttempt } from "../lib/challenges";
+import { brandOf } from "../lib/mail";
+import { mailTemplates } from "../lib/mail-templates";
+import { hashRecovery, verifyTotp } from "../lib/totp";
 import { audit } from "../lib/audit";
 import { HttpError } from "../lib/errors";
 import { hashPassword, isCommonPassword, verifyPassword } from "../lib/passwords";
 import { clearFailures, isLocked, recordFailure } from "../lib/throttle";
-import { hashToken, newJoinCode } from "../lib/tokens";
+import { hashToken, newJoinCode, newToken } from "../lib/tokens";
 import { clearSessionCookie, cookieName, createSession } from "../lib/session";
 import { safeEqual } from "../lib/compare";
 import { meOf } from "./me";
@@ -35,7 +42,7 @@ export function registerAuth(app: FastifyInstance, ctx: Ctx) {
 
   api.get("/auth/setup-status", { schema: { tags: ["auth"], response: { 200: SetupStatus } } }, async () => {
     const [row] = await db.select({ n: count() }).from(studios);
-    return { needsSetup: !cfg.demoMode && (row?.n ?? 0) === 0, demo: Boolean(cfg.demoMode) };
+    return { needsSetup: !cfg.demoMode && (row?.n ?? 0) === 0, demo: Boolean(cfg.demoMode), mail: ctx.mail.enabled };
   });
 
   /** Alta inicial: crea el estudio y la cuenta del entrenador. Solo una vez y con SETUP_CODE. */
@@ -59,7 +66,15 @@ export function registerAuth(app: FastifyInstance, ctx: Ctx) {
     return meOf(db, userId);
   });
 
-  api.post("/auth/login", { schema: { tags: ["auth"], body: LoginInput, response: { 200: Me } }, config: strict }, async (req, reply) => {
+  /** Tras la contraseña (o el restablecimiento): sesión directa o, con 2FA, un reto. */
+  async function finishLogin(req: FastifyRequest, reply: FastifyReply, userId: string): Promise<LoginResult> {
+    const [u] = await db.select({ totp: users.totpSecret }).from(users).where(eq(users.id, userId));
+    if (u?.totp) return { twoFactorRequired: true as const, challenge: newChallenge(userId) };
+    await createSession(db, cfg, reply, userId, req.headers["user-agent"], req.cookies[cookieName(cfg)]);
+    return meOf(db, userId);
+  }
+
+  api.post("/auth/login", { schema: { tags: ["auth"], body: LoginInput, response: { 200: LoginResult } }, config: strict }, async (req, reply) => {
     const { email, password } = req.body;
     const key = email.toLowerCase();
     // Dos frenos: 5 fallos por correo desde la misma IP y 20 por correo en total. Así un atacante desde su IP no deja
@@ -82,8 +97,95 @@ export function registerAuth(app: FastifyInstance, ctx: Ctx) {
     // Un cliente archivado no entra: su entrenador le ha dado de baja (sus datos se conservan).
     const [cp] = await db.select({ status: clientProfiles.status }).from(clientProfiles).where(eq(clientProfiles.userId, user.id));
     if (cp?.status === "archived") throw new HttpError(403, "archived", "Tu entrenador ha dado de baja tu cuenta. Si es un error, escríbele.");
-    await createSession(db, cfg, reply, user.id, req.headers["user-agent"], req.cookies[cookieName(cfg)]);
-    return meOf(db, user.id);
+    return finishLogin(req, reply, user.id);
+  });
+
+  /** Segundo paso: el código de la app de autenticación o uno de los de recuperación (cada uno sirve una vez). */
+  api.post("/auth/login/2fa", { schema: { tags: ["auth"], body: TwoFactorLoginInput, response: { 200: Me } }, config: strict }, async (req, reply) => {
+    const bad = new HttpError(401, "bad_code", "El código no es correcto o ha caducado. Si ha pasado mucho rato, vuelve a escribir la contraseña.");
+    const userId = useChallengeAttempt(req.body.challenge);
+    if (!userId) throw bad;
+    const [u] = await db.select().from(users).where(and(eq(users.id, userId), isNull(users.deletedAt)));
+    if (!u?.totpSecret) throw bad;
+    const code = req.body.code.trim();
+    if (/^\d{6}$/.test(code)) {
+      const step = verifyTotp(u.totpSecret, code, u.totpLastStep);
+      // Condición sobre el último paso: dos peticiones a la vez con el mismo código no entran las dos.
+      const won = step !== null && (await db.update(users).set({ totpLastStep: step }).where(and(eq(users.id, u.id), sql`coalesce(${users.totpLastStep}, -1) < ${step}`)).returning({ id: users.id })).length > 0;
+      if (!won) throw bad;
+    } else {
+      const h = hashRecovery(code);
+      if (!u.totpRecovery.includes(h)) throw bad;
+      const won = await db
+        .update(users)
+        .set({ totpRecovery: u.totpRecovery.filter((x) => x !== h) })
+        .where(and(eq(users.id, u.id), sql`${users.totpRecovery} @> ${JSON.stringify([h])}::jsonb`))
+        .returning({ id: users.id });
+      if (won.length === 0) throw bad;
+      await audit(db, req, "auth.2fa.recovery_used", { type: "user", id: u.id }, { left: u.totpRecovery.length - 1 });
+    }
+    endChallenge(req.body.challenge);
+    await createSession(db, cfg, reply, u.id, req.headers["user-agent"], req.cookies[cookieName(cfg)]);
+    return meOf(db, u.id);
+  });
+
+  /**
+   * «He olvidado la contraseña»: si el correo es de una cuenta, le llega un enlace de un uso (1 hora). La respuesta es
+   * la misma exista o no (no se pueden sondear cuentas) y tiene freno por IP (ruta) y por correo (3 cada 15 minutos).
+   */
+  api.post("/auth/password/forgot", { schema: { tags: ["auth"], body: ForgotPasswordInput, response: { 200: Ok } }, config: { rateLimit: { max: 5, timeWindow: "1 minute" } } }, async (req) => {
+    if (!ctx.mail.enabled) throw new HttpError(503, "mail_off", "Esta app no envía correos todavía. Pide a tu entrenador un enlace para cambiar la contraseña.");
+    const key = `forgot|${req.body.email}`;
+    if (isLocked(key, Date.now(), 3)) return { ok: true as const };
+    recordFailure(key);
+    const [u] = await db
+      .select({ id: users.id, name: users.name, email: users.email, studioId: users.studioId })
+      .from(users)
+      .where(and(sql`lower(${users.email}) = ${req.body.email}`, isNull(users.deletedAt)))
+      .limit(1);
+    if (u) {
+      const [cp] = await db.select({ status: clientProfiles.status }).from(clientProfiles).where(eq(clientProfiles.userId, u.id));
+      if (cp?.status !== "archived") {
+        const token = newToken();
+        const t = mailTemplates.passwordReset(await brandOf(db, u.studioId), { name: u.name, url: `${cfg.publicUrl}/restablecer?token=${token}` });
+        await db.transaction(async (tx) => {
+          await tx.delete(passwordResets).where(and(eq(passwordResets.userId, u.id), isNull(passwordResets.usedAt)));
+          await tx.insert(passwordResets).values({ userId: u.id, tokenHash: hashToken(token), expiresAt: new Date(Date.now() + 60 * 60_000), createdBy: null });
+          await ctx.mail.enqueue(tx, { kind: "password_reset", to: u.email, userId: u.id, studioId: u.studioId, ...t });
+        });
+        ctx.mail.kick();
+        await audit(db, req, "auth.password.forgot", { type: "user", id: u.id });
+      }
+    }
+    return { ok: true as const };
+  });
+
+  /** Confirmar un correo nuevo (enlace enviado a esa dirección). Se avisa a la dirección anterior. */
+  api.post("/auth/email/confirm", { schema: { tags: ["auth"], body: z.object({ token: z.string().min(20).max(200) }), response: { 200: Ok } }, config: strict }, async (req) => {
+    const r = await db.transaction(async (tx) => {
+      const [t] = await tx
+        .update(emailTokens)
+        .set({ usedAt: new Date() })
+        .where(and(eq(emailTokens.tokenHash, hashToken(req.body.token)), eq(emailTokens.kind, "email_change"), isNull(emailTokens.usedAt), gt(emailTokens.expiresAt, new Date())))
+        .returning();
+      if (!t?.newEmail) throw new HttpError(410, "token_invalid", "El enlace no es válido o ha caducado. Vuelve a pedir el cambio desde tu perfil.");
+      if (await emailExists(tx as unknown as Ctx["db"], t.newEmail)) throw new HttpError(409, "email_taken", "Esa dirección ya la usa otra cuenta.");
+      const [old] = await tx.select({ email: users.email, name: users.name, studioId: users.studioId }).from(users).where(eq(users.id, t.userId));
+      await tx.update(users).set({ email: t.newEmail }).where(eq(users.id, t.userId));
+      await tx.update(clientProfiles).set({ email: t.newEmail, updatedAt: new Date() }).where(eq(clientProfiles.userId, t.userId));
+      const m = mailTemplates.emailChanged(await brandOf(db, old!.studioId), { name: old!.name, newEmail: t.newEmail });
+      await ctx.mail.enqueue(tx, { kind: "email_changed", to: old!.email, userId: t.userId, studioId: old!.studioId, ...m });
+      return t.userId;
+    });
+    ctx.mail.kick();
+    await audit(db, req, "auth.email.changed", { type: "user", id: r });
+    return { ok: true as const };
+  });
+
+  /** «Darme de baja» desde un correo, sin iniciar sesión: solo apaga los correos no esenciales. */
+  api.post("/auth/unsubscribe", { schema: { tags: ["auth"], body: z.object({ token: z.string().uuid() }), response: { 200: Ok } }, config: strict }, async (req) => {
+    await db.update(users).set({ emailNotifications: false }).where(eq(users.unsubscribeToken, req.body.token));
+    return { ok: true as const };
   });
 
   /** Solo en la demo: entrar con un clic como el entrenador o como la clienta de ejemplo. */
@@ -129,7 +231,7 @@ export function registerAuth(app: FastifyInstance, ctx: Ctx) {
 
   api.post(
     "/auth/password/reset",
-    { schema: { tags: ["auth"], body: ResetPasswordInput, response: { 200: Me } }, config: strict },
+    { schema: { tags: ["auth"], body: ResetPasswordInput, response: { 200: LoginResult } }, config: strict },
     async (req, reply) => {
       assertStrong(req.body.password);
       const passwordHash = await hashPassword(req.body.password);
@@ -139,14 +241,14 @@ export function registerAuth(app: FastifyInstance, ctx: Ctx) {
           .set({ usedAt: new Date() })
           .where(and(eq(passwordResets.tokenHash, hashToken(req.body.token)), isNull(passwordResets.usedAt), gt(passwordResets.expiresAt, new Date())))
           .returning({ userId: passwordResets.userId });
-        if (!used) throw new HttpError(410, "reset_invalid", "El enlace no es válido o ha caducado. Pide uno nuevo a tu entrenador.");
+        if (!used) throw new HttpError(410, "reset_invalid", ctx.mail.enabled ? "El enlace no es válido o ha caducado. Pide uno nuevo desde «¿Has olvidado la contraseña?»." : "El enlace no es válido o ha caducado. Pide uno nuevo a tu entrenador.");
         await tx.update(users).set({ passwordHash }).where(eq(users.id, used.userId));
         // Fuera todas las sesiones anteriores.
         await tx.delete(sessions).where(eq(sessions.userId, used.userId));
         return used.userId;
       });
-      await createSession(db, cfg, reply, userId, req.headers["user-agent"], req.cookies[cookieName(cfg)]);
-      return meOf(db, userId);
+      // Con 2FA, restablecer la contraseña no basta para entrar: falta el código (si no, el correo sería la única llave).
+      return finishLogin(req, reply, userId);
     },
   );
 

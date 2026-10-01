@@ -26,7 +26,7 @@ describe("demo", () => {
 
   it("entrar con un clic como entrenador y como clienta; se ve su actividad", async () => {
     const status = await new Agent(app).get("/api/v1/auth/setup-status");
-    expect(status.body).toEqual({ needsSetup: false, demo: true });
+    expect(status.body).toEqual({ needsSetup: false, demo: true, mail: false }); // la demo nunca envía correos
     const coach = new Agent(app);
     expect((await coach.post("/api/v1/auth/demo", { as: "coach" })).body.role).toBe("coach");
     expect((await coach.get("/api/v1/activity")).body.length).toBeGreaterThan(3);

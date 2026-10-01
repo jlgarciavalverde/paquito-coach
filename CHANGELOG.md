@@ -1,6 +1,16 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [1.17.0] — 2026-10-01 · Correo y cuentas
+### Añadido
+- **Correo** (Brevo, ADR 0016): la invitación llega también por correo; **«¿Has olvidado la contraseña?»** sin pasar por el entrenador; confirmación y cancelación de reservas; al entrenador sin avisos en el móvil, las reservas nuevas. Bandeja de salida con reintentos: si el proveedor falla, nada se rompe.
+- **Verificación en dos pasos** (Google Authenticator, Authy…) para cualquier cuenta, recomendada para el entrenador: QR, códigos de recuperación de un uso, y ni la contraseña sola ni el enlace de restablecer dan acceso sin el código.
+- **Cambiar el correo** con confirmación en la dirección nueva y aviso a la antigua. Preferencia «Recibir avisos por correo» y «Darme de baja» en los correos.
+### Seguridad
+- Sin enumeración de cuentas en el olvido ni en el cambio de correo; frenos por IP y por dirección; enlaces de un uso con hash y caducidad; el cuerpo de los correos se borra al enviarse.
+### Pruebas
+- `mail.p1.test.ts` (20), `lib/totp.test.ts` (vectores RFC 6238), e2e `18-correo-y-2fa`. API 252, e2e 44.
+
 ## [1.16.0] — 2026-09-30 · Auditoría profunda A3: la web
 ### Corregido
 - **Cuaderno**: los guardados van en orden (una respuesta vieja ya no pisa series nuevas); lo pendiente se guarda al salir de la pantalla o cerrar la app (`keepalive`); «Terminar entreno» se detiene si no se han podido guardar las series (antes se perdían) y no admite doble toque; la barra de descanso ya no se queda colgada.

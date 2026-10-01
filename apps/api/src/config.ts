@@ -39,6 +39,15 @@ export interface AppConfig {
   aiFake?: boolean;
   /** Instancia de demostración pública (base de datos propia, se re-siembra cada noche). */
   demoMode?: boolean;
+  /** Correo (SMTP de Brevo). Sin servidor y usuario, el correo está desactivado (la web lo tiene en cuenta). */
+  mailSmtpHost?: string;
+  mailSmtpPort: number;
+  mailSmtpUser?: string;
+  mailSmtpPass?: string;
+  /** Remitente, p. ej. «Paquito Coach <hola@envios.redgarverde.com>». */
+  mailFrom: string;
+  /** Correo simulado (e2e): no sale nada y se puede leer en GET /api/v1/test/mails. */
+  mailFake?: boolean;
 }
 
 export function configFromEnv(env = process.env): AppConfig {
@@ -71,5 +80,11 @@ export function configFromEnv(env = process.env): AppConfig {
     stripeSecretKey: env.STRIPE_SECRET_KEY || undefined,
     stripeWebhookSecret: env.STRIPE_WEBHOOK_SECRET || undefined,
     paymentsFake: env.PAYMENTS_FAKE === "1",
+    mailSmtpHost: env.MAIL_SMTP_HOST || undefined,
+    mailSmtpPort: Number(env.MAIL_SMTP_PORT ?? 587),
+    mailSmtpUser: env.MAIL_SMTP_USER || undefined,
+    mailSmtpPass: env.MAIL_SMTP_PASS || undefined,
+    mailFrom: env.MAIL_FROM || "Paquito Coach <hola@envios.redgarverde.com>",
+    mailFake: env.MAIL_FAKE === "1",
   };
 }

@@ -38,6 +38,8 @@ export async function testApp(over: Partial<AppConfig> = {}, opts: Parameters<ty
     geminiModel: "test",
     geminiEmbedModel: "test",
     aiDailyLimit: 1000,
+    mailSmtpPort: 587,
+    mailFrom: "Test <test@example.com>",
     ...over,
     },
     opts,

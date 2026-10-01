@@ -10,6 +10,7 @@ import { useConfirm } from "../../components/ui/confirm";
 import { PaymentsSettings } from "../../components/payments/prices-settings";
 import { BookingSettingsBlock } from "../../components/agenda/booking-settings";
 import { PasswordSetting, PushSetting, SessionsSetting, ThemeSetting } from "../../components/account-settings";
+import { EmailSetting, TwoFactorSetting } from "../../components/security-settings";
 import { api } from "../../lib/api";
 import { useMe } from "../../lib/auth";
 import { joinCodeQuery } from "../../lib/queries";
@@ -33,7 +34,9 @@ function Settings() {
         <div className="flex flex-col gap-12">
           <PaymentsSettings />
           <BookingSettingsBlock />
+          <EmailSetting />
           <PasswordSetting />
+          <TwoFactorSetting />
           <SessionsSetting />
         </div>
       </div>

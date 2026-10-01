@@ -4,6 +4,7 @@ import { z } from "zod";
 import { Appointment, BookingInfo, BookingSettings, DEFAULT_BOOKING, DateOnly, Ok, fromCents, isoWeekday, packUsable, slotStartsFor, type BookingSlot } from "@coach/shared";
 import { appointments, bookingSettings, prices, users } from "../db/schema";
 import { packsOf } from "../lib/packs";
+import { sendBookingMail } from "../lib/booking-mail";
 import type { Billing } from "./payments";
 import { HttpError, notFound } from "../lib/errors";
 import type { PushSender } from "../lib/push";
@@ -25,7 +26,8 @@ export const HOLD_MINUTES = 15;
  * Reservas por el cliente (H3b): el entrenador publica franjas semanales; el cliente ve los huecos libres y reserva o cancela
  * con la antelación marcada. Un hueco está ocupado por citas que se solapan (las citas sin cliente lo bloquean entero).
  */
-export function registerBooking(app: FastifyInstance, { db }: Ctx, deps: { push: PushSender; billing: Billing }) {
+export function registerBooking(app: FastifyInstance, { db, cfg, mail }: Ctx, deps: { push: PushSender; billing: Billing }) {
+  const bookingMail = (id: string, kind: "confirmed" | "cancelled") => void sendBookingMail(db, mail, cfg, id, kind).catch((e) => app.log.error(e, "correo de reserva"));
   const api = typed(app);
 
   async function settingsOf(studioId: string): Promise<BookingSettings> {
@@ -155,6 +157,8 @@ export function registerBooking(app: FastifyInstance, { db }: Ctx, deps: { push:
       const coaches = await db.select({ id: users.id }).from(users).where(and(eq(users.studioId, c.studioId), eq(users.role, "coach")));
       const when = new Intl.DateTimeFormat("es-ES", { timeZone: "Europe/Madrid", weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }).format(at);
       void deps.push(coaches.map((x) => x.id), { title: "Nueva reserva", body: `${c.name} ha reservado el ${when}${pay ? " (pendiente de pago)" : ""}.`, url: "/coach/calendario", tag: "reserva" }).catch(() => {});
+      // Si hay que pagar, la confirmación sale al llegar el pago (`markPaid`).
+      if (!pay) bookingMail(row.id, "confirmed");
       return { id: row.id, status: row.status, packId: row.packId, clientId: row.clientId, clientName: c.name, kind: row.kind, title: row.title, startsAt: row.startsAt.toISOString(), endsAt: row.endsAt.toISOString(), location: row.location, notes: "", checkoutUrl };
     },
   );
@@ -174,6 +178,7 @@ export function registerBooking(app: FastifyInstance, { db }: Ctx, deps: { push:
     const coaches = await db.select({ id: users.id }).from(users).where(and(eq(users.studioId, c.studioId), eq(users.role, "coach")));
     const when = new Intl.DateTimeFormat("es-ES", { timeZone: "Europe/Madrid", weekday: "long", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(a.startsAt);
     void deps.push(coaches.map((x) => x.id), { title: "Cita cancelada", body: `${c.name} ha cancelado la del ${when}.`, url: "/coach/calendario", tag: "reserva" }).catch(() => {});
+    if (a.paymentStatus !== "pending") bookingMail(a.id, "cancelled");
     return { ok: true as const };
   });
 }

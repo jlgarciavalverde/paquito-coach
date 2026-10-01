@@ -68,7 +68,7 @@ describe("matriz de autorización", () => {
 
   it("las listas de acceso no tienen rutas fantasma (todas existen)", () => {
     const all = new Set(apiRoutes().map(key));
-    const ghosts = [...PUBLIC_ROUTES, ...CLIENT_ROUTES].filter((k) => !all.has(k) && !k.includes("/auth/demo") && !k.includes("/stripe/simulate"));
+    const ghosts = [...PUBLIC_ROUTES, ...CLIENT_ROUTES].filter((k) => !all.has(k) && !k.includes("/auth/demo") && !k.includes("/stripe/simulate") && !k.includes("/test/mails"));
     expect(ghosts).toEqual([]);
   });
 

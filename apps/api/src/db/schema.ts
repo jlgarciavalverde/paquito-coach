@@ -33,10 +33,19 @@ export const users = pgTable(
     healthConsentAt: ts("health_consent_at"),
     /** Recibir recordatorios push (entreno del día, resumen del entrenador). */
     reminders: boolean("reminders").notNull().default(true),
+    /** Correos no esenciales (confirmaciones de reserva, avisos). Los de seguridad (restablecer, cambio de correo) se mandan siempre. */
+    emailNotifications: boolean("email_notifications").notNull().default(true),
+    /** Para el enlace «Darme de baja» de los correos (sin iniciar sesión). */
+    unsubscribeToken: uuid("unsubscribe_token").notNull().defaultRandom(),
+    /** 2FA (TOTP): secreto activo, secreto pendiente de confirmar, último paso usado (contra la reutilización) y códigos de recuperación (hash). */
+    totpSecret: text("totp_secret"),
+    totpPendingSecret: text("totp_pending_secret"),
+    totpLastStep: integer("totp_last_step"),
+    totpRecovery: jsonb("totp_recovery").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
     createdAt: createdAt(),
     deletedAt: ts("deleted_at"),
   },
-  (t) => [uniqueIndex("users_email_uq").on(sql`lower(${t.email})`), index("users_studio_fk_idx").on(t.studioId)],
+  (t) => [uniqueIndex("users_email_uq").on(sql`lower(${t.email})`), index("users_studio_fk_idx").on(t.studioId), uniqueIndex("users_unsubscribe_uq").on(t.unsubscribeToken)],
 );
 
 export const sessions = pgTable(
@@ -732,4 +741,52 @@ export const subscriptions = pgTable(
     index("subscriptions_price_fk_idx").on(t.priceId),
     index("subscriptions_studio_fk_idx").on(t.studioId),
   ],
+);
+
+// ── P1: correo ────────────────────────────────────────────────────────────────
+
+/**
+ * Bandeja de salida: las rutas solo encolan; el planificador envía con reintentos (un fallo del proveedor no rompe nada).
+ * El cuerpo se borra al enviarse (puede llevar enlaces de un solo uso) y las filas enviadas se purgan a los 7 días.
+ */
+export const outbox = pgTable(
+  "outbox",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").references(() => studios.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id").references(() => clientProfiles.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    toEmail: text("to_email").notNull(),
+    subject: text("subject").notNull(),
+    html: text("html"),
+    text: text("text"),
+    attempts: integer("attempts").notNull().default(0),
+    nextAttemptAt: ts("next_attempt_at").notNull().defaultNow(),
+    lastError: text("last_error"),
+    sentAt: ts("sent_at"),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index("outbox_pending_idx").on(t.nextAttemptAt).where(sql`${t.sentAt} is null`),
+    index("outbox_studio_fk_idx").on(t.studioId),
+    index("outbox_user_fk_idx").on(t.userId),
+    index("outbox_client_fk_idx").on(t.clientId),
+  ],
+);
+
+/** Enlaces de un solo uso enviados por correo que no son de restablecer (hoy: confirmar un correo nuevo). */
+export const emailTokens = pgTable(
+  "email_tokens",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    kind: text("kind").$type<"email_change">().notNull(),
+    newEmail: text("new_email"),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: ts("expires_at").notNull(),
+    usedAt: ts("used_at"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("email_tokens_user_fk_idx").on(t.userId)],
 );

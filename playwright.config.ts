@@ -33,6 +33,7 @@ export default defineConfig({
       LOG_LEVEL: "warn",
       AI_FAKE: "1",
       PAYMENTS_FAKE: "1",
+      MAIL_FAKE: "1",
     },
   },
 });

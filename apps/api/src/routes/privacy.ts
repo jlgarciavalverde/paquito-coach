@@ -49,6 +49,8 @@ export const EXPORT_COVERAGE: Record<string, string> = {
 export const NOT_EXPORTED: Record<string, string> = {
   invites: "solo el hash de un enlace de un solo uso; no describe a la persona",
   password_resets: "solo el hash de un enlace de un solo uso; no describe a la persona",
+  email_tokens: "solo el hash de un enlace de un solo uso (confirmar un correo nuevo); caduca en 24 horas",
+  outbox: "correos pendientes de envío; el cuerpo se borra al enviarse y la fila a los 7 días",
 };
 
 const EXT: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif", "image/heic": "heic", "application/pdf": "pdf" };

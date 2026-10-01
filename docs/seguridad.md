@@ -47,6 +47,15 @@
 | Webhook falso o repetido | Firma de Stripe, tolerancia de 5 min, eventos idempotentes | idem → webhook + `robustness.test.ts` (tres a la vez) |
 | Carreras | Cerrojo por estudio en reservas, invitación atómica | `robustness.test.ts` → carreras |
 
+## Correo y verificación en dos pasos — 1.17.0 (ver ADR 0016)
+| Amenaza | Defensa | Prueba |
+|---|---|---|
+| Robo de la contraseña del entrenador | 2FA TOTP opcional (recomendada), reto sin sesión hasta el código, códigos de recuperación de un uso, sin reutilizar pasos | `mail.p1.test.ts` → 2FA, `lib/totp.test.ts` |
+| El correo como llave única | Restablecer por correo no se salta la 2FA | idem |
+| Sondear cuentas con «He olvidado la contraseña» o el cambio de correo | Misma respuesta exista o no; frenos por IP y por dirección | `mail.p1.test.ts` → olvido |
+| Enlaces de un uso filtrados | Hash en la BD, caducidad (1 h / 24 h), cuerpo del correo borrado al enviarse | idem → bandeja |
+| Caída del proveedor de correo | Bandeja con reintentos; la petición nunca falla por el correo | idem |
+
 ## Conservación de datos
 | Qué | Cuánto | Dónde |
 |---|---|---|
@@ -54,6 +63,7 @@
 | Enlaces de restablecer | 1 día tras caducar | idem |
 | Registro de auditoría (accesos a fichas, altas, bajas, IP) | 2 años | idem |
 | Archivos subidos sin usar (foto que no llegó a enviarse…) | 1 día | `purgeOrphanMedia` |
+| Correos enviados (sin cuerpo) o abandonados | 7 días | `purgeOutbox` |
 | Cobros de un cliente borrado | Los que exige la ley fiscal, anonimizados (solo su nombre) | ADR 0015 |
 
 ## Auditoría profunda A1 — 1.14.0 (2026-09-30) — ver ADR 0015

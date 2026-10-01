@@ -25,6 +25,11 @@ export function ShareInvite({ invite, clientName, coachName }: { invite: InviteL
   const expires = new Date(invite.expiresAt).toLocaleDateString("es-ES", { day: "numeric", month: "long" });
   return (
     <div className="flex flex-col gap-3">
+      {invite.emailedTo && (
+        <p role="status" className="border-l-[5px] border-plate-green bg-plate-green-soft px-3 py-2 text-sm">
+          Le hemos enviado la invitación por correo a <strong>{invite.emailedTo}</strong>. Si prefieres, mándasela también por WhatsApp.
+        </p>
+      )}
       <CopyField value={invite.url} label="Enlace de invitación" />
       <div className="flex flex-wrap gap-2">
         <WhatsAppLink text={text} />

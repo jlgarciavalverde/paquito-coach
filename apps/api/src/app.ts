@@ -54,19 +54,33 @@ import { createFakeGateway, createStripeGateway, type PaymentGateway } from "./l
 import type { AiProvider } from "./lib/ai/provider";
 import { Hub } from "./lib/realtime";
 import { createPushSender, type PushSender } from "./lib/push";
+import { createFakeTransport, createMailer, createSmtpTransport, type MailTransport, type Mailer } from "./lib/mail";
 import { seedExercises } from "./db/seed";
 import type { Ctx } from "./routes/ctx";
 
-export type App = FastifyInstance & { db: DB; push: PushSender; routeList: { method: string; url: string }[]; billing: Billing };
+export type App = FastifyInstance & { db: DB; push: PushSender; routeList: { method: string; url: string }[]; billing: Billing; mail: Mailer };
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
-export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: AiProvider | null; gateway?: PaymentGateway | null } = {}): Promise<App> {
+export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: AiProvider | null; gateway?: PaymentGateway | null; mail?: MailTransport | null } = {}): Promise<App> {
   const { db, sql: pg } = createDb(cfg.databaseUrl);
   await runMigrations(db);
   if (cfg.seedExercises !== false) await seedExercises(db);
   const hub = new Hub();
-  const ctx: Ctx = { db, cfg, hub };
+  // Correo: Brevo con credenciales; simulado en e2e; nunca en la demo (correos de mentira a direcciones reales, no).
+  const fakeMail = cfg.mailFake && !cfg.demoMode ? createFakeTransport() : null;
+  const transport =
+    opts.mail !== undefined
+      ? opts.mail
+      : cfg.demoMode
+        ? null
+        : (fakeMail?.send ??
+          (cfg.mailSmtpHost && cfg.mailSmtpUser && cfg.mailSmtpPass
+            ? createSmtpTransport({ host: cfg.mailSmtpHost, port: cfg.mailSmtpPort, user: cfg.mailSmtpUser, pass: cfg.mailSmtpPass, from: cfg.mailFrom })
+            : null));
+  let logError: (e: unknown, msg: string) => void = () => {};
+  const mail = createMailer(db, transport, (e, msg) => logError(e, msg));
+  const ctx: Ctx = { db, cfg, hub, mail };
   // IA: sin clave (o en la demo) queda desactivada; los tests inyectan un proveedor falso.
   const ai =
     opts.ai !== undefined
@@ -77,8 +91,8 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
           ? createGemini({ apiKey: cfg.geminiApiKey, model: cfg.geminiModel, embedModel: cfg.geminiEmbedModel })
           : null;
   // Los modos simulados son para pruebas: en producción no se arranca con ellos (salvo la IA de ejemplo de la demo).
-  if (process.env.NODE_ENV === "production" && (cfg.paymentsFake || (cfg.aiFake && !cfg.demoMode)))
-    throw new Error("PAYMENTS_FAKE/AI_FAKE no se pueden usar en producción");
+  if (process.env.NODE_ENV === "production" && (cfg.paymentsFake || cfg.mailFake || (cfg.aiFake && !cfg.demoMode)))
+    throw new Error("PAYMENTS_FAKE/MAIL_FAKE/AI_FAKE no se pueden usar en producción");
   // Cobros: Stripe con claves; simulado en e2e; nunca en la demo.
   const fakeGateway = cfg.paymentsFake && !cfg.demoMode ? createFakeGateway() : null;
   const gateway =
@@ -285,6 +299,14 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
         });
       }
       registerChat(api, ctx, { hub, push, mediaDir: join(cfg.dataDir, "media"), vapidPublicKey: cfg.vapidPublicKey });
+      if (fakeMail) {
+        // Solo e2e: los correos «enviados» (para seguir el enlace de restablecer, de la invitación…).
+        api.get("/test/mails", async (req) => {
+          const { to } = z.object({ to: z.string().optional() }).parse(req.query);
+          await mail.flush();
+          return fakeMail.sent.filter((m) => !to || m.to.toLowerCase() === to.toLowerCase()).map(({ to: t, subject, text }) => ({ to: t, subject, text }));
+        });
+      }
     },
     { prefix: "/api/v1" },
   );
@@ -329,5 +351,6 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
     await pg.end({ timeout: 5 });
   });
 
-  return Object.assign(app, { db, push, routeList, billing }) as App;
+  logError = (e, msg) => app.log.error(e, msg);
+  return Object.assign(app, { db, push, routeList, billing, mail }) as App;
 }

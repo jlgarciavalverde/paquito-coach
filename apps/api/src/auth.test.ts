@@ -17,13 +17,13 @@ beforeEach(async () => {
 describe("alta inicial", () => {
   it("crea estudio y entrenador una sola vez y con el código correcto", async () => {
     const a = new Agent(app);
-    expect((await a.get("/api/v1/auth/setup-status")).body).toEqual({ needsSetup: true, demo: false });
+    expect((await a.get("/api/v1/auth/setup-status")).body).toEqual({ needsSetup: true, demo: false, mail: false });
     const bad = await a.post("/api/v1/auth/setup", { setupCode: "no", studioName: "X", name: "P", email: "p@x.com", password: PASSWORD });
     expect(bad.status).toBe(403);
     await setupCoach(app);
     const again = await a.post("/api/v1/auth/setup", { setupCode: SETUP_CODE, studioName: "Y", name: "Q", email: "q@x.com", password: PASSWORD });
     expect(again.status).toBe(409);
-    expect((await a.get("/api/v1/auth/setup-status")).body).toEqual({ needsSetup: false, demo: false });
+    expect((await a.get("/api/v1/auth/setup-status")).body).toEqual({ needsSetup: false, demo: false, mail: false });
   });
 
   it("rechaza contraseñas cortas o comunes", async () => {

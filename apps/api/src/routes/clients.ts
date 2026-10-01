@@ -8,6 +8,8 @@ import { HttpError, notFound } from "../lib/errors";
 import { toClient } from "../lib/mappers";
 import { requireCoach } from "../lib/session";
 import { hashToken, newToken } from "../lib/tokens";
+import { brandOf } from "../lib/mail";
+import { mailTemplates } from "../lib/mail-templates";
 import { typed, type Ctx } from "./ctx";
 
 const INVITE_TTL_MS = 7 * 24 * 3600 * 1000;
@@ -15,7 +17,7 @@ const RESET_TTL_MS = 24 * 3600 * 1000;
 const IdParams = z.object({ id: z.string().uuid() });
 
 export function registerClients(app: FastifyInstance, ctx: Ctx) {
-  const { db, cfg } = ctx;
+  const { db, cfg, mail } = ctx;
   const api = typed(app);
 
   /** Ficha del estudio del entrenador o 404 (nunca revela si existe en otro estudio). */
@@ -29,13 +31,21 @@ export function registerClients(app: FastifyInstance, ctx: Ctx) {
     return row;
   }
 
-  async function issueInvite(studioId: string, clientId: string, createdBy: string) {
+  /** Enlace de invitación (y, si la ficha tiene correo y la app envía correos, también por correo). */
+  async function issueInvite(studioId: string, client: { id: string; name: string; email: string | null }, coach: { id: string; name: string }) {
     const token = newToken();
     const expiresAt = new Date(Date.now() + INVITE_TTL_MS);
-    // Una sola invitación viva por cliente: las anteriores sin usar dejan de valer.
-    await db.delete(invites).where(and(eq(invites.clientId, clientId), isNull(invites.usedAt)));
-    await db.insert(invites).values({ studioId, clientId, tokenHash: hashToken(token), expiresAt, createdBy });
-    return { url: `${cfg.publicUrl}/registro?invitacion=${token}`, expiresAt: expiresAt.toISOString() };
+    const url = `${cfg.publicUrl}/registro?invitacion=${token}`;
+    const emailedTo = await db.transaction(async (tx) => {
+      // Una sola invitación viva por cliente: las anteriores sin usar dejan de valer.
+      await tx.delete(invites).where(and(eq(invites.clientId, client.id), isNull(invites.usedAt)));
+      await tx.insert(invites).values({ studioId, clientId: client.id, tokenHash: hashToken(token), expiresAt, createdBy: coach.id });
+      if (!client.email) return null;
+      const t = mailTemplates.invite(await brandOf(db, studioId), { clientName: client.name, coachName: coach.name, url });
+      return (await mail.enqueue(tx, { kind: "invite", to: client.email, studioId, clientId: client.id, ...t })) ? client.email : null;
+    });
+    if (emailedTo) mail.kick();
+    return { url, expiresAt: expiresAt.toISOString(), emailedTo };
   }
 
   api.get("/clients", { schema: { tags: ["clientes"], querystring: ClientListQuery, response: { 200: z.array(Client) } } }, async (req) => {
@@ -61,7 +71,7 @@ export function registerClients(app: FastifyInstance, ctx: Ctx) {
         .insert(clientProfiles)
         .values({ ...fields, tags: fields.tags ?? [], studioId: u.studioId, status: invite ? "invited" : "no_account" })
         .returning();
-      const link = invite ? await issueInvite(u.studioId, row!.id, u.id) : null;
+      const link = invite ? await issueInvite(u.studioId, row!, u) : null;
       await audit(db, req, "client.create", { type: "client", id: row!.id });
       return { client: toClient(row!), invite: link };
     },
@@ -94,7 +104,7 @@ export function registerClients(app: FastifyInstance, ctx: Ctx) {
     if (row.status !== "invited") {
       await db.update(clientProfiles).set({ status: "invited", updatedAt: new Date() }).where(eq(clientProfiles.id, row.id));
     }
-    const link = await issueInvite(u.studioId, row.id, u.id);
+    const link = await issueInvite(u.studioId, row, u);
     await audit(db, req, "client.invite", { type: "client", id: row.id });
     return link;
   });

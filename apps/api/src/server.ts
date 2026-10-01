@@ -8,7 +8,7 @@ const app = await buildApp(cfg);
 // Recordatorios push del día (no en la demo: allí no hay avisos).
 if (!cfg.demoMode) {
   const { startReminders } = await import("./lib/scheduler");
-  startReminders(app.db, app.push, (err) => app.log.error(err, "recordatorios"), { onHoldsReleased: app.billing.expireForAppointments, mediaDir: join(cfg.dataDir, "media") });
+  startReminders(app.db, app.push, (err) => app.log.error(err, "recordatorios"), { onHoldsReleased: app.billing.expireForAppointments, mediaDir: join(cfg.dataDir, "media"), mail: app.mail });
 }
 
 // Demo: se re-siembra al arrancar y cada noche a las 4:00 (hora de Madrid). Nunca en producción (ADR 0009).

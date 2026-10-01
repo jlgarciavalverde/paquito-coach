@@ -37,7 +37,8 @@ Si no responde, **vuelve sola a la versión anterior**. Las migraciones se aplic
 (las imágenes anteriores siguen cargadas; si la versión nueva migró la BD, restaurar la copia `pre-`).
 
 ## Contraseña olvidada (entrenador o cualquier cuenta)
-Los clientes: el entrenador les genera el enlace desde su ficha («Recuperar acceso»). El entrenador, en el VPS:
+Con el correo configurado (abajo), cada uno lo hace solo desde «¿Has olvidado la contraseña?» en la pantalla de entrar.
+Sin correo, los clientes: el entrenador les genera el enlace desde su ficha («Recuperar acceso»). El entrenador, en el VPS:
 ```sh
 docker exec coach node dist/reset-link.js paquito@correo.com
 ```
@@ -90,6 +91,34 @@ Requisito: la app accesible en `https://paquito.redgarverde.com` (ruta de Cloudf
 - Pagar al reservar: Ajustes → Reservas → «Si no tiene bono, que pague la sesión al reservar» + tarifa de sesión. El hueco se retiene 15 min; el planificador libera los no pagados.
 - Devoluciones: desde el panel de Stripe; la app marca el cobro como «Devuelto» y archiva el bono asociado.
 - Facturas: los recibos de Stripe no son facturas. Informes → «Descargar los cobros (CSV)» para su gestor.
+
+## Correo (Brevo)
+Gratis hasta 300 correos al día, servidores en la UE. Se envía desde un **subdominio nuevo** (`envios.redgarverde.com`): así no se
+toca el SPF del dominio raíz (el del reenvío de correo) ni ningún registro existente.
+1. Crear cuenta en <https://www.brevo.com> (plan gratuito) con el correo del usuario.
+2. **Dominio**: Ajustes → Remitentes, dominios e IP → Dominios → Añadir `envios.redgarverde.com`. Brevo enseña los registros
+   (código de verificación TXT, DKIM y DMARC). Añadirlos en Cloudflare → DNS **como registros nuevos** con exactamente el nombre y
+   valor que da Brevo, con la nube **gris** (solo DNS). No editar ni borrar ningún registro existente. Pulsar «Verificar».
+3. **Remitente**: añadir `hola@envios.redgarverde.com` (nombre «Paquito Coach» o el definitivo).
+4. **Clave SMTP**: Ajustes → SMTP y API → SMTP → «Generar una clave SMTP». El usuario SMTP es el que aparece en esa pantalla.
+5. En el VPS, sin pegarla en ningún chat:
+   ```sh
+   cd ~/servicios/coach && read -rp "Usuario SMTP de Brevo: " U && read -rsp "Clave SMTP de Brevo: " K && echo && \
+   (grep -v '^MAIL_SMTP_USER=\|^MAIL_SMTP_PASS=\|^MAIL_SMTP_HOST=\|^MAIL_FROM=' .env; echo "MAIL_SMTP_HOST=smtp-relay.brevo.com"; \
+    echo "MAIL_SMTP_USER=$U"; echo "MAIL_SMTP_PASS=$K"; echo "MAIL_FROM=Paquito Coach <hola@envios.redgarverde.com>") > .env.tmp && \
+   mv .env.tmp .env && chmod 600 .env && unset U K && docker compose up -d coach
+   ```
+6. Probar: en `/acceso` aparece «¿Has olvidado la contraseña?»; pedir un enlace al propio correo. Si no llega:
+   `docker logs coach 2>&1 | grep correo` (los fallos se reintentan 6 veces: 1, 2, 4… minutos) y el registro de Brevo (Estadísticas).
+- Qué se manda: invitación (si la ficha tiene correo), restablecer contraseña, confirmar cambio de correo y aviso al antiguo,
+  confirmación/cancelación de reservas y, al entrenador sin avisos en el móvil, reservas nuevas. Los no esenciales llevan «Darme de baja».
+- La demo nunca envía correos. En e2e, `MAIL_FAKE=1` (prohibido en producción) y `GET /api/v1/test/mails`.
+
+## Verificación en dos pasos
+Ajustes (entrenador) o Perfil (cliente) → «Verificación en dos pasos» → escanear el QR con Google Authenticator, Authy,
+1Password… → código → guardar los 10 códigos de recuperación. Muy recomendable para la cuenta del entrenador.
+- Móvil perdido: entrar con un código de recuperación y, en Ajustes, desactivarla y volver a activarla con el móvil nuevo.
+- Sin móvil ni códigos (último recurso, en el VPS): `docker exec coach-db psql -U coach -d coach -c "update users set totp_secret = null, totp_recovery = '[]' where email = 'paquito@correo.com'"`.
 
 ## Salud y logs
 `docker ps --filter name=coach` · `docker logs coach --tail 100` · `curl -s https://paquito.redgarverde.com/health`

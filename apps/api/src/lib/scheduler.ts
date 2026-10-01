@@ -4,6 +4,7 @@ import { and, eq, gte, isNull, lt, or, sql, ne } from "drizzle-orm";
 import type { DB } from "../db/client";
 import { appointments, auditLog, checkinAssignments, checkinForms, clientProfiles, passwordResets, reminderLog, sessions, users, workouts } from "../db/schema";
 import type { PushSender } from "./push";
+import { purgeOutbox, type Mailer } from "./mail";
 
 /** Hora y fecha en Madrid (el estudio está en España; ver docs/ESTADO.md si algún día hay estudios en otras zonas). */
 export function madridClock(now: Date) {
@@ -128,11 +129,12 @@ export async function purgeExpired(db: DB, mediaDir?: string) {
   return { sessions: s.length, resets: r.length, audit: a.length, media };
 }
 
-type SchedulerOpts = { onHoldsReleased?: (appointmentIds: string[]) => Promise<void>; mediaDir?: string };
+type SchedulerOpts = { onHoldsReleased?: (appointmentIds: string[]) => Promise<void>; mediaDir?: string; mail?: Mailer };
 
 /** Comprueba cada 5 minutos si toca mandar algo (sin cron externo). */
 export function startReminders(db: DB, push: PushSender, log: (e: unknown) => void, opts: SchedulerOpts = {}) {
-  const tick = () => void Promise.all([runReminders(db, push), releaseHolds(db, opts.onHoldsReleased), purgeExpired(db, opts.mediaDir)]).catch(log);
+  const tick = () =>
+    void Promise.all([runReminders(db, push), releaseHolds(db, opts.onHoldsReleased), purgeExpired(db, opts.mediaDir), opts.mail?.flush(), purgeOutbox(db)]).catch(log);
   const id = setInterval(tick, 5 * 60_000);
   id.unref();
   setTimeout(tick, 30_000).unref();
