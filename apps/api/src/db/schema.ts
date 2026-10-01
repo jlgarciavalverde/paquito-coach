@@ -18,6 +18,22 @@ export const studios = pgTable("studios", {
   name: text("name").notNull(),
   /** Código público para que un cliente se registre solo (queda pendiente de aceptar). Rotable. */
   joinCode: text("join_code").notNull().unique(),
+  // ── P2: página pública, marca y datos legales ──
+  accent: text("accent").$type<"azul" | "verde" | "petroleo" | "morado" | "granate">().notNull().default("azul"),
+  published: boolean("published").notNull().default(false),
+  tagline: text("tagline").notNull().default(""),
+  bio: text("bio").notNull().default(""),
+  specialties: jsonb("specialties").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  location: text("location").notNull().default(""),
+  hours: text("hours").notNull().default(""),
+  phone: text("phone").notNull().default(""),
+  contactEmail: text("contact_email").notNull().default(""),
+  instagram: text("instagram").notNull().default(""),
+  /** Foto de la página pública (sin FK: `media` se define después; se limpia a mano al cambiarla). */
+  photoMediaId: uuid("photo_media_id"),
+  legalName: text("legal_name").notNull().default(""),
+  taxId: text("tax_id").notNull().default(""),
+  legalAddress: text("legal_address").notNull().default(""),
   createdAt: createdAt(),
 });
 
@@ -664,6 +680,8 @@ export const prices = pgTable(
     sessions: integer("sessions"),
     validDays: integer("valid_days"),
     active: boolean("active").notNull().default(true),
+    /** En la página pública del estudio. */
+    public: boolean("public").notNull().default(false),
     createdAt: createdAt(),
   },
   (t) => [index("prices_studio_fk_idx").on(t.studioId)],
@@ -789,4 +807,22 @@ export const emailTokens = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("email_tokens_user_fk_idx").on(t.userId)],
+);
+
+// ── P2: solicitudes desde la página pública ──────────────────────────────────
+
+/** «Quiero empezar» de la página pública: personas que aún no tienen cuenta. Se borran al año de atenderlas. */
+export const leads = pgTable(
+  "leads",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studioId: uuid("studio_id").notNull().references(() => studios.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    email: text("email").notNull(),
+    phone: text("phone").notNull().default(""),
+    message: text("message").notNull().default(""),
+    handledAt: ts("handled_at"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("leads_studio_fk_idx").on(t.studioId, t.createdAt)],
 );

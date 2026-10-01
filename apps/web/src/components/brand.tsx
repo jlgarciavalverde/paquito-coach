@@ -1,4 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
 import { BRAND } from "@coach/shared";
+import { statusQuery } from "../lib/status";
 import { cn } from "../lib/cn";
 
 // Discos de competición (IWF), de dentro afuera como se cargan: rojo 25, azul 20, amarillo 15, verde 10.
@@ -26,10 +28,11 @@ export function BarbellMark({ className }: { className?: string }) {
 }
 
 export function Brand({ className }: { className?: string }) {
+  const name = useQuery(statusQuery).data?.studioName ?? BRAND.name;
   return (
     <span className={cn("inline-flex items-center gap-2", className)}>
       <BarbellMark />
-      <span className="font-wide text-[17px] leading-none text-ink">{BRAND.name}</span>
+      <span className="font-wide text-[17px] leading-none text-ink">{name}</span>
     </span>
   );
 }

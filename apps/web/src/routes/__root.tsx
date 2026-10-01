@@ -4,10 +4,12 @@ import { Button } from "../components/ui/button";
 import { Brand } from "../components/brand";
 import { DemoBanner } from "../components/demo-banner";
 import { OfflineBanner } from "../components/offline-banner";
+import { BrandSync } from "../lib/brand";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   component: () => (
     <>
+      <BrandSync />
       <DemoBanner />
       <OfflineBanner />
       <Outlet />

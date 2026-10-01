@@ -10,6 +10,7 @@ import { Skeleton } from "../../components/ui/spinner";
 import { StatusMark } from "../../components/clients/status-mark";
 import { NewClientPanel } from "../../components/clients/new-client-panel";
 import { PendingRequests } from "../../components/clients/pending-requests";
+import { LeadsBlock } from "../../components/clients/leads";
 import { clientsQuery } from "../../lib/queries";
 import { cn } from "../../lib/cn";
 import { useDocumentTitle } from "../../lib/title";
@@ -66,6 +67,7 @@ function Roster({ selectedId, onNew }: { selectedId?: string; onNew: () => void 
         </Button>
       </div>
 
+      <LeadsBlock />
       <PendingRequests compact />
 
       <div className="flex gap-2">

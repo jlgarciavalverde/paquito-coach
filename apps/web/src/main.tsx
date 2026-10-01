@@ -36,7 +36,7 @@ const router = createRouter({
 });
 
 // Sesión caducada o cerrada desde otro dispositivo en mitad del uso: fuera la caché y a la pantalla de entrar.
-const PUBLIC_PATHS = ["/acceso", "/registro", "/restablecer", "/instalar", "/privacidad", "/confirmar-correo", "/baja"];
+const PUBLIC_PATHS = ["/aviso-legal", "/terminos", "/acceso", "/registro", "/restablecer", "/instalar", "/privacidad", "/confirmar-correo", "/baja"];
 onApiError((e) => {
   if (e.status !== 401 || !queryClient.getQueryData(meQuery.queryKey)) return;
   if (PUBLIC_PATHS.some((p) => window.location.pathname.startsWith(p))) return;

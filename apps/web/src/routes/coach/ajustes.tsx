@@ -11,6 +11,7 @@ import { PaymentsSettings } from "../../components/payments/prices-settings";
 import { BookingSettingsBlock } from "../../components/agenda/booking-settings";
 import { PasswordSetting, PushSetting, SessionsSetting, ThemeSetting } from "../../components/account-settings";
 import { EmailSetting, TwoFactorSetting } from "../../components/security-settings";
+import { PublicPageSettings } from "../../components/studio/public-page-settings";
 import { api } from "../../lib/api";
 import { useMe } from "../../lib/auth";
 import { joinCodeQuery } from "../../lib/queries";
@@ -27,6 +28,7 @@ function Settings() {
       <PageTitle title="Ajustes" lead={`${me.name}, ${me.email}. Estudio «${me.studio.name}».`} />
       <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 [&>*]:min-w-0">
         <div className="flex flex-col gap-12">
+          <PublicPageSettings />
           <JoinCodeSetting />
           <PushSetting />
           <ThemeSetting />

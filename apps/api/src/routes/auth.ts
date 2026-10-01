@@ -41,8 +41,15 @@ export function registerAuth(app: FastifyInstance, ctx: Ctx) {
   const strict = { rateLimit: { max: cfg.authRateLimit, timeWindow: "1 minute" } };
 
   api.get("/auth/setup-status", { schema: { tags: ["auth"], response: { 200: SetupStatus } } }, async () => {
-    const [row] = await db.select({ n: count() }).from(studios);
-    return { needsSetup: !cfg.demoMode && (row?.n ?? 0) === 0, demo: Boolean(cfg.demoMode), mail: ctx.mail.enabled };
+    const [s] = await db.select().from(studios).orderBy(studios.createdAt).limit(1);
+    return {
+      needsSetup: !cfg.demoMode && !s,
+      demo: Boolean(cfg.demoMode),
+      mail: ctx.mail.enabled,
+      studioName: s?.name ?? null,
+      accent: s?.accent ?? "azul",
+      published: Boolean(s?.published),
+    };
   });
 
   /** Alta inicial: crea el estudio y la cuenta del entrenador. Solo una vez y con SETUP_CODE. */

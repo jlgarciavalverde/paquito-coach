@@ -12,9 +12,9 @@ test("cobros: tarifa, compra del bono y enlace de pago", async ({ browser }) => 
   await coach.goto("/coach/ajustes");
   await expect(coach.getByText(/Stripe en modo de prueba/)).toBeVisible();
   await coach.getByRole("button", { name: "Nueva tarifa" }).click();
-  await coach.getByLabel("Nombre").fill("Bono 5 sesiones");
-  await coach.getByLabel("Precio").fill("150");
-  await coach.getByLabel("Sesiones").fill("5");
+  await coach.getByRole("dialog").getByLabel("Nombre").fill("Bono 5 sesiones");
+  await coach.getByRole("dialog").getByLabel("Precio", { exact: true }).fill("150");
+  await coach.getByRole("dialog").getByLabel("Sesiones", { exact: true }).fill("5");
   await expectAccessible(coach, "nueva tarifa");
   await coach.getByRole("dialog").getByRole("button", { name: "Guardar" }).click();
   await expect(coach.getByText("Tarifa guardada")).toBeVisible();
@@ -57,9 +57,9 @@ test("cuota mensual y reserva pagada", async ({ browser }) => {
   await coach.goto("/coach/ajustes");
   for (const [kind, name, amount] of [["subscription", "Entrenamiento online", "60"], ["session", "Sesión suelta", "35"]]) {
     await coach.getByRole("button", { name: "Nueva tarifa" }).click();
-    await coach.getByLabel("Tipo").selectOption(kind);
-    await coach.getByLabel("Nombre").fill(name);
-    await coach.getByLabel("Precio").fill(amount);
+    await coach.getByRole("dialog").getByLabel("Tipo", { exact: true }).selectOption(kind);
+    await coach.getByRole("dialog").getByLabel("Nombre").fill(name);
+    await coach.getByRole("dialog").getByLabel("Precio", { exact: true }).fill(amount);
     await coach.getByRole("dialog").getByRole("button", { name: "Guardar" }).click();
     await expect(coach.getByRole("dialog")).toHaveCount(0);
   }

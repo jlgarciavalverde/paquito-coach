@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccesoRouteImport } from './routes/acceso'
 import { Route as AppRouteImport } from './routes/app'
+import { Route as AvisoLegalRouteImport } from './routes/aviso-legal'
 import { Route as BajaRouteImport } from './routes/baja'
 import { Route as CoachRouteImport } from './routes/coach'
 import { Route as ConfirmarCorreoRouteImport } from './routes/confirmar-correo'
@@ -20,6 +21,7 @@ import { Route as InstalarRouteImport } from './routes/instalar'
 import { Route as PrivacidadRouteImport } from './routes/privacidad'
 import { Route as RegistroRouteImport } from './routes/registro'
 import { Route as RestablecerRouteImport } from './routes/restablecer'
+import { Route as TerminosRouteImport } from './routes/terminos'
 import { Route as AppIndexRouteImport } from './routes/app/index'
 import { Route as AppAgendaRouteImport } from './routes/app/agenda'
 import { Route as AppChatRouteImport } from './routes/app/chat'
@@ -65,6 +67,11 @@ const AppRoute = AppRouteImport.update({
   path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AvisoLegalRoute = AvisoLegalRouteImport.update({
+  id: '/aviso-legal',
+  path: '/aviso-legal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BajaRoute = BajaRouteImport.update({
   id: '/baja',
   path: '/baja',
@@ -103,6 +110,11 @@ const RegistroRoute = RegistroRouteImport.update({
 const RestablecerRoute = RestablecerRouteImport.update({
   id: '/restablecer',
   path: '/restablecer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TerminosRoute = TerminosRouteImport.update({
+  id: '/terminos',
+  path: '/terminos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -256,6 +268,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/acceso': typeof AccesoRoute
   '/app': typeof AppRouteWithChildren
+  '/aviso-legal': typeof AvisoLegalRoute
   '/baja': typeof BajaRoute
   '/coach': typeof CoachRouteWithChildren
   '/confirmar-correo': typeof ConfirmarCorreoRoute
@@ -264,6 +277,7 @@ export interface FileRoutesByFullPath {
   '/privacidad': typeof PrivacidadRoute
   '/registro': typeof RegistroRoute
   '/restablecer': typeof RestablecerRoute
+  '/terminos': typeof TerminosRoute
   '/app/agenda': typeof AppAgendaRoute
   '/app/chat': typeof AppChatRoute
   '/app/comidas': typeof AppComidasRoute
@@ -297,6 +311,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/acceso': typeof AccesoRoute
+  '/aviso-legal': typeof AvisoLegalRoute
   '/baja': typeof BajaRoute
   '/confirmar-correo': typeof ConfirmarCorreoRoute
   '/galeria': typeof GaleriaRoute
@@ -304,6 +319,7 @@ export interface FileRoutesByTo {
   '/privacidad': typeof PrivacidadRoute
   '/registro': typeof RegistroRoute
   '/restablecer': typeof RestablecerRoute
+  '/terminos': typeof TerminosRoute
   '/app/agenda': typeof AppAgendaRoute
   '/app/chat': typeof AppChatRoute
   '/app/comidas': typeof AppComidasRoute
@@ -338,6 +354,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/acceso': typeof AccesoRoute
   '/app': typeof AppRouteWithChildren
+  '/aviso-legal': typeof AvisoLegalRoute
   '/baja': typeof BajaRoute
   '/coach': typeof CoachRouteWithChildren
   '/confirmar-correo': typeof ConfirmarCorreoRoute
@@ -346,6 +363,7 @@ export interface FileRoutesById {
   '/privacidad': typeof PrivacidadRoute
   '/registro': typeof RegistroRoute
   '/restablecer': typeof RestablecerRoute
+  '/terminos': typeof TerminosRoute
   '/app/agenda': typeof AppAgendaRoute
   '/app/chat': typeof AppChatRoute
   '/app/comidas': typeof AppComidasRoute
@@ -382,6 +400,7 @@ export interface FileRouteTypes {
     | '/'
     | '/acceso'
     | '/app'
+    | '/aviso-legal'
     | '/baja'
     | '/coach'
     | '/confirmar-correo'
@@ -390,6 +409,7 @@ export interface FileRouteTypes {
     | '/privacidad'
     | '/registro'
     | '/restablecer'
+    | '/terminos'
     | '/app/agenda'
     | '/app/chat'
     | '/app/comidas'
@@ -423,6 +443,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/acceso'
+    | '/aviso-legal'
     | '/baja'
     | '/confirmar-correo'
     | '/galeria'
@@ -430,6 +451,7 @@ export interface FileRouteTypes {
     | '/privacidad'
     | '/registro'
     | '/restablecer'
+    | '/terminos'
     | '/app/agenda'
     | '/app/chat'
     | '/app/comidas'
@@ -463,6 +485,7 @@ export interface FileRouteTypes {
     | '/'
     | '/acceso'
     | '/app'
+    | '/aviso-legal'
     | '/baja'
     | '/coach'
     | '/confirmar-correo'
@@ -471,6 +494,7 @@ export interface FileRouteTypes {
     | '/privacidad'
     | '/registro'
     | '/restablecer'
+    | '/terminos'
     | '/app/agenda'
     | '/app/chat'
     | '/app/comidas'
@@ -506,6 +530,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccesoRoute: typeof AccesoRoute
   AppRoute: typeof AppRouteWithChildren
+  AvisoLegalRoute: typeof AvisoLegalRoute
   BajaRoute: typeof BajaRoute
   CoachRoute: typeof CoachRouteWithChildren
   ConfirmarCorreoRoute: typeof ConfirmarCorreoRoute
@@ -514,6 +539,7 @@ export interface RootRouteChildren {
   PrivacidadRoute: typeof PrivacidadRoute
   RegistroRoute: typeof RegistroRoute
   RestablecerRoute: typeof RestablecerRoute
+  TerminosRoute: typeof TerminosRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -537,6 +563,13 @@ declare module '@tanstack/react-router' {
       path: '/app'
       fullPath: '/app'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/aviso-legal': {
+      id: '/aviso-legal'
+      path: '/aviso-legal'
+      fullPath: '/aviso-legal'
+      preLoaderRoute: typeof AvisoLegalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/baja': {
@@ -593,6 +626,13 @@ declare module '@tanstack/react-router' {
       path: '/restablecer'
       fullPath: '/restablecer'
       preLoaderRoute: typeof RestablecerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terminos': {
+      id: '/terminos'
+      path: '/terminos'
+      fullPath: '/terminos'
+      preLoaderRoute: typeof TerminosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/': {
@@ -889,6 +929,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccesoRoute: AccesoRoute,
   AppRoute: AppRouteWithChildren,
+  AvisoLegalRoute: AvisoLegalRoute,
   BajaRoute: BajaRoute,
   CoachRoute: CoachRouteWithChildren,
   ConfirmarCorreoRoute: ConfirmarCorreoRoute,
@@ -897,6 +938,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacidadRoute: PrivacidadRoute,
   RegistroRoute: RegistroRoute,
   RestablecerRoute: RestablecerRoute,
+  TerminosRoute: TerminosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

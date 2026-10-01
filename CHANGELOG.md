@@ -1,6 +1,15 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [1.18.0] — 2026-10-01 · Imagen pública de Paquito
+### Añadido
+- **Página pública** en la dirección de la app (ADR 0017): presentación, foto, especialidades, dónde y cuándo, tarifas que él marque y formulario **«Quiero empezar»**. Las solicitudes le llegan por aviso y correo y se convierten en cliente con «Dar de alta».
+- **Su marca**: el nombre del estudio es el nombre de la app (cabecera, pestaña, correos, app instalada) y elige el color entre 5 que cumplen contraste AA.
+- **Aviso legal y términos de uso** con sus datos fiscales; privacidad ampliada (responsable, formulario, correos, cookies).
+- Buscadores y enlaces compartidos: título, descripción e imagen del estudio; `robots.txt`, `sitemap.xml`; los paneles no se indexan.
+### Pruebas
+- `studio.p2.test.ts` (12), contrastes de los acentos, marca, e2e `19-pagina-publica`. API 264, web 74, e2e 45.
+
 ## [1.17.0] — 2026-10-01 · Correo y cuentas
 ### Añadido
 - **Correo** (Brevo, ADR 0016): la invitación llega también por correo; **«¿Has olvidado la contraseña?»** sin pasar por el entrenador; confirmación y cancelación de reservas; al entrenador sin avisos en el móvil, las reservas nuevas. Bandeja de salida con reintentos: si el proveedor falla, nada se rompe.

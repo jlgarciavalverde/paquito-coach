@@ -114,6 +114,12 @@ toca el SPF del dominio raíz (el del reenvío de correo) ni ningún registro ex
   confirmación/cancelación de reservas y, al entrenador sin avisos en el móvil, reservas nuevas. Los no esenciales llevan «Darme de baja».
 - La demo nunca envía correos. En e2e, `MAIL_FAKE=1` (prohibido en producción) y `GET /api/v1/test/mails`.
 
+## Página pública
+Ajustes → «Tu estudio y tu página pública»: nombre, color, frase, «quién eres», especialidades, foto, contacto y datos fiscales
+(salen en el aviso legal). Marcar «Publicar» y, en cada tarifa, «Mostrarla en tu página pública». Se ve en
+`https://paquito.redgarverde.com` sin sesión (o con `/?vista=publica`). Las solicitudes aparecen en Hoy y en Clientes.
+Los textos de aviso legal, términos y privacidad son una base: que Paquito los revise.
+
 ## Verificación en dos pasos
 Ajustes (entrenador) o Perfil (cliente) → «Verificación en dos pasos» → escanear el QR con Google Authenticator, Authy,
 1Password… → código → guardar los 10 códigos de recuperación. Muy recomendable para la cuenta del entrenador.

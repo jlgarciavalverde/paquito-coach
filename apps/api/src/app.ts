@@ -57,6 +57,7 @@ import { createPushSender, type PushSender } from "./lib/push";
 import { createFakeTransport, createMailer, createSmtpTransport, type MailTransport, type Mailer } from "./lib/mail";
 import { seedExercises } from "./db/seed";
 import type { Ctx } from "./routes/ctx";
+import { registerSeo } from "./routes/seo";
 
 export type App = FastifyInstance & { db: DB; push: PushSender; routeList: { method: string; url: string }[]; billing: Billing; mail: Mailer };
 
@@ -266,7 +267,7 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
       registerAuth(api, ctx);
       registerMe(api, ctx);
       registerClients(api, ctx);
-      registerStudio(api, ctx);
+      registerStudio(api, ctx, { push, mediaDir: join(cfg.dataDir, "media") });
       registerTraining(api, ctx);
       registerNutrition(api, ctx);
       registerAgenda(api, ctx);
@@ -330,9 +331,14 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
   });
 
   const webDir = cfg.webDir ? resolve(cfg.webDir) : undefined;
-  if (webDir && existsSync(webDir)) {
+  const hasWeb = Boolean(webDir && existsSync(webDir));
+  const sendApp = registerSeo(app, ctx, hasWeb ? webDir : undefined);
+  if (hasWeb) {
+    app.get("/", (_req, reply) => sendApp("/", reply));
     await app.register(fastifyStatic, {
-      root: webDir,
+      root: webDir!,
+      // `/` no sale del disco: pasa por `sendApp`, que rellena la cabecera de la página pública.
+      index: false,
       cacheControl: false,
       setHeaders(res, path) {
         // Los assets llevan hash en el nombre; el HTML nunca se cachea (Cloudflare incluido: no-store).
@@ -342,7 +348,7 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
   }
   app.setNotFoundHandler((req, reply) => {
     const isApi = req.url.startsWith("/api") || req.url.startsWith("/ws");
-    if (webDir && req.method === "GET" && !isApi) return reply.header("Cache-Control", "no-store").sendFile("index.html");
+    if (hasWeb && req.method === "GET" && !isApi) return sendApp(new URL(req.url, "http://x").pathname, reply);
     return reply.code(404).send({ error: "not_found", message: "No encontrado" });
   });
 

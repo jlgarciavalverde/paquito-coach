@@ -2,7 +2,7 @@ import { rm } from "node:fs/promises";
 import { join } from "node:path";
 import { and, eq, gte, isNull, lt, or, sql, ne } from "drizzle-orm";
 import type { DB } from "../db/client";
-import { appointments, auditLog, checkinAssignments, checkinForms, clientProfiles, passwordResets, reminderLog, sessions, users, workouts } from "../db/schema";
+import { appointments, auditLog, leads, checkinAssignments, checkinForms, clientProfiles, passwordResets, reminderLog, sessions, users, workouts } from "../db/schema";
 import type { PushSender } from "./push";
 import { purgeOutbox, type Mailer } from "./mail";
 
@@ -111,6 +111,7 @@ export async function purgeOrphanMedia(db: DB, mediaDir?: string) {
       and not exists (select 1 from messages x where x.media_id = m.id)
       and not exists (select 1 from progress_photos x where x.media_id = m.id)
       and not exists (select 1 from resources x where x.media_id = m.id)
+      and not exists (select 1 from studios x where x.photo_media_id = m.id)
       and not exists (select 1 from checkin_responses r, jsonb_each_text(r.answers) a where r.client_id = m.client_id and a.value = m.id::text)
     returning m.id`);
   if (mediaDir) await Promise.all(rows.map((r) => rm(join(mediaDir, r.id), { force: true })));
@@ -125,6 +126,8 @@ export async function purgeExpired(db: DB, mediaDir?: string) {
   const s = await db.delete(sessions).where(or(lt(sessions.lastUsedAt, sql`now() - interval '60 days'`), lt(sessions.createdAt, sql`now() - interval '180 days'`))).returning({ id: sessions.id });
   const r = await db.delete(passwordResets).where(lt(passwordResets.expiresAt, sql`now() - interval '1 day'`)).returning({ id: passwordResets.id });
   const a = await db.delete(auditLog).where(lt(auditLog.createdAt, sql`now() - interval '2 years'`)).returning({ id: auditLog.id });
+  // Solicitudes de la página pública: personas sin cuenta; no se guardan más de un año.
+  await db.delete(leads).where(lt(leads.createdAt, sql`now() - interval '1 year'`));
   const media = await purgeOrphanMedia(db, mediaDir);
   return { sessions: s.length, resets: r.length, audit: a.length, media };
 }

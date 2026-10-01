@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Brand, LoadedBarbell } from "./brand";
 import { useDocumentTitle } from "../lib/title";
+import { LegalLinks } from "./legal-layout";
 
 /**
  * Pantallas de acceso. En escritorio, a la izquierda la barra cargada (el elemento memorable de la app);
@@ -24,6 +25,7 @@ export function AuthLayout({ title, subtitle, children, footer }: { title: strin
           {subtitle && <p className="mt-2 text-ink-2">{subtitle}</p>}
           <div className="mt-8">{children}</div>
           {footer && <div className="mt-10 text-sm text-ink-2">{footer}</div>}
+          <LegalLinks className="mt-12" />
         </div>
       </main>
     </div>

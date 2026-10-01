@@ -86,6 +86,18 @@ export const mailTemplates = {
       footer: `¿No quieres estos correos? <a href="${esc(d.unsubscribeUrl)}" style="color:#7a847e">Darme de baja</a>.`,
     }),
 
+  newLead: (b: Brand, d: { coachName: string; name: string; email: string; phone: string; message: string; url: string }) =>
+    layout(b, {
+      title: `${first(d.name)} quiere empezar contigo`,
+      paragraphs: [
+        `Hola ${esc(first(d.coachName))}:`,
+        `Te ha escrito desde tu página pública <strong>${esc(d.name)}</strong> (${esc(d.email)}${d.phone ? `, ${esc(d.phone)}` : ""}).`,
+        ...(d.message ? [`«${esc(d.message)}»`] : []),
+        "Desde la app puedes darle de alta e invitarle con un toque.",
+      ],
+      button: { label: "Ver la solicitud", url: d.url },
+    }),
+
   newBookingForCoach: (b: Brand, d: { coachName: string; clientName: string; when: string; url: string; unsubscribeUrl: string }) =>
     layout(b, {
       title: `${first(d.clientName)} ha reservado`,

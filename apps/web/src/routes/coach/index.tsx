@@ -11,6 +11,7 @@ import { BlockTitle, Monogram, PlateMark } from "../../components/ui/layout";
 import { Button, buttonClass } from "../../components/ui/button";
 import { Skeleton } from "../../components/ui/spinner";
 import { PendingRequests } from "../../components/clients/pending-requests";
+import { LeadsBlock } from "../../components/clients/leads";
 import { QuickDone } from "../../components/agenda/attendance";
 import { WorkoutPanel } from "../../components/training/workout-panel";
 import { WorkoutStatusMark } from "../../components/training/workout-status";
@@ -137,6 +138,7 @@ function CoachToday() {
         </section>
 
         <aside className="flex flex-col gap-8">
+          <LeadsBlock />
           <PendingRequests />
           <NeedsAttention />
 

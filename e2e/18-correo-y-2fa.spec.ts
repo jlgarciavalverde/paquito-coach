@@ -26,6 +26,7 @@ test("invitación por correo, «he olvidado la contraseña» y verificación en 
   await nora.getByRole("checkbox").check();
   await nora.getByRole("button", { name: /Crear/ }).click();
   await expect(nora).toHaveURL(/\/app/);
+  await nora.goto("about:blank"); // sin la app abierta: al borrar la cookie, su aviso de «sesión caducada» no se cruza
   await nora.context().clearCookies();
 
   // Se le olvida la contraseña
@@ -58,6 +59,7 @@ test("invitación por correo, «he olvidado la contraseña» y verificación en 
   await nora.getByRole("button", { name: "Ya los he guardado" }).click();
 
   // Al volver a entrar, la contraseña sola no basta
+  await nora.goto("about:blank"); // sin la app abierta: al borrar la cookie, su aviso de «sesión caducada» no se cruza
   await nora.context().clearCookies();
   await nora.goto("/acceso");
   await nora.getByLabel("Correo electrónico").fill("nora@example.com");

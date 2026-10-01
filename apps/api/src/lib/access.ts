@@ -20,6 +20,10 @@ export const PUBLIC_ROUTES = new Set([
   "POST /api/v1/auth/email/confirm", // con el token del enlace
   "POST /api/v1/auth/unsubscribe", // con el token del enlace
   "GET /api/v1/test/mails", // solo existe con el correo simulado (e2e)
+  "GET /api/v1/public/studio",
+  "GET /api/v1/public/studio/photo",
+  "GET /api/v1/public/legal",
+  "POST /api/v1/public/contact",
   "POST /api/v1/stripe/webhook", // autenticado por la firma de Stripe
   "POST /api/v1/stripe/simulate", // solo existe con la pasarela simulada (e2e)
 ]);

@@ -56,6 +56,15 @@
 | Enlaces de un uso filtrados | Hash en la BD, caducidad (1 h / 24 h), cuerpo del correo borrado al enviarse | idem → bandeja |
 | Caída del proveedor de correo | Bandeja con reintentos; la petición nunca falla por el correo | idem |
 
+## Página pública — 1.18.0 (ver ADR 0017)
+| Amenaza | Defensa | Prueba |
+|---|---|---|
+| Spam en «Quiero empezar» | Campo trampa, 3 por IP cada 10 min, sin duplicados en 24 h | `studio.p2.test.ts` |
+| Usar el formulario para mandar correo a terceros | Sin respuesta automática al remitente: solo se avisa al entrenador | idem |
+| Filtrar datos privados en la página | Respuesta pública con lista blanca de campos (sin NIF, código de alta, correo de la cuenta) | idem |
+| Inyección en el HTML del servidor | Título, descripción y Open Graph escapados | idem → buscadores |
+| Indexar los paneles | `X-Robots-Tag: noindex` fuera de las páginas públicas; `robots.txt` | idem |
+
 ## Conservación de datos
 | Qué | Cuánto | Dónde |
 |---|---|---|
@@ -64,6 +73,7 @@
 | Registro de auditoría (accesos a fichas, altas, bajas, IP) | 2 años | idem |
 | Archivos subidos sin usar (foto que no llegó a enviarse…) | 1 día | `purgeOrphanMedia` |
 | Correos enviados (sin cuerpo) o abandonados | 7 días | `purgeOutbox` |
+| Solicitudes de la página pública | 1 año | `purgeExpired` |
 | Cobros de un cliente borrado | Los que exige la ley fiscal, anonimizados (solo su nombre) | ADR 0015 |
 
 ## Auditoría profunda A1 — 1.14.0 (2026-09-30) — ver ADR 0015

@@ -16,7 +16,7 @@ import { sendBookingMail } from "../lib/booking-mail";
 const IdParams = z.object({ id: z.string().uuid() });
 type PriceRow = typeof prices.$inferSelect;
 type PayRow = typeof payments.$inferSelect;
-const toPrice = (p: PriceRow): Price => ({ id: p.id, name: p.name, kind: p.kind, amount: fromCents(p.amountCents), sessions: p.sessions, validDays: p.validDays, active: p.active });
+const toPrice = (p: PriceRow): Price => ({ id: p.id, name: p.name, kind: p.kind, amount: fromCents(p.amountCents), sessions: p.sessions, validDays: p.validDays, active: p.active, public: p.public });
 const toPayment = (p: PayRow, clientName: string): Payment => ({
   id: p.id,
   clientId: p.clientId,
@@ -140,6 +140,7 @@ export function registerPayments(app: FastifyInstance, { db, cfg, mail }: Ctx, d
     sessions: b.kind === "pack" ? b.sessions : b.kind === "session" ? 1 : null,
     validDays: b.kind === "subscription" ? null : b.validDays,
     active: b.active,
+    public: b.public,
   });
   api.post("/prices", { schema: { tags: ["cobros"], body: PriceInput, response: { 200: Price } } }, async (req) => {
     const u = requireCoach(req);

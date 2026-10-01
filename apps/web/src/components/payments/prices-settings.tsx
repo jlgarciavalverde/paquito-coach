@@ -75,6 +75,7 @@ function PricePanel({ price, onClose }: { price: Price | null; onClose: () => vo
     sessions: String(price?.sessions ?? 10),
     validDays: price?.validDays ? String(price.validDays) : "90",
     active: price?.active ?? true,
+    public: price?.public ?? false,
   });
   const amount = Number(f.amount.replace(",", "."));
   const submit = () =>
@@ -88,6 +89,7 @@ function PricePanel({ price, onClose }: { price: Price | null; onClose: () => vo
           sessions: f.kind === "pack" ? Number(f.sessions) || 1 : null,
           validDays: f.kind === "subscription" ? null : Number(f.validDays) || null,
           active: f.active,
+          public: f.public,
         },
       },
       { onSuccess: () => (toast("Tarifa guardada"), onClose()) },
@@ -124,6 +126,7 @@ function PricePanel({ price, onClose }: { price: Price | null; onClose: () => vo
         </div>
         {f.kind === "subscription" && <p className="text-[13px] text-ink-2">Se cobra sola cada mes con la tarjeta del cliente; puede darse de baja desde su app.</p>}
         <Checkbox label="Visible para que los clientes la compren desde su app" checked={f.active} onChange={(e) => setF({ ...f, active: e.target.checked })} />
+        <Checkbox label="Mostrarla en tu página pública" description="Con su precio, en el apartado de tarifas." checked={f.public} onChange={(e) => setF({ ...f, public: e.target.checked })} />
         <FormError message={m.isError ? errorMessage(m.error) : null} />
       </div>
     </SidePanel>

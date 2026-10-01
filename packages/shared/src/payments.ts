@@ -17,6 +17,8 @@ export const PriceInput = z
     validDays: z.number().int().min(1).max(730).nullable().default(null),
     /** Visible para que el cliente lo compre desde su app. */
     active: z.boolean().default(true),
+    /** Se enseña en la página pública del estudio (tarifas). */
+    public: z.boolean().default(false),
   })
   .refine((p) => p.kind !== "pack" || p.sessions != null, { message: "Indica cuántas sesiones incluye el bono" });
 export type PriceInput = z.infer<typeof PriceInput>;
@@ -28,6 +30,7 @@ export const Price = z.object({
   sessions: z.number().nullable(),
   validDays: z.number().nullable(),
   active: z.boolean(),
+  public: z.boolean(),
 });
 export type Price = z.infer<typeof Price>;
 

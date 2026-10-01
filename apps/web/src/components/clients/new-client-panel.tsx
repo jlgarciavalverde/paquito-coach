@@ -12,11 +12,13 @@ import { errorMessage } from "../../lib/api";
 import { useMe } from "../../lib/auth";
 import { cn } from "../../lib/cn";
 
-export function NewClientPanel({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+/** `initial`: datos de partida (p. ej. una solicitud de la página pública); `onCreated` se llama al crear la ficha. */
+export function NewClientPanel({ open, onOpenChange, initial, onCreated }: { open: boolean; onOpenChange: (o: boolean) => void; initial?: { name: string; email: string; phone: string; goal: string }; onCreated?: () => void }) {
   const me = useMe()!;
   const navigate = useNavigate();
   const create = useCreateClient();
-  const [f, setF] = useState({ name: "", email: "", phone: "", goal: "", healthNotes: "" });
+  const blank = { name: initial?.name ?? "", email: initial?.email ?? "", phone: initial?.phone ?? "", goal: initial?.goal ?? "", healthNotes: "" };
+  const [f, setF] = useState(blank);
   const [invite, setInvite] = useState(true);
   const [done, setDone] = useState<{ client: Client; invite: InviteLink | null } | null>(null);
   const actions = useCoachActions();
@@ -25,7 +27,7 @@ export function NewClientPanel({ open, onOpenChange }: { open: boolean; onOpenCh
     onOpenChange(o);
     if (!o)
       setTimeout(() => {
-        setF({ name: "", email: "", phone: "", goal: "", healthNotes: "" });
+        setF(blank);
         setInvite(true);
         setDone(null);
         create.reset();
@@ -37,6 +39,7 @@ export function NewClientPanel({ open, onOpenChange }: { open: boolean; onOpenCh
       { name: f.name, email: f.email || null, phone: f.phone || null, goal: f.goal || null, healthNotes: f.healthNotes || null, invite },
       {
         onSuccess: (r) => {
+          onCreated?.();
           // La ficha se abre detrás; la hoja se queda con la invitación y los siguientes pasos.
           void navigate({ to: "/coach/clientes/$clientId", params: { clientId: r.client.id } });
           setDone({ client: r.client, invite: r.invite ?? null });

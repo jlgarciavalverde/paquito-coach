@@ -92,6 +92,8 @@ deploy/             docker-compose.yml y .env.example de producción · tools/ s
 - **Números con coma**: `DecimalField` si el valor es un número; si se guarda texto, convertir al guardar con `replace(",", ".")`. Nunca convertir en cada tecla.
 - **Avisos**: hay siempre dos regiones vivas (`alert` para errores y `status`); en Playwright, `getByRole("alert").filter({ hasText })`.
 - **Dev con `--watch` y migraciones**: el servidor de desarrollo aplica las migraciones al reiniciarse. Si regeneras una migración sin desplegar, la BD `coach` puede tener la versión anterior: hazla idempotente (`IF NOT EXISTS`) o recrea la BD de desarrollo.
+- **HTML del servidor**: `/` y las páginas públicas (`PUBLIC_PAGES` en `routes/seo.ts`) se sirven con cabecera propia (Open Graph); `@fastify/static` va con `index: false`. Una página pública nueva: añadirla ahí y en `PUBLIC_PATHS` de `main.tsx`.
+- **Marca**: nunca `BRAND.name` en pantalla; el nombre es el del estudio (`brandName()`/`statusQuery`). Colores nuevos de acento solo en `ACCENTS` (la prueba de contraste los vigila).
 - VPS: Docker **rootless**, sin compilar allí (temperatura), Cloudflare cachea por extensión (HTML y `/health` van con `no-store`).
 
 ## Remote Control (mandar tareas desde el móvil o claude.ai/code)

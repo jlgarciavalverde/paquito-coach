@@ -80,8 +80,18 @@ export const RecoveryCodes = z.object({ codes: z.array(z.string()) });
 export const EmailChangeInput = z.object({ email: Email, password: z.string().min(1).max(200) });
 
 /** `demo`: esta instancia es la demostración pública (datos de ejemplo que se borran cada noche). */
-/** `mail`: el correo está configurado (si no, «He olvidado la contraseña» remite al entrenador). */
-export const SetupStatus = z.object({ needsSetup: z.boolean(), demo: z.boolean(), mail: z.boolean() });
+/**
+ * Estado público de la instalación. `mail`: el correo está configurado (si no, «He olvidado la contraseña» remite al
+ * entrenador). `studioName`/`accent`: la marca (nombre de la app y color). `published`: hay página pública en `/`.
+ */
+export const SetupStatus = z.object({
+  needsSetup: z.boolean(),
+  demo: z.boolean(),
+  mail: z.boolean(),
+  studioName: z.string().nullable(),
+  accent: z.enum(["azul", "verde", "petroleo", "morado", "granate"]),
+  published: z.boolean(),
+});
 
 export const InvitePreview = z.object({
   studioName: z.string(),

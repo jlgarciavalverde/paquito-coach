@@ -90,6 +90,9 @@
                       },
                       "active": {
                         "type": "boolean"
+                      },
+                      "public": {
+                        "type": "boolean"
                       }
                     },
                     "required": [
@@ -99,7 +102,8 @@
                       "amount",
                       "sessions",
                       "validDays",
-                      "active"
+                      "active",
+                      "public"
                     ],
                     "additionalProperties": false
                   }
@@ -155,6 +159,10 @@
                   "active": {
                     "default": true,
                     "type": "boolean"
+                  },
+                  "public": {
+                    "default": false,
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -201,6 +209,9 @@
                     },
                     "active": {
                       "type": "boolean"
+                    },
+                    "public": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -210,7 +221,8 @@
                     "amount",
                     "sessions",
                     "validDays",
-                    "active"
+                    "active",
+                    "public"
                   ],
                   "additionalProperties": false
                 }
@@ -266,6 +278,10 @@
                   },
                   "active": {
                     "default": true,
+                    "type": "boolean"
+                  },
+                  "public": {
+                    "default": false,
                     "type": "boolean"
                   }
                 },
@@ -325,6 +341,9 @@
                     },
                     "active": {
                       "type": "boolean"
+                    },
+                    "public": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -334,7 +353,8 @@
                     "amount",
                     "sessions",
                     "validDays",
-                    "active"
+                    "active",
+                    "public"
                   ],
                   "additionalProperties": false
                 }
@@ -386,6 +406,9 @@
                       },
                       "active": {
                         "type": "boolean"
+                      },
+                      "public": {
+                        "type": "boolean"
                       }
                     },
                     "required": [
@@ -395,7 +418,8 @@
                       "amount",
                       "sessions",
                       "validDays",
-                      "active"
+                      "active",
+                      "public"
                     ],
                     "additionalProperties": false
                   }
@@ -1256,12 +1280,32 @@
                     },
                     "mail": {
                       "type": "boolean"
+                    },
+                    "studioName": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "accent": {
+                      "type": "string",
+                      "enum": [
+                        "azul",
+                        "verde",
+                        "petroleo",
+                        "morado",
+                        "granate"
+                      ]
+                    },
+                    "published": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
                     "needsSetup",
                     "demo",
-                    "mail"
+                    "mail",
+                    "studioName",
+                    "accent",
+                    "published"
                   ],
                   "additionalProperties": false
                 }
@@ -3934,6 +3978,793 @@
                   "required": [
                     "code",
                     "url"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/studio/profile": {
+      "get": {
+        "tags": [
+          "estudio"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 60
+                    },
+                    "accent": {
+                      "default": "azul",
+                      "type": "string",
+                      "enum": [
+                        "azul",
+                        "verde",
+                        "petroleo",
+                        "morado",
+                        "granate"
+                      ]
+                    },
+                    "published": {
+                      "default": false,
+                      "type": "boolean"
+                    },
+                    "tagline": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 120
+                    },
+                    "bio": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 2000
+                    },
+                    "specialties": {
+                      "default": [],
+                      "maxItems": 8,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 40
+                      }
+                    },
+                    "location": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 200
+                    },
+                    "hours": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 300
+                    },
+                    "phone": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 30
+                    },
+                    "contactEmail": {
+                      "default": "",
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 254,
+                          "format": "email",
+                          "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            ""
+                          ]
+                        }
+                      ]
+                    },
+                    "instagram": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 40,
+                      "pattern": "^@?[\\w.]*$"
+                    },
+                    "legalName": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 120
+                    },
+                    "taxId": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 20
+                    },
+                    "legalAddress": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 200
+                    },
+                    "hasPhoto": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "accent",
+                    "published",
+                    "tagline",
+                    "bio",
+                    "specialties",
+                    "location",
+                    "hours",
+                    "phone",
+                    "contactEmail",
+                    "instagram",
+                    "legalName",
+                    "taxId",
+                    "legalAddress",
+                    "hasPhoto"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "estudio"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  },
+                  "accent": {
+                    "default": "azul",
+                    "type": "string",
+                    "enum": [
+                      "azul",
+                      "verde",
+                      "petroleo",
+                      "morado",
+                      "granate"
+                    ]
+                  },
+                  "published": {
+                    "default": false,
+                    "type": "boolean"
+                  },
+                  "tagline": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "bio": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "specialties": {
+                    "default": [],
+                    "maxItems": 8,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 40
+                    }
+                  },
+                  "location": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "hours": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 300
+                  },
+                  "phone": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 30
+                  },
+                  "contactEmail": {
+                    "default": "",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 254,
+                        "format": "email",
+                        "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          ""
+                        ]
+                      }
+                    ]
+                  },
+                  "instagram": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 40,
+                    "pattern": "^@?[\\w.]*$"
+                  },
+                  "legalName": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "taxId": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 20
+                  },
+                  "legalAddress": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 200
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 60
+                    },
+                    "accent": {
+                      "default": "azul",
+                      "type": "string",
+                      "enum": [
+                        "azul",
+                        "verde",
+                        "petroleo",
+                        "morado",
+                        "granate"
+                      ]
+                    },
+                    "published": {
+                      "default": false,
+                      "type": "boolean"
+                    },
+                    "tagline": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 120
+                    },
+                    "bio": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 2000
+                    },
+                    "specialties": {
+                      "default": [],
+                      "maxItems": 8,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 40
+                      }
+                    },
+                    "location": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 200
+                    },
+                    "hours": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 300
+                    },
+                    "phone": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 30
+                    },
+                    "contactEmail": {
+                      "default": "",
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 254,
+                          "format": "email",
+                          "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            ""
+                          ]
+                        }
+                      ]
+                    },
+                    "instagram": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 40,
+                      "pattern": "^@?[\\w.]*$"
+                    },
+                    "legalName": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 120
+                    },
+                    "taxId": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 20
+                    },
+                    "legalAddress": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 200
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "accent",
+                    "published",
+                    "tagline",
+                    "bio",
+                    "specialties",
+                    "location",
+                    "hours",
+                    "phone",
+                    "contactEmail",
+                    "instagram",
+                    "legalName",
+                    "taxId",
+                    "legalAddress"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/studio/photo": {
+      "post": {
+        "tags": [
+          "estudio"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "estudio"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/public/studio": {
+      "get": {
+        "tags": [
+          "público"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "coachName": {
+                      "type": "string"
+                    },
+                    "accent": {
+                      "type": "string",
+                      "enum": [
+                        "azul",
+                        "verde",
+                        "petroleo",
+                        "morado",
+                        "granate"
+                      ]
+                    },
+                    "tagline": {
+                      "type": "string"
+                    },
+                    "bio": {
+                      "type": "string"
+                    },
+                    "specialties": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "location": {
+                      "type": "string"
+                    },
+                    "hours": {
+                      "type": "string"
+                    },
+                    "phone": {
+                      "type": "string"
+                    },
+                    "contactEmail": {
+                      "type": "string"
+                    },
+                    "instagram": {
+                      "type": "string"
+                    },
+                    "hasPhoto": {
+                      "type": "boolean"
+                    },
+                    "prices": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "pack",
+                              "session",
+                              "subscription"
+                            ]
+                          },
+                          "amount": {
+                            "type": "number"
+                          },
+                          "sessions": {
+                            "nullable": true,
+                            "type": "number"
+                          },
+                          "validDays": {
+                            "nullable": true,
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "kind",
+                          "amount",
+                          "sessions",
+                          "validDays"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "coachName",
+                    "accent",
+                    "tagline",
+                    "bio",
+                    "specialties",
+                    "location",
+                    "hours",
+                    "phone",
+                    "contactEmail",
+                    "instagram",
+                    "hasPhoto",
+                    "prices"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/public/studio/photo": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/v1/public/legal": {
+      "get": {
+        "tags": [
+          "público"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "studioName": {
+                      "type": "string"
+                    },
+                    "legalName": {
+                      "type": "string"
+                    },
+                    "taxId": {
+                      "type": "string"
+                    },
+                    "legalAddress": {
+                      "type": "string"
+                    },
+                    "contactEmail": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "studioName",
+                    "legalName",
+                    "taxId",
+                    "legalAddress",
+                    "contactEmail"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/public/contact": {
+      "post": {
+        "tags": [
+          "público"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "email": {
+                    "type": "string",
+                    "maxLength": 254,
+                    "format": "email",
+                    "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  },
+                  "phone": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 30
+                  },
+                  "message": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 1000
+                  },
+                  "website": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "consent": {
+                    "type": "boolean",
+                    "enum": [
+                      true
+                    ]
+                  }
+                },
+                "required": [
+                  "name",
+                  "email",
+                  "consent"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/leads": {
+      "get": {
+        "tags": [
+          "estudio"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "phone": {
+                        "type": "string"
+                      },
+                      "message": {
+                        "type": "string"
+                      },
+                      "createdAt": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name",
+                      "email",
+                      "phone",
+                      "message",
+                      "createdAt"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/leads/{id}/handle": {
+      "post": {
+        "tags": [
+          "estudio"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
                   ],
                   "additionalProperties": false
                 }
@@ -18665,6 +19496,33 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/robots.txt": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/sitemap.xml": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/manifest.webmanifest": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
           }
         }
       }

@@ -1,6 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Brand } from "../components/brand";
-import { useDocumentTitle } from "../lib/title";
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { LegalH as H, LegalLayout, responsibleText } from "../components/legal-layout";
+import { legalQuery } from "../lib/public";
 
 export const Route = createFileRoute("/privacidad")({
   component: Privacy,
@@ -8,19 +9,15 @@ export const Route = createFileRoute("/privacidad")({
 
 /** Aviso de privacidad (RGPD). Texto base: Paquito debe revisarlo y completar sus datos de responsable. */
 function Privacy() {
-  useDocumentTitle("Privacidad");
-  const H = ({ children }: { children: React.ReactNode }) => <h2 className="font-wide mt-10 mb-2 text-[19px]">{children}</h2>;
+  const l = useQuery(legalQuery).data;
+  const who = l ? responsibleText(l) : "";
   return (
-    <main className="mx-auto max-w-[680px] px-5 py-10">
-      <Link to="/" aria-label="Ir al inicio">
-        <Brand />
-      </Link>
-      <h1 className="font-wide mt-12 text-[30px] leading-tight">Privacidad y tus datos</h1>
-      <p className="mt-3 text-ink-2">Qué datos guarda esta app, para qué, y cómo puedes consultarlos o borrarlos. Última revisión: 29 de septiembre de 2026.</p>
-
-      <div className="text-[15.5px] leading-relaxed text-ink [&_li]:mt-1.5 [&_p]:mt-2 [&_ul]:mt-2 [&_ul]:list-disc [&_ul]:pl-5">
+    <LegalLayout title="Privacidad y tus datos" updated="1 de octubre de 2026" intro="Qué datos guarda esta app, para qué, y cómo puedes consultarlos o borrarlos.">
         <H>Quién es el responsable</H>
-        <p>El responsable de tus datos es tu entrenador, que es quien te da de alta y te atiende. Si tienes cualquier duda, escríbele por el chat de la app.</p>
+        <p>
+          El responsable de tus datos es tu entrenador{who ? <>: <strong>{who}</strong></> : ""}, que es quien te da de alta y te atiende. Si tienes cualquier duda, escríbele por el chat de la app
+          {l?.contactEmail ? <> o a <a className="text-primary underline underline-offset-4" href={`mailto:${l.contactEmail}`}>{l.contactEmail}</a></> : null}.
+        </p>
 
         <H>Qué datos guardamos</H>
         <ul>
@@ -31,6 +28,9 @@ function Privacy() {
           </li>
           <li>Tus citas, los mensajes y las fotos que envías por el chat.</li>
           <li>Datos técnicos mínimos para que la app funcione y sea segura: sesiones abiertas, dispositivo desde el que entras y un registro de accesos a las fichas.</li>
+          <li>
+            Si escribes desde el formulario «Quiero empezar» sin ser cliente: tu nombre, correo, teléfono y mensaje, solo para contestarte. Se borran como mucho al año.
+          </li>
         </ul>
 
         <H>Para qué</H>
@@ -39,6 +39,18 @@ function Privacy() {
           Tu entrenador puede usar un asistente de inteligencia artificial (Gemini, de Google) para preparar propuestas de entrenamiento o de dieta que luego revisa él. En ese caso se envían <strong>sin tu nombre ni tus datos de contacto</strong>: tu edad aproximada, tu objetivo, tus cargas recientes y, solo si él lo marca, tus lesiones o limitaciones. En su plan gratuito, Google puede usar lo que recibe para mejorar sus servicios.
         </p>
         <p>Si pagas desde la app, el pago lo gestiona Stripe en su propia página: la app no ve ni guarda los datos de tu tarjeta; solo guarda el concepto, el importe y si está pagado. Si borras tu cuenta, tus cobros se conservan con tu nombre y sin nada más durante el plazo que exige la ley fiscal.</p>
+
+        <H>Correos</H>
+        <p>
+          Los correos (invitación, restablecer la contraseña, confirmaciones de reservas) se envían con Brevo, un proveedor con servidores en la Unión Europea. Puedes dejar de recibir los que no son de
+          seguridad desde tu perfil o con «Darme de baja» en cualquiera de ellos.
+        </p>
+
+        <H>Cookies</H>
+        <p>
+          Solo una cookie técnica, imprescindible para mantener tu sesión abierta (se borra al cerrar sesión o a los 180 días como mucho) y, en tu navegador, tus preferencias (tema claro u oscuro).
+          No hay cookies de publicidad ni de analítica, ni de terceros, así que no hace falta pedirte permiso para ellas.
+        </p>
 
         <H>Dónde están</H>
         <p>En un servidor propio en España, cifrados en tránsito (HTTPS). Se hace una copia de seguridad diaria que se conserva 14 días.</p>
@@ -59,7 +71,6 @@ function Privacy() {
           </li>
           <li>Si crees que no se respetan tus derechos puedes reclamar ante la Agencia Española de Protección de Datos (aepd.es).</li>
         </ul>
-      </div>
-    </main>
+    </LegalLayout>
   );
 }
