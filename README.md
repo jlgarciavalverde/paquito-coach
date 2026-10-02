@@ -13,3 +13,7 @@ export PATH="/opt/homebrew/opt/node@22/bin:$PATH"
 pnpm install && pnpm db:up && cp .env.example .env && echo SETUP_CODE=dev >> .env
 pnpm dev:api & pnpm dev:web     # http://localhost:5173
 ```
+
+## Licencia
+
+[MIT](LICENSE) © José Luis García Valverde.
