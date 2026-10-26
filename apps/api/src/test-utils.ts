@@ -104,3 +104,12 @@ export async function inviteAndRegister(app: App, coach: Agent, name: string, em
   if (r.status !== 200) throw new Error(`registro falló: ${JSON.stringify(r.body)}`);
   return { client, clientId: c.body.client.id as string };
 }
+
+/** Activa los cobros del estudio con la pasarela simulada (alta de Stripe Connect hecha al pedir el enlace). */
+export async function connectStripe(coach: Agent) {
+  const r = await coach.post("/api/v1/studio/connect/onboard");
+  if (r.status !== 200) throw new Error(`connect falló: ${JSON.stringify(r.body)}`);
+  const s = await coach.get("/api/v1/studio/connect");
+  if (!s.body.chargesEnabled) throw new Error("la cuenta simulada no quedó activa");
+  return new URL(r.body.url).searchParams.get("simulado")!;
+}

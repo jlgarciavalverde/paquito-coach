@@ -102,7 +102,7 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
       ? opts.gateway
       : cfg.demoMode
         ? null
-        : (fakeGateway ?? (cfg.stripeSecretKey && cfg.stripeWebhookSecret ? createStripeGateway({ secretKey: cfg.stripeSecretKey, webhookSecret: cfg.stripeWebhookSecret }) : null));
+        : (fakeGateway ?? (cfg.stripeSecretKey && cfg.stripeWebhookSecret ? createStripeGateway({ secretKey: cfg.stripeSecretKey, webhookSecret: cfg.stripeWebhookSecret, connectWebhookSecret: cfg.stripeConnectWebhookSecret }) : null));
   const push = opts.push ?? createPushSender(db, { publicKey: cfg.vapidPublicKey, privateKey: cfg.vapidPrivateKey, subject: cfg.vapidSubject ?? "mailto:admin@example.com" });
 
   const routeList: { method: string; url: string }[] = [];
@@ -298,7 +298,8 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
           const c = fakeGateway.checkouts.find((x) => x.id === checkoutId);
           if (!c) throw notFound("Pago");
           const send = async (ev: Record<string, unknown>) => {
-            const payload = JSON.stringify({ object: "event", ...ev });
+            // Como Stripe Connect: el evento llega con la cuenta en la que se creó la página de pago.
+            const payload = JSON.stringify({ object: "event", account: c.account, ...ev });
             return (await api.inject({ method: "POST", url: "/api/v1/stripe/webhook", payload, headers: { "content-type": "application/json", "stripe-signature": fakeGateway.sign(payload) } })).statusCode;
           };
           if (c.metadata.subscriptionRowId) {

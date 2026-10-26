@@ -93,7 +93,7 @@ export function registerBooking(app: FastifyInstance, { db, cfg, mail }: Ctx, de
    * que ya tiene (las sesiones del bono se descuentan al hacerlas, así que se reservan contra lo que queda).
    */
   async function payFor(studioId: string, clientId: string, s: BookingSettings) {
-    if (!s.payAtBooking || !s.sessionPriceId || !deps.billing.enabled) return null;
+    if (!s.payAtBooking || !s.sessionPriceId || !(await deps.billing.enabledFor(studioId))) return null;
     const today = madridClock(new Date()).date;
     const left = (await packsOf(db, clientId)).filter((p) => packUsable(p, today)).reduce((n, p) => n + p.remaining, 0);
     if (left >= (await futureBookings(clientId)) + 1) return null;

@@ -47,6 +47,11 @@ export const studios = pgTable("studios", {
   cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
   /** Suspendido por la administración (abuso, impago fuera de Stripe…): como bloqueado. */
   suspendedAt: ts("suspended_at"),
+  // ── S2: cobros del estudio con Stripe Connect Express, cargos directos (ADR 0019) ──
+  stripeAccountId: text("stripe_account_id").unique(),
+  stripeChargesEnabled: boolean("stripe_charges_enabled").notNull().default(false),
+  stripePayoutsEnabled: boolean("stripe_payouts_enabled").notNull().default(false),
+  stripeDetailsSubmitted: boolean("stripe_details_submitted").notNull().default(false),
   createdAt: createdAt(),
 });
 
@@ -109,8 +114,9 @@ export const clientProfiles = pgTable(
     status: clientStatusEnum("status").notNull(),
     /** El entrenador ha pedido que vuelva a rellenar el cuestionario de salud. */
     questionnaireRequestedAt: ts("questionnaire_requested_at"),
-    /** Cliente en Stripe (se crea al primer cobro). */
+    /** Cliente en Stripe (se crea al primer cobro) y la cuenta de Stripe en la que vive (la del estudio al crearlo). */
     stripeCustomerId: text("stripe_customer_id"),
+    stripeCustomerAccount: text("stripe_customer_account"),
     createdAt: createdAt(),
     updatedAt: ts("updated_at").notNull().defaultNow(),
   },
@@ -715,6 +721,8 @@ export const payments = pgTable(
     amountCents: integer("amount_cents").notNull(),
     status: text("status").$type<"pending" | "paid" | "failed" | "refunded" | "expired">().notNull().default("pending"),
     checkoutId: text("checkout_id"),
+    /** Cuenta de Stripe (Connect) en la que se creó la página de pago. */
+    stripeAccount: text("stripe_account"),
     checkoutUrl: text("checkout_url"),
     checkoutExpiresAt: ts("checkout_expires_at"),
     paymentIntentId: text("payment_intent_id"),
@@ -759,6 +767,8 @@ export const subscriptions = pgTable(
     amountCents: integer("amount_cents").notNull(),
     status: text("status").$type<"incomplete" | "active" | "past_due" | "canceled" | "unpaid">().notNull().default("incomplete"),
     checkoutId: text("checkout_id"),
+    /** Cuenta de Stripe (Connect) en la que se creó la cuota. */
+    stripeAccount: text("stripe_account"),
     stripeSubscriptionId: text("stripe_subscription_id"),
     currentPeriodEnd: ts("current_period_end"),
     cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),

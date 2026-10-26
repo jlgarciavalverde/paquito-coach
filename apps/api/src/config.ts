@@ -33,6 +33,8 @@ export interface AppConfig {
   /** Cobros (Stripe). Sin clave, los cobros están desactivados. */
   stripeSecretKey?: string;
   stripeWebhookSecret?: string;
+  /** Secreto del destino de webhooks de Connect (eventos de las cuentas de los entrenadores, ADR 0019). */
+  stripeConnectWebhookSecret?: string;
   /** Pasarela simulada (e2e): sin Stripe real y con POST /api/v1/stripe/simulate. */
   paymentsFake?: boolean;
   /** Respuestas de ejemplo fijas en lugar de la IA real (demo y e2e). */
@@ -96,6 +98,7 @@ export function configFromEnv(env = process.env): AppConfig {
     aiFake: env.AI_FAKE === "1",
     stripeSecretKey: env.STRIPE_SECRET_KEY || undefined,
     stripeWebhookSecret: env.STRIPE_WEBHOOK_SECRET || undefined,
+    stripeConnectWebhookSecret: env.STRIPE_CONNECT_WEBHOOK_SECRET || undefined,
     paymentsFake: env.PAYMENTS_FAKE === "1",
     mailSmtpHost: env.MAIL_SMTP_HOST || undefined,
     mailSmtpPort: Number(env.MAIL_SMTP_PORT ?? 587),

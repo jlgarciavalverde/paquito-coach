@@ -8,10 +8,12 @@ import { madridInstant } from "./lib/tz";
 import { resetThrottle } from "./lib/throttle";
 import { zipUncompressedSize, MAX_DOCX_UNCOMPRESSED } from "./lib/ai/extract";
 import { resetDemo } from "./demo/seed";
-import { Agent, ORIGIN, PASSWORD, inviteAndRegister, resetDb, setupCoach, testApp } from "./test-utils";
+import { Agent, ORIGIN, PASSWORD, inviteAndRegister, resetDb, setupCoach, testApp, connectStripe } from "./test-utils";
 
 /** Un test por hallazgo de la auditoría (A1: seguridad y dinero). Cada uno fallaba con el código anterior. */
 let app: App;
+/** Cuenta de Stripe Connect (simulada) del estudio: los eventos de sus cobros llegan con ella. */
+let acct: string;
 let coach: Agent;
 let lucia: Agent;
 let luciaId: string;
@@ -21,7 +23,7 @@ const gw = createFakeGateway("whsec_a1");
 const pushes: { to: string[]; p: PushPayload }[] = [];
 
 async function webhook(event: Record<string, unknown>) {
-  const payload = JSON.stringify({ object: "event", id: `evt_${Math.random()}`, ...event });
+  const payload = JSON.stringify({ object: "event", id: `evt_${Math.random()}`, account: acct, ...event });
   return app.inject({ method: "POST", url: "/api/v1/stripe/webhook", payload, headers: { "content-type": "application/json", "stripe-signature": gw.sign(payload) } });
 }
 const paid = (co: { id: string; amountCents: number; metadata: Record<string, string> }, type = "checkout.session.completed") =>
@@ -39,6 +41,7 @@ beforeAll(async () => {
   resetThrottle();
   app = await testApp({}, { gateway: gw, push: async (to, p) => void pushes.push({ to, p }) });
   coach = await setupCoach(app);
+  acct = await connectStripe(coach);
   ({ client: lucia, clientId: luciaId } = await inviteAndRegister(app, coach, "Lucía", "lucia@example.com"));
   ({ client: pepe, clientId: pepeId } = await inviteAndRegister(app, coach, "Pepe", "pepe@example.com"));
 });

@@ -1,8 +1,9 @@
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Payment, PaymentLinkInput, PaymentsInfo, Price, PriceInput, Subscription } from "@coach/shared";
+import type { ConnectStatus, Payment, PaymentLinkInput, PaymentsInfo, Price, PriceInput, Subscription } from "@coach/shared";
 import { api } from "./api";
 
 export const paymentsInfoQuery = queryOptions({ queryKey: ["payments", "info"], queryFn: () => api<PaymentsInfo>("/payments/info"), staleTime: 5 * 60_000 });
+export const connectQuery = queryOptions({ queryKey: ["payments", "connect"], queryFn: () => api<ConnectStatus>("/studio/connect"), staleTime: 0 });
 export const pricesQuery = queryOptions({ queryKey: ["prices"], queryFn: () => api<Price[]>("/prices") });
 export const myPricesQuery = queryOptions({ queryKey: ["prices", "me"], queryFn: () => api<Price[]>("/me/prices") });
 export const clientPaymentsQuery = (clientId: string) => queryOptions({ queryKey: ["payments", "client", clientId], queryFn: () => api<Payment[]>(`/clients/${clientId}/payments`), staleTime: 0 });

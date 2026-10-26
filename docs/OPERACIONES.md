@@ -127,6 +127,13 @@ Los textos de aviso legal, términos y privacidad son una base: que Paquito los 
 - **Administrar**: `PLATFORM_ADMIN_EMAILS=tu@correo` (cuenta de entrenador con ese correo) → Ajustes → «Administrar la plataforma».
 - **Cobro de los planes**: la misma clave de Stripe que los cobros. En el webhook de Stripe añadir los eventos `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid` e `invoice.payment_failed` si no están. Activar el portal de clientes de Stripe con «cambiar de plan» y «cancelar al final del periodo».
 
+## Cobros de cada estudio (Stripe Connect, ADR 0019)
+1. Panel de Stripe → Connect → empezar: plataforma, cuentas **Express**, país España. Rellenar la marca (nombre, icono, color) que verán los entrenadores en el alta.
+2. Developers → Webhooks → añadir destino **«Connected accounts»** a `https://coach.redgarverde.com/api/v1/stripe/webhook` con: `account.updated`, `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.updated`, `customer.subscription.deleted`, `charge.refunded`.
+3. Su secreto (`whsec_…`) en el VPS con `read -rsp` como `STRIPE_CONNECT_WEBHOOK_SECRET` y `docker compose up -d coach`.
+4. Portal de clientes: activarlo también para las cuentas conectadas (Connect → Settings → Customer portal).
+Cada entrenador pulsa Ajustes → Cobros → «Activar cobros con tarjeta». Sin eso, su estudio no cobra con tarjeta.
+
 ## Verificación en dos pasos
 Ajustes (entrenador) o Perfil (cliente) → «Verificación en dos pasos» → escanear el QR con Google Authenticator, Authy,
 1Password… → código → guardar los 10 códigos de recuperación. Muy recomendable para la cuenta del entrenador.

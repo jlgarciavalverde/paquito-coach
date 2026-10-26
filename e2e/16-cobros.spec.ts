@@ -10,7 +10,11 @@ test("cobros: tarifa, compra del bono y enlace de pago", async ({ browser }) => 
   await coach.getByRole("button", { name: "Entrar" }).click();
   await expect(coach).toHaveURL(/\/coach$/);
   await coach.goto("/coach/ajustes");
+  // Alta en Stripe Connect (simulada: la pasarela de prueba la da por terminada y vuelve a Ajustes).
+  await expect(coach.getByText(/da de alta tu cuenta en Stripe/)).toBeVisible();
+  await coach.getByRole("button", { name: "Activar cobros con tarjeta" }).click();
   await expect(coach.getByText(/Stripe en modo de prueba/)).toBeVisible();
+  await expect(coach.getByRole("button", { name: "Abrir mi panel de Stripe" })).toBeVisible();
   await coach.getByRole("button", { name: "Nueva tarifa" }).click();
   await coach.getByRole("dialog").getByLabel("Nombre").fill("Bono 5 sesiones");
   await coach.getByRole("dialog").getByLabel("Precio", { exact: true }).fill("150");

@@ -610,12 +610,16 @@
                     "enabled": {
                       "type": "boolean"
                     },
+                    "available": {
+                      "type": "boolean"
+                    },
                     "testMode": {
                       "type": "boolean"
                     }
                   },
                   "required": [
                     "enabled",
+                    "available",
                     "testMode"
                   ],
                   "additionalProperties": false
@@ -1830,6 +1834,110 @@
                     ],
                     "additionalProperties": false
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/studio/connect": {
+      "get": {
+        "tags": [
+          "cobros"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "available": {
+                      "type": "boolean"
+                    },
+                    "connected": {
+                      "type": "boolean"
+                    },
+                    "chargesEnabled": {
+                      "type": "boolean"
+                    },
+                    "payoutsEnabled": {
+                      "type": "boolean"
+                    },
+                    "detailsSubmitted": {
+                      "type": "boolean"
+                    },
+                    "testMode": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "available",
+                    "connected",
+                    "chargesEnabled",
+                    "payoutsEnabled",
+                    "detailsSubmitted",
+                    "testMode"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/studio/connect/onboard": {
+      "post": {
+        "tags": [
+          "cobros"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/studio/connect/dashboard": {
+      "post": {
+        "tags": [
+          "cobros"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }

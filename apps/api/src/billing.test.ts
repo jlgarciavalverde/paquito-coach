@@ -4,16 +4,18 @@ import type { App } from "./app";
 import { createFakeGateway } from "./lib/stripe";
 import { madridClock, releaseHolds } from "./lib/scheduler";
 import { madridInstant } from "./lib/tz";
-import { Agent, inviteAndRegister, resetDb, setupCoach, testApp } from "./test-utils";
+import { Agent, inviteAndRegister, resetDb, setupCoach, testApp, connectStripe } from "./test-utils";
 
 let app: App;
+/** Cuenta de Stripe Connect (simulada) del estudio: los eventos de sus cobros llegan con ella. */
+let acct: string;
 let coach: Agent;
 let lucia: Agent;
 let luciaId: string;
 let pepe: Agent;
 const gw = createFakeGateway("whsec_test_billing");
 async function webhook(event: Record<string, unknown>) {
-  const payload = JSON.stringify({ object: "event", id: `evt_${Math.random()}`, ...event });
+  const payload = JSON.stringify({ object: "event", id: `evt_${Math.random()}`, account: acct, ...event });
   const r = await app.inject({ method: "POST", url: "/api/v1/stripe/webhook", payload, headers: { "content-type": "application/json", "stripe-signature": gw.sign(payload) } });
   return r.statusCode;
 }
@@ -29,6 +31,7 @@ beforeAll(async () => {
   await resetDb();
   app = await testApp({}, { gateway: gw });
   coach = await setupCoach(app);
+  acct = await connectStripe(coach);
   ({ client: lucia, clientId: luciaId } = await inviteAndRegister(app, coach, "Lucía", "lucia@example.com"));
   ({ client: pepe } = await inviteAndRegister(app, coach, "Pepe", "pepe@example.com"));
 });

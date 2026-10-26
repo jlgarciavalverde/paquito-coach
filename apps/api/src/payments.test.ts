@@ -3,9 +3,11 @@ import type { App } from "./app";
 import { studios, users } from "./db/schema";
 import { hashPassword } from "./lib/passwords";
 import { createFakeGateway } from "./lib/stripe";
-import { Agent, PASSWORD, inviteAndRegister, resetDb, setupCoach, testApp } from "./test-utils";
+import { Agent, PASSWORD, inviteAndRegister, resetDb, setupCoach, testApp, connectStripe } from "./test-utils";
 
 let app: App;
+/** Cuenta de Stripe Connect (simulada) del estudio: los eventos de sus cobros llegan con ella. */
+let acct: string;
 let coach: Agent;
 let other: Agent;
 let lucia: Agent;
@@ -13,7 +15,7 @@ let luciaId: string;
 let pepe: Agent;
 const gw = createFakeGateway("whsec_test_unit");
 async function webhook(event: Record<string, unknown>, sig?: string) {
-  const payload = JSON.stringify({ object: "event", ...event });
+  const payload = JSON.stringify({ object: "event", account: acct, ...event });
   const r = await app.inject({ method: "POST", url: "/api/v1/stripe/webhook", payload, headers: { "content-type": "application/json", "stripe-signature": sig ?? gw.sign(payload) } });
   return { status: r.statusCode, body: r.json() };
 }
@@ -26,6 +28,7 @@ beforeAll(async () => {
   await resetDb();
   app = await testApp({}, { gateway: gw });
   coach = await setupCoach(app);
+  acct = await connectStripe(coach);
   ({ client: lucia, clientId: luciaId } = await inviteAndRegister(app, coach, "Lucía", "lucia@example.com"));
   ({ client: pepe } = await inviteAndRegister(app, coach, "Pepe", "pepe@example.com"));
   const [st] = await app.db.insert(studios).values({ name: "B", joinCode: "BBBBBBC6" }).returning();
@@ -105,7 +108,7 @@ describe("sin claves", () => {
     const off = await testApp({}, { gateway: null });
     const c = new Agent(off);
     await c.post("/api/v1/auth/login", { email: "paquito@example.com", password: PASSWORD });
-    expect((await c.get("/api/v1/payments/info")).body).toEqual({ enabled: false, testMode: false });
+    expect((await c.get("/api/v1/payments/info")).body).toEqual({ enabled: false, available: false, testMode: false });
     expect((await c.post(`/api/v1/clients/${luciaId}/payment-links`, { description: "x", amount: 10 })).status).toBe(409);
     expect((await off.inject({ method: "POST", url: "/api/v1/stripe/webhook", payload: "{}", headers: { "content-type": "application/json" } })).statusCode).toBe(404);
     await off.close();

@@ -8,10 +8,12 @@ import { redactUrl } from "./lib/redact";
 import { hashToken } from "./lib/tokens";
 import { purgeExpired } from "./lib/scheduler";
 import { recordFailure, resetThrottle, trackedKeys } from "./lib/throttle";
-import { Agent, ORIGIN, PASSWORD, inviteAndRegister, resetDb, setupCoach, testApp } from "./test-utils";
+import { Agent, ORIGIN, PASSWORD, inviteAndRegister, resetDb, setupCoach, testApp, connectStripe } from "./test-utils";
 
 /** Ataques web habituales (OWASP Top 10), sesiones y tokens. */
 let app: App;
+/** Cuenta de Stripe Connect (simulada) del estudio: los eventos de sus cobros llegan con ella. */
+let acct: string;
 let coach: Agent;
 let lucia: Agent;
 let luciaId: string;
@@ -23,6 +25,7 @@ beforeAll(async () => {
   resetThrottle();
   app = await testApp({}, { gateway: gw });
   coach = await setupCoach(app);
+  acct = await connectStripe(coach);
   ({ client: lucia, clientId: luciaId } = await inviteAndRegister(app, coach, "Lucía", "lucia@example.com"));
 });
 afterAll(() => app.close());
@@ -243,7 +246,7 @@ describe("CSRF, cabeceras y contenido", () => {
     const f = await coach.post("/api/v1/clients", { name: "=HYPERLINK(\"http://evil\",\"x\")", invite: false });
     const link = await coach.post(`/api/v1/clients/${f.body.client.id}/payment-links`, { description: "@SUM(A1)", amount: 10 });
     const co = gw.checkouts.at(-1)!;
-    const payload = JSON.stringify({ id: "evt_csv", object: "event", type: "checkout.session.completed", data: { object: { id: co.id, object: "checkout.session", mode: "payment", amount_total: co.amountCents, currency: "eur", payment_status: "paid", payment_intent: "pi_csv", metadata: co.metadata } } });
+    const payload = JSON.stringify({ id: "evt_csv", object: "event", account: acct, type: "checkout.session.completed", data: { object: { id: co.id, object: "checkout.session", mode: "payment", amount_total: co.amountCents, currency: "eur", payment_status: "paid", payment_intent: "pi_csv", metadata: co.metadata } } });
     await app.inject({ method: "POST", url: "/api/v1/stripe/webhook", payload, headers: { "content-type": "application/json", "stripe-signature": gw.sign(payload) } });
     const csv = (await app.inject({ method: "GET", url: "/api/v1/payments.csv", headers: { cookie: coach.cookie } })).body;
     expect(csv).toContain(`"'=HYPERLINK(""http://evil"",""x"")"`);

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PRICE_KIND_LABEL, formatEuros, type Price, type PriceKind } from "@coach/shared";
 import { Button } from "../ui/button";
 import { SidePanel } from "../ui/dialog";
@@ -8,9 +8,60 @@ import { BlockTitle, PlateMark } from "../ui/layout";
 import { Skeleton } from "../ui/spinner";
 import { useToast } from "../ui/toast";
 import { FormError } from "../form-error";
-import { paymentsInfoQuery, pricesQuery, usePrice } from "../../lib/payments";
-import { errorMessage } from "../../lib/api";
+import { connectQuery, paymentsInfoQuery, pricesQuery, usePrice } from "../../lib/payments";
+import { api, errorMessage } from "../../lib/api";
 import { QueryError } from "../ui/query-state";
+
+/**
+ * Cuenta de Stripe del entrenador (Connect Express, ADR 0019): el alta la hace Stripe en su web (DNI, IBAN) y el dinero
+ * llega a su banco. Al volver de Stripe (`?cobros=vuelta`) se pregunta el estado otra vez.
+ */
+function ConnectBlock({ testMode }: { testMode: boolean }) {
+  const qc = useQueryClient();
+  const toast = useToast();
+  const q = useQuery(connectQuery);
+  const back = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("cobros") : null;
+  useEffect(() => {
+    if (!back) return;
+    void qc.invalidateQueries({ queryKey: ["payments"] });
+    window.history.replaceState(null, "", window.location.pathname);
+  }, [back, qc]);
+  const go = (url: string) => window.location.assign(url);
+  const onboard = useMutation({ mutationFn: () => api<{ url: string }>("/studio/connect/onboard", { body: {} }), onSuccess: (r) => go(r.url), onError: (e) => toast(errorMessage(e), "error") });
+  const panel = useMutation({ mutationFn: () => api<{ url: string }>("/studio/connect/dashboard", { body: {} }), onSuccess: (r) => window.open(r.url, "_blank", "noopener"), onError: (e) => toast(errorMessage(e), "error") });
+  const c = q.data;
+  if (q.isPending) return <Skeleton className="mb-4 h-16" />;
+  if (q.isError || !c) return <QueryError q={q} />;
+  let text: string;
+  if (!c.available) text = "Los cobros con tarjeta aún no están disponibles en esta instalación. Puedes preparar ya las tarifas.";
+  else if (c.chargesEnabled)
+    text = testMode ? "Stripe en modo de prueba: los pagos no son reales (tarjeta 4242 4242 4242 4242)." : "Cobros activos: tus clientes pagan con tarjeta, Apple Pay o Google Pay y el dinero llega a tu cuenta bancaria. Stripe se queda su comisión por pago.";
+  else if (c.detailsSubmitted) text = "Stripe está revisando tus datos. En cuanto los valide podrás cobrar; si te pide algo más, continúa el alta.";
+  else if (c.connected) text = "Te falta terminar el alta en Stripe (datos personales y cuenta bancaria).";
+  else text = "Para cobrar con tarjeta, da de alta tu cuenta en Stripe: tus datos y tu IBAN. Tarda unos minutos y el dinero va directo a tu banco.";
+  return (
+    <div className="mb-5 flex flex-col gap-3">
+      <p className="flex max-w-[56ch] items-start gap-2 text-sm text-ink-2">
+        <PlateMark tone={c.chargesEnabled ? "green" : c.connected ? "yellow" : "grey"} />
+        <span>{text}</span>
+      </p>
+      {c.available && (
+        <div className="flex flex-wrap gap-3">
+          {!c.chargesEnabled && (
+            <Button size="sm" loading={onboard.isPending} onClick={() => onboard.mutate()}>
+              {c.connected ? "Continuar el alta en Stripe" : "Activar cobros con tarjeta"}
+            </Button>
+          )}
+          {c.connected && (
+            <Button size="sm" variant="secondary" loading={panel.isPending} onClick={() => panel.mutate()}>
+              Abrir mi panel de Stripe
+            </Button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 /** Ajustes → Cobros: estado de Stripe y tarifas (bonos, sesión suelta, cuota). */
 export function PaymentsSettings() {
@@ -22,13 +73,7 @@ export function PaymentsSettings() {
       <BlockTitle id="pay-title" action={<Button size="sm" variant="secondary" onClick={() => setEdit("new")}>Nueva tarifa</Button>}>
         Cobros
       </BlockTitle>
-      <p className="mb-4 max-w-[56ch] text-sm text-ink-2">
-        {info.data?.enabled
-          ? info.data.testMode
-            ? "Stripe en modo de prueba: los pagos no son reales (tarjeta 4242 4242 4242 4242)."
-            : "Stripe conectado: tus clientes pagan con tarjeta, Apple Pay o Google Pay y el dinero llega a tu cuenta."
-          : "Los cobros no están activos: faltan las claves de Stripe en el servidor (docs/OPERACIONES.md). Puedes preparar ya las tarifas."}
-      </p>
+      <ConnectBlock testMode={info.data?.testMode ?? false} />
       {q.isPending ? (
         <Skeleton className="h-20" />
       ) : q.isError ? (

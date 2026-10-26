@@ -2,8 +2,8 @@ import type { FastifyInstance, FastifyReply } from "fastify";
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import type Stripe from "stripe";
-import { Payment, PaymentLinkInput, PaymentsInfo, Price, PriceInput, Subscription, fromCents, toCents } from "@coach/shared";
-import { appointments, clientProfiles, payments, prices, sessionPacks, stripeEvents, subscriptions, users } from "../db/schema";
+import { ConnectStatus, Payment, PaymentLinkInput, PaymentsInfo, Price, PriceInput, Subscription, fromCents, toCents } from "@coach/shared";
+import { appointments, clientProfiles, payments, prices, sessionPacks, stripeEvents, studios, subscriptions, users } from "../db/schema";
 import { HttpError, notFound } from "../lib/errors";
 import { audit } from "../lib/audit";
 import type { PaymentGateway } from "../lib/stripe";
@@ -41,7 +41,8 @@ const addDays = (date: string, n: number) => {
  * cliente a la página de Stripe y da el pago por hecho solo cuando llega el webhook firmado.
  */
 export type Billing = {
-  enabled: boolean;
+  /** El estudio puede cobrar: hay pasarela y su cuenta de Stripe Connect acepta pagos. */
+  enabledFor: (studioId: string) => Promise<boolean>;
   /** Caduca en Stripe los cobros pendientes de estas citas (reserva cancelada o retención liberada). */
   expireForAppointments: (appointmentIds: string[]) => Promise<void>;
   /** Al borrar un cliente: se borra en Stripe (cancela sus cuotas) y se caducan sus enlaces pendientes. */
@@ -63,38 +64,51 @@ const toSub = (s: SubRow): Subscription => ({
 export function registerPayments(app: FastifyInstance, { db, cfg, mail }: Ctx, deps: { gateway: PaymentGateway | null; push: PushSender; platformEvent?: (ev: Stripe.Event) => Promise<boolean> }): Billing {
   const api = typed(app);
   const gw = deps.gateway;
-  const need = () => {
-    if (!gw) throw new HttpError(409, "payments_off", cfg.demoMode ? "Los cobros no están disponibles en la demo." : "Los cobros no están configurados todavía (faltan las claves de Stripe en el servidor).");
-    return gw;
-  };
+  const off = () =>
+    new HttpError(409, "payments_off", cfg.demoMode ? "Los cobros no están disponibles en la demo." : "Los cobros no están configurados todavía (faltan las claves de Stripe en el servidor).");
+  /** Cuenta de Stripe Connect con la que cobra el estudio (ADR 0019). Sin ella, el estudio no puede cobrar. */
+  async function accountOf(studioId: string) {
+    const [s] = await db.select({ id: studios.stripeAccountId, on: studios.stripeChargesEnabled }).from(studios).where(eq(studios.id, studioId));
+    return s?.id && s.on ? s.id : null;
+  }
+  async function need(studioId: string) {
+    if (!gw) throw off();
+    const account = await accountOf(studioId);
+    if (!account) throw new HttpError(409, "payments_not_connected", "Los cobros con tarjeta no están activados en este estudio. El entrenador los activa en Ajustes → Cobros.");
+    return { g: gw, account };
+  }
 
-  /** Cliente de Stripe del cliente (se crea la primera vez). Con cerrojo: dos cobros a la vez no crean dos clientes. */
-  async function customerOf(clientId: string) {
+  /**
+   * Cliente de Stripe del cliente en la cuenta del estudio (se crea la primera vez, y otra vez si el estudio cambia de
+   * cuenta). Con cerrojo: dos cobros a la vez no crean dos clientes.
+   */
+  async function customerOf(clientId: string, account: string) {
     return db.transaction(async (tx) => {
       await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${"stripe-customer:" + clientId}))`);
       const [c] = await tx
-      .select({ id: clientProfiles.id, name: clientProfiles.name, email: clientProfiles.email, customer: clientProfiles.stripeCustomerId, studioId: clientProfiles.studioId, userEmail: users.email })
-      .from(clientProfiles)
-      .leftJoin(users, eq(users.id, clientProfiles.userId))
-      .where(eq(clientProfiles.id, clientId));
-    if (!c) throw notFound("Cliente");
-    if (c.customer) return { ...c, customer: c.customer };
-    const customer = await need().ensureCustomer({ name: c.name, email: c.userEmail ?? c.email, metadata: { clientId: c.id, studioId: c.studioId } });
-      await tx.update(clientProfiles).set({ stripeCustomerId: customer }).where(eq(clientProfiles.id, c.id));
+        .select({ id: clientProfiles.id, name: clientProfiles.name, email: clientProfiles.email, customer: clientProfiles.stripeCustomerId, customerAccount: clientProfiles.stripeCustomerAccount, studioId: clientProfiles.studioId, userEmail: users.email })
+        .from(clientProfiles)
+        .leftJoin(users, eq(users.id, clientProfiles.userId))
+        .where(eq(clientProfiles.id, clientId));
+      if (!c) throw notFound("Cliente");
+      if (c.customer && c.customerAccount === account) return { ...c, customer: c.customer };
+      const customer = await gw!.ensureCustomer({ name: c.name, email: c.userEmail ?? c.email, metadata: { clientId: c.id, studioId: c.studioId }, account });
+      await tx.update(clientProfiles).set({ stripeCustomerId: customer, stripeCustomerAccount: account }).where(eq(clientProfiles.id, c.id));
       return { ...c, customer };
     });
   }
 
   /** Crea el cobro pendiente y su página de pago. */
   async function startPayment(o: Parameters<Billing["startPayment"]>[0]) {
-    const g = need();
-    const c = await customerOf(o.clientId);
+    const { g, account } = await need(o.studioId);
+    const c = await customerOf(o.clientId, account);
     const [p] = await db
       .insert(payments)
-      .values({ studioId: o.studioId, clientId: o.clientId, clientName: c.name, priceId: o.priceId, kind: o.kind, description: o.description, amountCents: o.amountCents, createdBy: o.createdBy, appointmentId: o.appointmentId ?? null })
+      .values({ studioId: o.studioId, clientId: o.clientId, clientName: c.name, priceId: o.priceId, kind: o.kind, description: o.description, amountCents: o.amountCents, createdBy: o.createdBy, appointmentId: o.appointmentId ?? null, stripeAccount: account })
       .returning();
     const back = `${cfg.publicUrl}${o.returnPath}`;
     const s = await g.createCheckout({
+      account,
       customerId: c.customer,
       description: o.description,
       amountCents: o.amountCents,
@@ -124,8 +138,8 @@ export function registerPayments(app: FastifyInstance, { db, cfg, mail }: Ctx, d
     ).map(({ p, name }) => toPayment(p, name ?? (p.clientName || "Cliente borrado")));
 
   api.get("/payments/info", { schema: { tags: ["cobros"], response: { 200: PaymentsInfo } } }, async (req) => {
-    requireUser(req);
-    return { enabled: Boolean(gw), testMode: gw?.testMode ?? false };
+    const u = requireUser(req);
+    return { enabled: Boolean(gw) && Boolean(await accountOf(u.studioId)), available: Boolean(gw), testMode: gw?.testMode ?? false };
   });
 
   // ── Tarifas ──
@@ -155,7 +169,7 @@ export function registerPayments(app: FastifyInstance, { db, cfg, mail }: Ctx, d
   });
   api.get("/me/prices", { schema: { tags: ["cobros"], response: { 200: z.array(Price) } } }, async (req) => {
     const c = requireActiveClient(req);
-    if (!gw) return [];
+    if (!gw || !(await accountOf(c.studioId))) return [];
     return (await db.select().from(prices).where(and(eq(prices.studioId, c.studioId), eq(prices.active, true)))).map(toPrice);
   });
 
@@ -198,7 +212,7 @@ export function registerPayments(app: FastifyInstance, { db, cfg, mail }: Ctx, d
     if (p.status !== "pending" && p.status !== "expired") throw new HttpError(409, "not_pending", "Este cobro ya no está pendiente");
     if (!p.clientId) throw new HttpError(409, "client_deleted", "El cliente de este cobro ya no existe");
     // El enlace viejo deja de valer en Stripe: así no se puede pagar dos veces.
-    if (p.checkoutId) await need().expireCheckout(p.checkoutId);
+    if (p.checkoutId && gw) await gw.expireCheckout(p.checkoutId, p.stripeAccount ?? undefined);
     await db.update(payments).set({ status: "expired" }).where(and(eq(payments.id, p.id), eq(payments.status, p.status)));
     return startPayment({ studioId: u.studioId, clientId: p.clientId, kind: p.kind, description: p.description, amountCents: p.amountCents, priceId: p.priceId, createdBy: u.id, returnPath: "/app/pagos" });
   });
@@ -239,20 +253,21 @@ export function registerPayments(app: FastifyInstance, { db, cfg, mail }: Ctx, d
     { schema: { tags: ["cobros"], body: z.object({ priceId: z.string().uuid() }), response: { 200: z.object({ url: z.string() }) } }, config: { rateLimit: { max: 10, timeWindow: "1 minute" } } },
     async (req) => {
       const c = requireActiveClient(req);
-      const g = need();
+      const { g, account } = await need(c.studioId);
       const p = await ownedPrice(c.studioId, req.body.priceId);
       if (!p.active || p.kind !== "subscription") throw notFound("Tarifa");
-      const cust = await customerOf(c.clientId);
+      const cust = await customerOf(c.clientId, account);
       const row = await db.transaction(async (tx) => {
         // Cerrojo por cliente: dos altas a la vez no crean dos cuotas.
         await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${"subscribe:" + c.clientId}))`);
         const [already] = await tx.select().from(subscriptions).where(and(eq(subscriptions.clientId, c.clientId), sql`${subscriptions.status} in ('active', 'past_due')`));
         if (already) throw new HttpError(409, "already_subscribed", "Ya tienes una cuota activa. Puedes gestionarla desde «Gestionar mi cuota».");
-        const [r] = await tx.insert(subscriptions).values({ studioId: c.studioId, clientId: c.clientId, priceId: p.id, name: p.name, amountCents: p.amountCents }).returning();
+        const [r] = await tx.insert(subscriptions).values({ studioId: c.studioId, clientId: c.clientId, priceId: p.id, name: p.name, amountCents: p.amountCents, stripeAccount: account }).returning();
         return r!;
       });
       const back = `${cfg.publicUrl}/app/pagos`;
       const s = await g.createSubscriptionCheckout({
+        account,
         customerId: cust.customer,
         description: p.name,
         amountCents: p.amountCents,
@@ -266,10 +281,10 @@ export function registerPayments(app: FastifyInstance, { db, cfg, mail }: Ctx, d
   );
   api.post("/me/billing-portal", { schema: { tags: ["cobros"], response: { 200: z.object({ url: z.string() }) } } }, async (req) => {
     const c = requireActiveClient(req);
-    const g = need();
-    const [cp] = await db.select({ customer: clientProfiles.stripeCustomerId }).from(clientProfiles).where(eq(clientProfiles.id, c.clientId));
+    if (!gw) throw off();
+    const [cp] = await db.select({ customer: clientProfiles.stripeCustomerId, account: clientProfiles.stripeCustomerAccount }).from(clientProfiles).where(eq(clientProfiles.id, c.clientId));
     if (!cp?.customer) throw new HttpError(409, "no_customer", "Todavía no tienes pagos en la app");
-    return { url: await g.portalUrl(cp.customer, `${cfg.publicUrl}/app/pagos`) };
+    return { url: await gw.portalUrl(cp.customer, `${cfg.publicUrl}/app/pagos`, cp.account ?? undefined) };
   });
   const subsOf = async (clientId: string) =>
     (await db.select().from(subscriptions).where(and(eq(subscriptions.clientId, clientId), sql`${subscriptions.status} <> 'incomplete'`)).orderBy(desc(subscriptions.createdAt))).map(toSub);
@@ -330,7 +345,7 @@ export function registerPayments(app: FastifyInstance, { db, cfg, mail }: Ctx, d
     if (!outcome) return;
     if (outcome.confirmed) void sendBookingMail(db, mail, cfg, outcome.confirmed, "confirmed").catch((e) => app.log.error(e, "correo de reserva"));
     if (paymentIntentId && gw) {
-      const url = await gw.receiptUrl(paymentIntentId).catch(() => null);
+      const url = await gw.receiptUrl(paymentIntentId, p.stripeAccount ?? undefined).catch(() => null);
       if (url) await db.update(payments).set({ receiptUrl: url }).where(eq(payments.id, p.id));
     }
     const coaches = await db.select({ id: users.id }).from(users).where(and(eq(users.studioId, p.studioId), eq(users.role, "coach"), isNull(users.deletedAt)));
@@ -348,12 +363,24 @@ export function registerPayments(app: FastifyInstance, { db, cfg, mail }: Ctx, d
 
 
   async function handle(ev: Stripe.Event) {
+    // Los eventos de Connect llevan la cuenta del entrenador; los de la plataforma, ninguna.
+    const evAccount = ev.account ?? null;
+    if (ev.type === "account.updated") {
+      const a = ev.data.object as Stripe.Account;
+      await db
+        .update(studios)
+        .set({ stripeChargesEnabled: Boolean(a.charges_enabled), stripePayoutsEnabled: Boolean(a.payouts_enabled), stripeDetailsSubmitted: Boolean(a.details_submitted) })
+        .where(eq(studios.stripeAccountId, a.id));
+      return;
+    }
     // Primero, los cobros de la plataforma a los estudios (S1).
-    if (await deps.platformEvent?.(ev)) return;
+    if (!evAccount && (await deps.platformEvent?.(ev))) return;
+    /** Un cobro, cuota o devolución solo se toca con eventos de la cuenta en la que se creó (nada de cruzar estudios). */
+    const sameAccount = (row: { stripeAccount: string | null }) => (row.stripeAccount ?? null) === evAccount;
     const byCheckout = async (s: Stripe.Checkout.Session) => {
       const id = s.metadata?.paymentId;
       const [p] = id ? await db.select().from(payments).where(and(eq(payments.id, id), eq(payments.checkoutId, s.id))) : [];
-      return p ?? null;
+      return p && sameAccount(p) ? p : null;
     };
     const pi = (x: string | Stripe.PaymentIntent | null) => (typeof x === "string" ? x : (x?.id ?? null));
     const subId = (x: unknown) => (typeof x === "string" ? x : ((x as { id?: string } | null)?.id ?? null));
@@ -370,7 +397,10 @@ export function registerPayments(app: FastifyInstance, { db, cfg, mail }: Ctx, d
         if (s.mode === "subscription") {
           const rowId = s.metadata?.subscriptionRowId;
           if (!rowId) return;
-          await db.update(subscriptions).set({ stripeSubscriptionId: subId(s.subscription), status: "active" }).where(and(eq(subscriptions.id, rowId), eq(subscriptions.checkoutId, s.id)));
+          await db
+            .update(subscriptions)
+            .set({ stripeSubscriptionId: subId(s.subscription), status: "active" })
+            .where(and(eq(subscriptions.id, rowId), eq(subscriptions.checkoutId, s.id), evAccount ? eq(subscriptions.stripeAccount, evAccount) : isNull(subscriptions.stripeAccount)));
           return;
         }
         const p = await byCheckout(s);
@@ -399,7 +429,7 @@ export function registerPayments(app: FastifyInstance, { db, cfg, mail }: Ctx, d
         const sid = invoiceSub(inv);
         if (!sid) return;
         const [sub] = await db.select().from(subscriptions).where(eq(subscriptions.stripeSubscriptionId, sid));
-        if (!sub) return;
+        if (!sub || !sameAccount(sub)) return;
         const paid = ev.type === "invoice.paid";
         const values = {
           status: (paid ? "paid" : "failed") as "paid" | "failed",
@@ -429,13 +459,20 @@ export function registerPayments(app: FastifyInstance, { db, cfg, mail }: Ctx, d
         const sub = ev.data.object as unknown as Record<string, any>;
         const status = ev.type === "customer.subscription.deleted" ? "canceled" : (sub.status as string);
         const mapped = (["active", "past_due", "canceled", "unpaid", "incomplete"].includes(status) ? status : status === "trialing" ? "active" : "past_due") as SubRow["status"];
-        await db.update(subscriptions).set({ status: mapped, cancelAtPeriodEnd: Boolean(sub.cancel_at_period_end), currentPeriodEnd: periodEnd(sub) }).where(eq(subscriptions.stripeSubscriptionId, String(sub.id)));
+        await db
+          .update(subscriptions)
+          .set({ status: mapped, cancelAtPeriodEnd: Boolean(sub.cancel_at_period_end), currentPeriodEnd: periodEnd(sub) })
+          .where(and(eq(subscriptions.stripeSubscriptionId, String(sub.id)), evAccount ? eq(subscriptions.stripeAccount, evAccount) : isNull(subscriptions.stripeAccount)));
         return;
       }
       case "charge.refunded": {
         const id = pi(ev.data.object.payment_intent);
         if (!id || !ev.data.object.refunded) return;
-        const [p] = await db.update(payments).set({ status: "refunded" }).where(eq(payments.paymentIntentId, id)).returning();
+        const [p] = await db
+          .update(payments)
+          .set({ status: "refunded" })
+          .where(and(eq(payments.paymentIntentId, id), evAccount ? eq(payments.stripeAccount, evAccount) : isNull(payments.stripeAccount)))
+          .returning();
         // El bono pagado con ese cobro deja de valer (se archiva; lo ya descontado se conserva).
         if (p?.packId) await db.update(sessionPacks).set({ archivedAt: new Date() }).where(eq(sessionPacks.id, p.packId));
         return;
@@ -475,20 +512,76 @@ export function registerPayments(app: FastifyInstance, { db, cfg, mail }: Ctx, d
       .update(payments)
       .set({ status: "expired" })
       .where(and(inArray(payments.appointmentId, appointmentIds), eq(payments.status, "pending")))
-      .returning({ checkoutId: payments.checkoutId });
-    if (gw) for (const r of rows) if (r.checkoutId) await gw.expireCheckout(r.checkoutId).catch(() => {});
+      .returning({ checkoutId: payments.checkoutId, account: payments.stripeAccount });
+    if (gw) for (const r of rows) if (r.checkoutId) await gw.expireCheckout(r.checkoutId, r.account ?? undefined).catch(() => {});
   }
   async function forgetClient(clientId: string) {
-    const [c] = await db.select({ customer: clientProfiles.stripeCustomerId }).from(clientProfiles).where(eq(clientProfiles.id, clientId));
+    const [c] = await db.select({ customer: clientProfiles.stripeCustomerId, account: clientProfiles.stripeCustomerAccount }).from(clientProfiles).where(eq(clientProfiles.id, clientId));
     const pending = await db
       .update(payments)
       .set({ status: "expired" })
       .where(and(eq(payments.clientId, clientId), eq(payments.status, "pending")))
-      .returning({ checkoutId: payments.checkoutId });
+      .returning({ checkoutId: payments.checkoutId, account: payments.stripeAccount });
     if (!gw) return;
-    for (const r of pending) if (r.checkoutId) await gw.expireCheckout(r.checkoutId);
-    if (c?.customer) await gw.deleteCustomer(c.customer);
+    for (const r of pending) if (r.checkoutId) await gw.expireCheckout(r.checkoutId, r.account ?? undefined);
+    if (c?.customer) await gw.deleteCustomer(c.customer, c.account ?? undefined);
   }
 
-  return { enabled: Boolean(gw), startPayment, expireForAppointments, forgetClient };
+  // ── Stripe Connect: la cuenta con la que cobra el estudio (ADR 0019) ──
+  const connectOf = async (studioId: string) => {
+    const [s] = await db.select().from(studios).where(eq(studios.id, studioId));
+    if (!s) throw notFound("Estudio");
+    return s;
+  };
+  const connectView = (s: typeof studios.$inferSelect): ConnectStatus => ({
+    available: Boolean(gw) && !cfg.demoMode,
+    connected: Boolean(s.stripeAccountId),
+    chargesEnabled: s.stripeChargesEnabled,
+    payoutsEnabled: s.stripePayoutsEnabled,
+    detailsSubmitted: s.stripeDetailsSubmitted,
+    testMode: gw?.testMode ?? false,
+  });
+  /** Estado de la cuenta, preguntado a Stripe (por si el webhook aún no ha llegado al volver del alta). */
+  api.get("/studio/connect", { schema: { tags: ["cobros"], response: { 200: ConnectStatus } } }, async (req, reply) => {
+    const u = requireCoach(req);
+    reply.header("Cache-Control", "no-store");
+    let s = await connectOf(u.studioId);
+    if (gw && s.stripeAccountId) {
+      const st = await gw.accountStatus(s.stripeAccountId).catch(() => null);
+      if (st) {
+        [s] = await db
+          .update(studios)
+          .set({ stripeChargesEnabled: st.chargesEnabled, stripePayoutsEnabled: st.payoutsEnabled, stripeDetailsSubmitted: st.detailsSubmitted })
+          .where(eq(studios.id, s.id))
+          .returning() as [typeof s];
+      }
+    }
+    return connectView(s);
+  });
+  /** Alta (o continuar el alta) en Stripe: crea la cuenta Express la primera vez y devuelve el enlace de un solo uso. */
+  api.post("/studio/connect/onboard", { schema: { tags: ["cobros"], response: { 200: z.object({ url: z.string() }) } }, config: { rateLimit: { max: 10, timeWindow: "1 minute" } } }, async (req) => {
+    const u = requireCoach(req);
+    if (!gw || cfg.demoMode) throw off();
+    const back = `${cfg.publicUrl}/coach/ajustes?cobros=`;
+    const account = await db.transaction(async (tx) => {
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${"connect:" + u.studioId}))`);
+      const [s] = await tx.select().from(studios).where(eq(studios.id, u.studioId));
+      if (s!.stripeAccountId) return s!.stripeAccountId;
+      const id = await gw.createAccount({ email: u.email, businessName: s!.legalName || s!.name, metadata: { studioId: s!.id } });
+      await tx.update(studios).set({ stripeAccountId: id }).where(eq(studios.id, s!.id));
+      return id;
+    });
+    await audit(db, req, "payments.connect.onboard", { type: "studio", id: u.studioId });
+    return { url: await gw.accountLink(account, `${back}reintentar`, `${back}vuelta`) };
+  });
+  /** Panel de Stripe del entrenador (cobros, transferencias a su banco, datos fiscales). */
+  api.post("/studio/connect/dashboard", { schema: { tags: ["cobros"], response: { 200: z.object({ url: z.string() }) } } }, async (req) => {
+    const u = requireCoach(req);
+    const s = await connectOf(u.studioId);
+    if (!gw || !s.stripeAccountId) throw new HttpError(409, "not_connected", "Primero activa los cobros.");
+    return { url: await gw.dashboardUrl(s.stripeAccountId) };
+  });
+
+  const enabledFor = async (studioId: string) => Boolean(gw) && Boolean(await accountOf(studioId));
+  return { enabledFor, startPayment, expireForAppointments, forgetClient };
 }

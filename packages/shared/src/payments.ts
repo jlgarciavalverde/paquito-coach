@@ -66,7 +66,18 @@ export const PaymentLinkInput = z
   .refine((p) => p.priceId || (p.description.length > 0 && p.amount != null), { message: "Elige una tarifa o escribe concepto e importe" });
 export type PaymentLinkInput = z.infer<typeof PaymentLinkInput>;
 
-export const PaymentsInfo = z.object({ enabled: z.boolean(), testMode: z.boolean() });
+/** `enabled`: este estudio puede cobrar con tarjeta (su cuenta de Stripe acepta pagos). `available`: hay Stripe en el servidor. */
+export const PaymentsInfo = z.object({ enabled: z.boolean(), available: z.boolean(), testMode: z.boolean() });
+/** Cuenta de Stripe Connect del estudio (Ajustes → Cobros, ADR 0019). */
+export const ConnectStatus = z.object({
+  available: z.boolean(),
+  connected: z.boolean(),
+  chargesEnabled: z.boolean(),
+  payoutsEnabled: z.boolean(),
+  detailsSubmitted: z.boolean(),
+  testMode: z.boolean(),
+});
+export type ConnectStatus = z.infer<typeof ConnectStatus>;
 export type PaymentsInfo = z.infer<typeof PaymentsInfo>;
 
 export const toCents = (euros: number) => Math.round(euros * 100);

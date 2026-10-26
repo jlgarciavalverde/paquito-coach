@@ -7,10 +7,12 @@ import { AiError } from "./lib/ai/provider";
 import { createGemini } from "./lib/ai/gemini";
 import { madridClock } from "./lib/scheduler";
 import { madridInstant } from "./lib/tz";
-import { Agent, ORIGIN, inviteAndRegister, resetDb, setupCoach, testApp } from "./test-utils";
+import { Agent, ORIGIN, inviteAndRegister, resetDb, setupCoach, testApp, connectStripe } from "./test-utils";
 
 /** Situaciones anómalas: datos basura en todas las rutas, carreras, cambios de hora, fallos de servicios externos. */
 let app: App;
+/** Cuenta de Stripe Connect (simulada) del estudio: los eventos de sus cobros llegan con ella. */
+let acct: string;
 let coach: Agent;
 let lucia: Agent;
 let luciaId: string;
@@ -29,6 +31,7 @@ beforeAll(async () => {
   await resetDb();
   app = await testApp({}, { gateway: gw, ai });
   coach = await setupCoach(app);
+  acct = await connectStripe(coach);
   ({ client: lucia, clientId: luciaId } = await inviteAndRegister(app, coach, "Lucía", "lucia@example.com"));
   ({ client: pepe } = await inviteAndRegister(app, coach, "Pepe", "pepe@example.com"));
 });
@@ -55,7 +58,7 @@ describe("carreras", () => {
     const price = await coach.post("/api/v1/prices", { name: "Bono 3", kind: "pack", amount: 90, sessions: 3 });
     await lucia.post("/api/v1/me/checkout", { priceId: price.body.id });
     const co = gw.checkouts.at(-1)!;
-    const payload = JSON.stringify({ id: "evt_race", object: "event", type: "checkout.session.completed", data: { object: { id: co.id, object: "checkout.session", mode: "payment", amount_total: co.amountCents, currency: "eur", payment_status: "paid", payment_intent: "pi_race", metadata: co.metadata } } });
+    const payload = JSON.stringify({ id: "evt_race", object: "event", account: acct, type: "checkout.session.completed", data: { object: { id: co.id, object: "checkout.session", mode: "payment", amount_total: co.amountCents, currency: "eur", payment_status: "paid", payment_intent: "pi_race", metadata: co.metadata } } });
     const send = () => app.inject({ method: "POST", url: "/api/v1/stripe/webhook", payload, headers: { "content-type": "application/json", "stripe-signature": gw.sign(payload) } });
     const r = await Promise.all([send(), send(), send()]);
     expect(r.every((x) => x.statusCode === 200)).toBe(true);

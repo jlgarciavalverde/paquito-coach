@@ -1,6 +1,14 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [2.1.0] — 2026-10-26 · Cada entrenador cobra en su cuenta (S2a)
+### Añadido
+- **Stripe Connect Express** (ADR 0019): en Ajustes → Cobros, «Activar cobros con tarjeta» lleva al alta de Stripe (datos e IBAN) y el dinero llega directo a la cuenta del entrenador; «Abrir mi panel de Stripe» para ver pagos y transferencias. Sin comisión de la plataforma.
+### Seguridad
+- Cada cobro, cuota y cliente de Stripe vive en la cuenta de su estudio; el webhook solo acepta eventos de esa cuenta.
+### Pruebas
+- `connect.test.ts` (7). API 286, web 74, e2e 47 + demo.
+
 ## [2.0.0] — 2026-10-26 · Plataforma para varios entrenadores (S1)
 ### Añadido
 - **Varios estudios en la misma app** (ADR 0018): cada uno con su página en `/e/<slug>`; los que tienen dominio propio (Paquito) siguen con su página en `/`.
