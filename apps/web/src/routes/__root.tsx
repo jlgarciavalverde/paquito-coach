@@ -1,5 +1,8 @@
 import { createRootRouteWithContext, Link, Outlet } from "@tanstack/react-router";
 import type { QueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { RequestError } from "../lib/api";
+import { reportError } from "../lib/report";
 import { Button } from "../components/ui/button";
 import { Brand } from "../components/brand";
 import { DemoBanner } from "../components/demo-banner";
@@ -16,10 +19,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     </>
   ),
   notFoundComponent: NotFound,
-  errorComponent: ({ error, reset }) => (
-    <CenteredMessage title="Algo no ha ido bien" text={error instanceof Error && error.message ? error.message : "Error inesperado."} action={<Button onClick={reset}>Reintentar</Button>} />
-  ),
+  errorComponent: RenderError,
 });
+
+/** Pantalla de error (fallo al pintar o al cargar una ruta): se informa al registro de errores y se ofrece reintentar. */
+function RenderError({ error, reset }: { error: unknown; reset: () => void }) {
+  useEffect(() => {
+    // Los 4xx los explica la propia pantalla; solo se informa de lo que es un fallo de la app.
+    if (!(error instanceof RequestError) || error.status >= 500) reportError(error, "render");
+  }, [error]);
+  return <CenteredMessage title="Algo no ha ido bien" text={error instanceof Error && error.message ? error.message : "Error inesperado."} action={<Button onClick={reset}>Reintentar</Button>} />;
+}
 
 function NotFound() {
   return (

@@ -28,7 +28,11 @@ function serviceWorkerPrecache(): Plugin {
   };
 }
 
+/** Versión de la app (la del package.json raíz) para los informes de errores. */
+const APP_VERSION = (JSON.parse(readFileSync(join(import.meta.dirname, "../../package.json"), "utf8")) as { version: string }).version;
+
 export default defineConfig({
+  define: { __APP_VERSION__: JSON.stringify(APP_VERSION) },
   plugins: [tanstackRouter({ target: "react", autoCodeSplitting: true }), react(), tailwindcss(), serviceWorkerPrecache()],
   test: {
     // Las pruebas de componentes eligen jsdom con `// @vitest-environment jsdom`; las de lógica corren en Node.

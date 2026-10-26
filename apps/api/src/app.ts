@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import Fastify, { LogController, type FastifyInstance } from "fastify";
@@ -26,6 +27,7 @@ import { redactUrl } from "./lib/redact";
 import { canonicalPath } from "./lib/path";
 import { clientIp } from "./lib/ip";
 import { gate, lockedAllows } from "./lib/access";
+import { recordError } from "./lib/error-log";
 import { stripNul } from "./lib/sanitize";
 import { authenticate, cookieName } from "./lib/session";
 import { registerAuth } from "./routes/auth";
@@ -120,8 +122,17 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
     // Solo detrás del túnel se confía en un salto de proxy; sin él, `X-Forwarded-For` no puede falsear la IP.
     trustProxy: cfg.trustCloudflare ? (_addr: string, hop: number) => hop === 0 : false,
     bodyLimit: 256 * 1024,
+    // Request id (Q1): sale en la cabecera `x-request-id`, en los logs y en el registro de errores, para seguir un fallo de punta a punta.
+    genReqId: () => randomUUID(),
     // El healthcheck de Docker no debe llenar los logs.
     logController: new LogController({ disableRequestLogging: (req) => req.url === "/health" }),
+  });
+  app.addHook("onRequest", async (req, reply) => {
+    reply.header("x-request-id", req.id);
+  });
+  // Peticiones lentas (Q1): un aviso en el log con la ruta y el tiempo, para buscarlas luego con tools/slow-queries.mjs.
+  app.addHook("onResponse", async (req, reply) => {
+    if (reply.elapsedTime > 500 && req.url !== "/health") req.log.warn({ route: req.routeOptions.url, ms: Math.round(reply.elapsedTime), reqId: req.id }, "petición lenta");
   });
   // Registro de rutas (lo usan los tests de seguridad para recorrer todos los endpoints).
   app.addHook("onRoute", (r) => {
@@ -266,7 +277,9 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
     if (e.statusCode === 429) return reply.code(429).send({ error: "rate_limited", message: e.message ?? "Demasiadas peticiones" });
     if (e.statusCode && e.statusCode < 500) return reply.code(e.statusCode).send({ error: "request", message: e.message ?? "Petición no válida" });
     req.log.error(err);
-    return reply.code(500).send({ error: "internal", message: "Algo ha fallado en el servidor" });
+    const x = err as { message?: string; stack?: string; name?: string };
+    void recordError(db, { source: "api", kind: x.name ?? "Error", message: x.message ?? String(err), stack: x.stack, path: `${req.method} ${req.routeOptions.url ?? req.url}`, version: cfg.version, requestId: req.id }).catch(() => {});
+    return reply.code(500).send({ error: "internal", message: "Algo ha fallado en el servidor", requestId: req.id });
   });
 
   await app.register(

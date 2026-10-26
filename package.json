@@ -12,6 +12,8 @@
     "db:down": "docker compose -f docker-compose.dev.yml down",
     "dev:api": "pnpm --filter @coach/api dev",
     "dev:web": "pnpm --filter @coach/web dev",
+    "dev:debug": "pnpm --filter @coach/api exec node --env-file-if-exists=../../.env --inspect --import tsx --watch src/server.ts",
+    "slow-queries": "node tools/slow-queries.mjs",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",

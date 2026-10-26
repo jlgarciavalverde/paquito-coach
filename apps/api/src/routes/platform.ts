@@ -3,10 +3,11 @@ import type Stripe from "stripe";
 import { and, asc, count, desc, eq, inArray, isNull, max, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
-  AdminStudio, AdminStudioUpdate, AdminSummary, BillingCheckoutInput, PLANS, PlatformInfo, RedirectUrl, StudioBilling, TRIAL_DAYS, publicPlans, studioAccess,
+  AdminStudio, AdminStudioUpdate, AdminSummary, BillingCheckoutInput, ClientErrorInput, ErrorReport, PLANS, PlatformInfo, RedirectUrl, StudioBilling, TRIAL_DAYS, publicPlans, studioAccess,
   type PlanId,
 } from "@coach/shared";
-import { auditLog, clientProfiles, studios, users } from "../db/schema";
+import { auditLog, clientProfiles, errorReports, studios, users } from "../db/schema";
+import { recordError } from "../lib/error-log";
 import { audit } from "../lib/audit";
 import { HttpError, notFound } from "../lib/errors";
 import { activeClients } from "../lib/plan";
@@ -198,6 +199,30 @@ export function registerPlatform(app: FastifyInstance, { db, cfg }: Ctx, deps: {
     const row = (await adminRows()).find((r) => r.id === s.id);
     if (!row) throw notFound("Estudio");
     return row;
+  });
+
+  // ── Registro de errores (Q1) ──
+  /** La web informa de un fallo (sin sesión también: una pantalla en blanco al entrar es justo lo que hay que ver). */
+  api.post("/client-errors", { schema: { tags: ["plataforma"], body: ClientErrorInput, response: { 204: z.null() } }, config: { rateLimit: { max: 20, timeWindow: "1 minute" } } }, async (req, reply) => {
+    const b = req.body;
+    await recordError(db, { source: "web", kind: b.kind, message: b.message, stack: b.stack, path: b.path, version: b.version, userAgent: String(req.headers["user-agent"] ?? ""), requestId: b.requestId ?? null });
+    return reply.code(204).send(null);
+  });
+  const toReport = (r: typeof errorReports.$inferSelect): ErrorReport => ({
+    id: r.id, source: r.source, kind: r.kind, message: r.message, stack: r.stack, path: r.path, version: r.version, userAgent: r.userAgent,
+    lastRequestId: r.lastRequestId, count: r.count, firstSeen: r.firstSeen.toISOString(), lastSeen: r.lastSeen.toISOString(), resolved: Boolean(r.resolvedAt),
+  });
+  api.get("/admin/errors", { schema: { tags: ["administración"], querystring: z.object({ todos: z.coerce.boolean().optional() }), response: { 200: z.array(ErrorReport) } } }, async (req, reply) => {
+    requirePlatformAdmin(req);
+    reply.header("Cache-Control", "no-store");
+    const rows = await db.select().from(errorReports).where(req.query.todos ? undefined : isNull(errorReports.resolvedAt)).orderBy(desc(errorReports.lastSeen)).limit(200);
+    return rows.map(toReport);
+  });
+  api.post("/admin/errors/:id/resolve", { schema: { tags: ["administración"], params: z.object({ id: z.string().uuid() }), response: { 200: ErrorReport } } }, async (req) => {
+    requirePlatformAdmin(req);
+    const [r] = await db.update(errorReports).set({ resolvedAt: new Date() }).where(eq(errorReports.id, req.params.id)).returning();
+    if (!r) throw notFound("Error");
+    return toReport(r);
   });
 
   // ── Eventos de Stripe de la plataforma ──

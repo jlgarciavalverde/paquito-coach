@@ -169,6 +169,13 @@
       "when": 1793008233560,
       "tag": "0023_connect",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1793012601748,
+      "tag": "0024_errores",
+      "breakpoints": true
     }
   ]
 }

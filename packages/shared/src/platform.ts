@@ -153,3 +153,31 @@ export const PlatformInfo = z.object({
   signupOpen: z.boolean(),
 });
 export type PlatformInfo = z.infer<typeof PlatformInfo>;
+
+// ── Registro propio de errores (Q1): nada sale del servidor (sin servicios externos) ──
+/** Lo que manda la web cuando algo falla en el navegador. Sin datos personales: se recortan y se ocultan correos y cifras largas. */
+export const ClientErrorInput = z.object({
+  message: z.string().max(500),
+  stack: z.string().max(4000).default(""),
+  path: z.string().max(200).default(""),
+  version: z.string().max(40).default(""),
+  requestId: z.string().max(80).optional(),
+  kind: z.enum(["error", "rejection", "api", "render"]).default("error"),
+});
+export type ClientErrorInput = z.infer<typeof ClientErrorInput>;
+export const ErrorReport = z.object({
+  id: z.string(),
+  source: z.enum(["web", "api"]),
+  kind: z.string(),
+  message: z.string(),
+  stack: z.string(),
+  path: z.string(),
+  version: z.string(),
+  userAgent: z.string(),
+  lastRequestId: z.string().nullable(),
+  count: z.number(),
+  firstSeen: z.string(),
+  lastSeen: z.string(),
+  resolved: z.boolean(),
+});
+export type ErrorReport = z.infer<typeof ErrorReport>;

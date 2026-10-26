@@ -12,7 +12,8 @@ import { useConfirm } from "../../components/ui/confirm";
 import { api, errorMessage } from "../../lib/api";
 import { meQuery } from "../../lib/auth";
 import { fmtDate, relativeTime } from "../../lib/format";
-import { adminStudiosQuery, adminSummaryQuery } from "../../lib/platform";
+import { adminErrorsQuery, adminStudiosQuery, adminSummaryQuery } from "../../lib/platform";
+import { TabPanel, Tabs } from "../../components/ui/tabs";
 
 /** Administración de la plataforma: estudios, planes, pruebas y suspensiones. Solo para `PLATFORM_ADMIN_EMAILS`. */
 export const Route = createFileRoute("/coach/admin")({
@@ -26,6 +27,86 @@ export const Route = createFileRoute("/coach/admin")({
 const STATUS: Record<AdminStudio["status"], string> = { trial: "Prueba", active: "Al día", past_due: "Cobro pendiente", canceled: "Baja", comp: "Sin cobro" };
 
 function Admin() {
+  const [tab, setTab] = useState("estudios");
+  const errors = useQuery(adminErrorsQuery);
+  return (
+    <>
+      <PageTitle title="Plataforma" lead="Estudios, planes y pruebas; y los errores de la app." />
+      <Tabs
+        value={tab}
+        onValueChange={setTab}
+        items={[
+          { value: "estudios", label: "Estudios" },
+          { value: "errores", label: errors.data?.length ? `Errores (${errors.data.length})` : "Errores" },
+        ]}
+      >
+        <TabPanel value="estudios">
+          <Studios />
+        </TabPanel>
+        <TabPanel value="errores">
+          <Errors />
+        </TabPanel>
+      </Tabs>
+    </>
+  );
+}
+
+/**
+ * Registro propio de errores (Q1): lo que ha fallado en los navegadores y en el servidor, agrupado. Con el request id se
+ * busca el detalle en los logs del VPS: `docker logs coach 2>&1 | grep <id>`.
+ */
+function Errors() {
+  const q = useQuery(adminErrorsQuery);
+  const qc = useQueryClient();
+  const toast = useToast();
+  const resolve = useMutation({
+    mutationFn: (id: string) => api(`/admin/errors/${id}/resolve`, { body: {} }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["admin", "errors"] }),
+    onError: (e) => toast(errorMessage(e), "error"),
+  });
+  return (
+    <QueryState q={q}>
+      {(rows) =>
+        rows.length === 0 ? (
+          <p className="text-ink-2">Ningún error sin resolver.</p>
+        ) : (
+          <RowList>
+            {rows.map((e) => (
+              <li key={e.id} className="flex flex-col gap-2 px-3 py-3">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-medium break-words text-ink">{e.message}</p>
+                    <p className="text-[13.5px] text-ink-2">
+                      {e.source === "web" ? "Navegador" : "Servidor"}, {e.path || "sin ruta"}, versión {e.version || "?"}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <PlateMark tone={e.count > 5 ? "red" : "yellow"}>
+                      {e.count} {e.count === 1 ? "vez" : "veces"}, última {relativeTime(e.lastSeen)}
+                    </PlateMark>
+                    <Button size="sm" variant="secondary" loading={resolve.isPending && resolve.variables === e.id} onClick={() => resolve.mutate(e.id)}>
+                      Marcar resuelto
+                    </Button>
+                  </div>
+                </div>
+                {(e.stack || e.lastRequestId) && (
+                  <details className="text-[13px] text-ink-2">
+                    <summary className="cursor-pointer">Detalle</summary>
+                    {e.lastRequestId && <p className="mt-2">Request id: <code className="font-narrow">{e.lastRequestId}</code></p>}
+                    {e.userAgent && <p className="mt-1">{e.userAgent}</p>}
+                    {e.stack && <pre className="mt-2 max-h-64 overflow-auto rounded-[var(--radius-control)] bg-tray p-3 text-[12px] whitespace-pre-wrap">{e.stack}</pre>}
+                  </details>
+                )}
+              </li>
+            ))}
+          </RowList>
+        )
+      }
+    </QueryState>
+  );
+}
+
+function Studios() {
   const studios = useQuery(adminStudiosQuery);
   const sum = useQuery(adminSummaryQuery).data;
   const [open, setOpen] = useState<string | null>(null);
@@ -33,14 +114,11 @@ function Admin() {
   const current = studios.data?.find((s) => s.id === open) ?? null;
   return (
     <>
-      <PageTitle
-        title="Plataforma"
-        lead={
-          sum
-            ? `${sum.studios} estudios: ${sum.paying} pagando (${formatEuros(sum.mrr)} al mes), ${sum.trial} en prueba y ${sum.locked} en pausa. ${sum.activeClients} clientes en total.`
-            : "Estudios, planes y pruebas."
-        }
-      />
+      {sum && (
+        <p className="mb-5 max-w-[70ch] text-ink-2">
+          {`${sum.studios} estudios: ${sum.paying} pagando (${formatEuros(sum.mrr)} al mes), ${sum.trial} en prueba y ${sum.locked} en pausa. ${sum.activeClients} clientes en total.`}
+        </p>
+      )}
       <div className="mb-5 max-w-[360px]">
         <TextField label="Buscar estudio" value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Nombre, dirección o correo" />
       </div>

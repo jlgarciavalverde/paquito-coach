@@ -6,6 +6,8 @@ export class RequestError extends Error {
     public status: number,
     public code: string,
     message: string,
+    /** `x-request-id` de la respuesta: el mismo que en los logs y en el registro de errores del servidor. */
+    public requestId?: string,
   ) {
     super(message);
   }
@@ -62,7 +64,7 @@ export async function api<T>(path: string, init: { method?: string; body?: unkno
   }
   if (!res.ok) {
     const e = (data && typeof data === "object" ? data : {}) as Partial<ApiError>;
-    const err = new RequestError(res.status, e.error ?? "http", typeof e.message === "string" && e.message ? e.message : fallbackMessage(res.status));
+    const err = new RequestError(res.status, e.error ?? "http", typeof e.message === "string" && e.message ? e.message : fallbackMessage(res.status), res.headers.get("x-request-id") ?? undefined);
     for (const l of listeners) l(err);
     throw err;
   }

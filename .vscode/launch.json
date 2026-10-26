@@ -1,0 +1,35 @@
+{
+  // Q1: depurar en local. «API» arranca la API con el inspector (puntos de parada en VS Code); «Web (Chrome)» abre la
+  // web de desarrollo (pnpm dev:web) con el depurador de Chrome. «API + Web» lanza las dos.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "API",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/api",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["--env-file-if-exists=../../.env", "--import", "tsx", "src/server.ts"],
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Prueba de la API (fichero abierto)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/apps/api",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vitest", "run", "${relativeFile}"],
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Web (Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/apps/web/src"
+    }
+  ],
+  "compounds": [{ "name": "API + Web", "configurations": ["API", "Web (Chrome)"] }]
+}

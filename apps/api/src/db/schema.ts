@@ -849,3 +849,28 @@ export const leads = pgTable(
   },
   (t) => [index("leads_studio_fk_idx").on(t.studioId, t.createdAt)],
 );
+
+/**
+ * Q1: errores de la web y de la API agrupados por huella (mismo error = una fila con su contador). Sin datos personales:
+ * se guardan recortados y con correos y números largos ocultos. Se ven en Admin → Errores.
+ */
+export const errorReports = pgTable(
+  "error_reports",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    fingerprint: text("fingerprint").notNull(),
+    source: text("source").$type<"web" | "api">().notNull(),
+    kind: text("kind").notNull(),
+    message: text("message").notNull(),
+    stack: text("stack").notNull().default(""),
+    path: text("path").notNull().default(""),
+    version: text("version").notNull().default(""),
+    userAgent: text("user_agent").notNull().default(""),
+    lastRequestId: text("last_request_id"),
+    count: integer("count").notNull().default(1),
+    firstSeen: createdAt(),
+    lastSeen: ts("last_seen").notNull().defaultNow(),
+    resolvedAt: ts("resolved_at"),
+  },
+  (t) => [uniqueIndex("error_reports_fingerprint_uq").on(t.fingerprint), index("error_reports_last_seen_idx").on(t.lastSeen)],
+);

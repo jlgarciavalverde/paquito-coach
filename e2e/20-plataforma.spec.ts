@@ -77,4 +77,15 @@ test("plataforma: el estudio de Paquito sigue en su dominio y la administración
   await expect(admin.getByText("Guardado.")).toBeVisible();
   await expectAccessible(admin, "administración");
   if (SHOTS) await admin.screenshot({ path: `${SHOTS}/administracion.png` });
+  await admin.keyboard.press("Escape");
+
+  // Registro propio de errores: un fallo sin capturar en el navegador llega a Admin → Errores.
+  await admin.evaluate(() => setTimeout(() => { throw new Error("Fallo de prueba e2e del cuaderno"); }, 0));
+  await admin.waitForTimeout(500);
+  await admin.reload();
+  await admin.getByRole("tab", { name: /Errores/ }).click();
+  await expect(admin.getByText("Error: Fallo de prueba e2e del cuaderno", { exact: true })).toBeVisible();
+  await expectAccessible(admin, "errores de la plataforma");
+  await admin.getByRole("button", { name: "Marcar resuelto" }).first().click();
+  await expect(admin.getByText("Ningún error sin resolver.")).toBeVisible();
 });

@@ -30,6 +30,7 @@ export const PUBLIC_ROUTES = new Set([
   "GET /api/v1/platform",
   "GET /api/v1/auth/slug/:slug",
   "POST /api/v1/auth/signup",
+  "POST /api/v1/client-errors", // la web informa de fallos (también sin sesión); límite por IP
 ]);
 
 /** Rutas fuera de `/me` que también puede usar un cliente (cada una limita por dentro qué ve). */
@@ -70,7 +71,7 @@ export function gate(method: string, route: string | undefined, user: { role: "c
  * Estudio bloqueado (prueba terminada, impago o suspensión): se puede mirar todo (GET) y solo esto otro. Así el entrenador
  * puede pagar, exportar sus datos o darse de baja, y nadie pierde el acceso a su cuenta.
  */
-const LOCKED_OK = [/^\/api\/v1\/auth\//, /^\/api\/v1\/me(\/|$)/, /^\/api\/v1\/studio\/billing(\/|$)/, /^\/api\/v1\/push\//, /^\/api\/v1\/stripe\//, /^\/api\/v1\/admin\//];
+const LOCKED_OK = [/^\/api\/v1\/auth\//, /^\/api\/v1\/me(\/|$)/, /^\/api\/v1\/studio\/billing(\/|$)/, /^\/api\/v1\/push\//, /^\/api\/v1\/stripe\//, /^\/api\/v1\/admin\//, /^\/api\/v1\/client-errors$/];
 export function lockedAllows(method: string, route: string | undefined) {
   if (method === "GET" || method === "HEAD" || method === "OPTIONS") return true;
   if (!route || !route.startsWith("/api/v1/")) return true;

@@ -10,8 +10,10 @@ import { RequestError, onApiError } from "./lib/api";
 import { meQuery } from "./lib/auth";
 import { applyStoredTheme } from "./lib/theme";
 import { registerServiceWorker } from "./lib/push";
+import { installErrorReporting } from "./lib/report";
 import "./styles.css";
 
+installErrorReporting();
 applyStoredTheme();
 registerServiceWorker();
 
