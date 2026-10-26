@@ -1,15 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { LegalH as H, LegalLayout, responsibleText } from "../components/legal-layout";
-import { legalQuery } from "../lib/public";
+import { LegalH as H, LegalLayout, responsibleText, useStudioSearch } from "../components/legal-layout";
+import { StudioSearch, legalQuery } from "../lib/public";
 
-export const Route = createFileRoute("/privacidad")({
+export const Route = createFileRoute("/privacidad")({ validateSearch: StudioSearch,
   component: Privacy,
 });
 
 /** Aviso de privacidad (RGPD). Texto base: Paquito debe revisarlo y completar sus datos de responsable. */
 function Privacy() {
-  const l = useQuery(legalQuery).data;
+  const l = useQuery(legalQuery(useStudioSearch())).data;
   const who = l ? responsibleText(l) : "";
   return (
     <LegalLayout title="Privacidad y tus datos" updated="1 de octubre de 2026" intro="Qué datos guarda esta app, para qué, y cómo puedes consultarlos o borrarlos.">

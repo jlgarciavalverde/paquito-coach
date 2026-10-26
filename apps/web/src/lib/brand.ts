@@ -1,11 +1,12 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ACCENTS, BRAND, type Accent } from "@coach/shared";
+import { meQuery } from "./auth";
 import { statusQuery } from "./status";
 
 /**
- * Marca del estudio: el nombre (cabecera, título de la pestaña) y el color de acento salen del estado público, así cada
- * entrenador ve su app con su nombre. Sin estudio todavía (instalación), el nombre provisional de `BRAND`.
+ * Marca: con sesión, la del estudio de la persona; sin sesión, la del estudio de la dirección (dominio propio o
+ * `/e/<slug>`) y, si no hay, la de la plataforma. Sin nada todavía (instalación), el nombre provisional de `BRAND`.
  */
 let name: string = BRAND.name;
 export const brandName = () => name;
@@ -35,8 +36,17 @@ export function applyBrand(s: { studioName: string | null; accent: Accent }) {
 /** En la raíz: aplica la marca al cargar y cada vez que cambia (p. ej. al guardar la página pública). */
 export function BrandSync() {
   const s = useQuery(statusQuery).data;
+  const me = useQuery(meQuery).data;
   useEffect(() => {
-    if (s) applyBrand(s);
-  }, [s]);
+    if (me) applyBrand({ studioName: me.studio.name, accent: me.studio.accent });
+    else if (s) applyBrand({ studioName: s.studioName ?? s.platformName, accent: s.accent });
+  }, [s, me]);
   return null;
+}
+
+/** El nombre que se ve en la cabecera ahora mismo (misma regla que `BrandSync`). */
+export function useBrandName() {
+  const s = useQuery(statusQuery).data;
+  const me = useQuery(meQuery).data;
+  return me?.studio.name ?? s?.studioName ?? s?.platformName ?? BRAND.name;
 }

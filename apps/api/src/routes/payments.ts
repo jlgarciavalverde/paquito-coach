@@ -60,7 +60,7 @@ const toSub = (s: SubRow): Subscription => ({
   cancelAtPeriodEnd: s.cancelAtPeriodEnd,
 });
 
-export function registerPayments(app: FastifyInstance, { db, cfg, mail }: Ctx, deps: { gateway: PaymentGateway | null; push: PushSender }): Billing {
+export function registerPayments(app: FastifyInstance, { db, cfg, mail }: Ctx, deps: { gateway: PaymentGateway | null; push: PushSender; platformEvent?: (ev: Stripe.Event) => Promise<boolean> }): Billing {
   const api = typed(app);
   const gw = deps.gateway;
   const need = () => {
@@ -348,6 +348,8 @@ export function registerPayments(app: FastifyInstance, { db, cfg, mail }: Ctx, d
 
 
   async function handle(ev: Stripe.Event) {
+    // Primero, los cobros de la plataforma a los estudios (S1).
+    if (await deps.platformEvent?.(ev)) return;
     const byCheckout = async (s: Stripe.Checkout.Session) => {
       const id = s.metadata?.paymentId;
       const [p] = id ? await db.select().from(payments).where(and(eq(payments.id, id), eq(payments.checkoutId, s.id))) : [];

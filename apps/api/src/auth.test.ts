@@ -23,7 +23,8 @@ describe("alta inicial", () => {
     await setupCoach(app);
     const again = await a.post("/api/v1/auth/setup", { setupCode: SETUP_CODE, studioName: "Y", name: "Q", email: "q@x.com", password: PASSWORD });
     expect(again.status).toBe(409);
-    expect((await a.get("/api/v1/auth/setup-status")).body).toMatchObject({ needsSetup: false, demo: false, mail: false, studioName: "Estudio Paquito" });
+    expect((await a.get("/api/v1/auth/setup-status")).body).toMatchObject({ needsSetup: false, demo: false, mail: false, studioName: null });
+    expect((await a.get("/api/v1/auth/setup-status?estudio=estudio-paquito")).body).toMatchObject({ studioName: "Estudio Paquito", slug: "estudio-paquito" });
   });
 
   it("rechaza contraseñas cortas o comunes", async () => {

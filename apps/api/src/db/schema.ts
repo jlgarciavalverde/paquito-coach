@@ -34,6 +34,19 @@ export const studios = pgTable("studios", {
   legalName: text("legal_name").notNull().default(""),
   taxId: text("tax_id").notNull().default(""),
   legalAddress: text("legal_address").notNull().default(""),
+  // ── S1: plataforma (ADR 0018) ──
+  /** Dirección pública `/e/<slug>`. Null en estudios creados antes de la plataforma (o en los tests). */
+  slug: text("slug").unique(),
+  plan: text("plan").$type<"prueba" | "basico" | "pro" | "estudio" | "fundador">().notNull().default("fundador"),
+  billingStatus: text("billing_status").$type<"trial" | "active" | "past_due" | "canceled" | "comp">().notNull().default("comp"),
+  trialEndsAt: ts("trial_ends_at"),
+  /** Suscripción del estudio a la plataforma en Stripe. */
+  platformCustomerId: text("platform_customer_id"),
+  platformSubscriptionId: text("platform_subscription_id").unique(),
+  currentPeriodEnd: ts("current_period_end"),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
+  /** Suspendido por la administración (abuso, impago fuera de Stripe…): como bloqueado. */
+  suspendedAt: ts("suspended_at"),
   createdAt: createdAt(),
 });
 

@@ -120,6 +120,13 @@ Ajustes → «Tu estudio y tu página pública»: nombre, color, frase, «quién
 `https://paquito.redgarverde.com` sin sesión (o con `/?vista=publica`). Las solicitudes aparecen en Hoy y en Clientes.
 Los textos de aviso legal, términos y privacidad son una base: que Paquito los revise.
 
+## Plataforma (varios entrenadores, ADR 0018)
+- **Dominio propio de un estudio**: `HOST_STUDIOS=paquito.redgarverde.com=@first` en `.env` (lo pone `tools/deploy.mjs` si falta). En ese dominio `/` es la página del estudio. Varios: `a.com=slug-a,b.com=slug-b` (y una ruta pública en el túnel por dominio).
+- **Web de la plataforma** (`/`, `/alta`, `/e/<slug>`): necesita un hostname propio en el túnel de Cloudflare apuntando a `http://coach:3000` (p. ej. `coach.redgarverde.com`), añadirlo a `ALLOWED_ORIGINS` y, cuando sea la dirección principal, a `PUBLIC_URL`.
+- **Abrir el alta**: `SIGNUP_OPEN=1` y `docker compose up -d coach`. Antes: precios definitivos (`packages/shared/src/platform.ts`), condiciones revisadas, datos `PLATFORM_LEGAL_NAME`, `PLATFORM_TAX_ID`, `PLATFORM_ADDRESS`, `PLATFORM_EMAIL` y `PLATFORM_NAME`.
+- **Administrar**: `PLATFORM_ADMIN_EMAILS=tu@correo` (cuenta de entrenador con ese correo) → Ajustes → «Administrar la plataforma».
+- **Cobro de los planes**: la misma clave de Stripe que los cobros. En el webhook de Stripe añadir los eventos `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid` e `invoice.payment_failed` si no están. Activar el portal de clientes de Stripe con «cambiar de plan» y «cancelar al final del periodo».
+
 ## Verificación en dos pasos
 Ajustes (entrenador) o Perfil (cliente) → «Verificación en dos pasos» → escanear el QR con Google Authenticator, Authy,
 1Password… → código → guardar los 10 códigos de recuperación. Muy recomendable para la cuenta del entrenador.

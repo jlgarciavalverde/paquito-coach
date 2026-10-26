@@ -16,6 +16,584 @@
     "schemas": {}
   },
   "paths": {
+    "/api/v1/platform": {
+      "get": {
+        "tags": [
+          "plataforma"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "legalName": {
+                      "type": "string"
+                    },
+                    "taxId": {
+                      "type": "string"
+                    },
+                    "legalAddress": {
+                      "type": "string"
+                    },
+                    "contactEmail": {
+                      "type": "string"
+                    },
+                    "plans": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "enum": [
+                              "prueba",
+                              "basico",
+                              "pro",
+                              "estudio",
+                              "fundador"
+                            ]
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "maxClients": {
+                            "nullable": true,
+                            "type": "number"
+                          },
+                          "price": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "maxClients",
+                          "price"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "trialDays": {
+                      "type": "number"
+                    },
+                    "signupOpen": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "legalName",
+                    "taxId",
+                    "legalAddress",
+                    "contactEmail",
+                    "plans",
+                    "trialDays",
+                    "signupOpen"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/studio/billing": {
+      "get": {
+        "tags": [
+          "plataforma"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "plan": {
+                      "type": "string",
+                      "enum": [
+                        "prueba",
+                        "basico",
+                        "pro",
+                        "estudio",
+                        "fundador"
+                      ]
+                    },
+                    "planLabel": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "trial",
+                        "active",
+                        "past_due",
+                        "canceled",
+                        "comp"
+                      ]
+                    },
+                    "access": {
+                      "type": "string",
+                      "enum": [
+                        "ok",
+                        "locked"
+                      ]
+                    },
+                    "trialEndsAt": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "currentPeriodEnd": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "cancelAtPeriodEnd": {
+                      "type": "boolean"
+                    },
+                    "maxClients": {
+                      "nullable": true,
+                      "type": "number"
+                    },
+                    "activeClients": {
+                      "type": "number"
+                    },
+                    "canPay": {
+                      "type": "boolean"
+                    },
+                    "hasPortal": {
+                      "type": "boolean"
+                    },
+                    "plans": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "enum": [
+                              "prueba",
+                              "basico",
+                              "pro",
+                              "estudio",
+                              "fundador"
+                            ]
+                          },
+                          "label": {
+                            "type": "string"
+                          },
+                          "maxClients": {
+                            "nullable": true,
+                            "type": "number"
+                          },
+                          "price": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "maxClients",
+                          "price"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "plan",
+                    "planLabel",
+                    "status",
+                    "access",
+                    "trialEndsAt",
+                    "currentPeriodEnd",
+                    "cancelAtPeriodEnd",
+                    "maxClients",
+                    "activeClients",
+                    "canPay",
+                    "hasPortal",
+                    "plans"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/studio/billing/checkout": {
+      "post": {
+        "tags": [
+          "plataforma"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "plan": {
+                    "type": "string",
+                    "enum": [
+                      "basico",
+                      "pro",
+                      "estudio"
+                    ]
+                  }
+                },
+                "required": [
+                  "plan"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/studio/billing/portal": {
+      "post": {
+        "tags": [
+          "plataforma"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/studios": {
+      "get": {
+        "tags": [
+          "administración"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "slug": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "coachName": {
+                        "type": "string"
+                      },
+                      "coachEmail": {
+                        "type": "string"
+                      },
+                      "plan": {
+                        "type": "string",
+                        "enum": [
+                          "prueba",
+                          "basico",
+                          "pro",
+                          "estudio",
+                          "fundador"
+                        ]
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "trial",
+                          "active",
+                          "past_due",
+                          "canceled",
+                          "comp"
+                        ]
+                      },
+                      "access": {
+                        "type": "string",
+                        "enum": [
+                          "ok",
+                          "locked"
+                        ]
+                      },
+                      "trialEndsAt": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "suspended": {
+                        "type": "boolean"
+                      },
+                      "activeClients": {
+                        "type": "number"
+                      },
+                      "createdAt": {
+                        "type": "string"
+                      },
+                      "lastActivityAt": {
+                        "nullable": true,
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name",
+                      "slug",
+                      "coachName",
+                      "coachEmail",
+                      "plan",
+                      "status",
+                      "access",
+                      "trialEndsAt",
+                      "suspended",
+                      "activeClients",
+                      "createdAt",
+                      "lastActivityAt"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/summary": {
+      "get": {
+        "tags": [
+          "administración"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "studios": {
+                      "type": "number"
+                    },
+                    "paying": {
+                      "type": "number"
+                    },
+                    "trial": {
+                      "type": "number"
+                    },
+                    "locked": {
+                      "type": "number"
+                    },
+                    "activeClients": {
+                      "type": "number"
+                    },
+                    "mrr": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "studios",
+                    "paying",
+                    "trial",
+                    "locked",
+                    "activeClients",
+                    "mrr"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/studios/{id}": {
+      "patch": {
+        "tags": [
+          "administración"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "plan": {
+                    "type": "string",
+                    "enum": [
+                      "prueba",
+                      "basico",
+                      "pro",
+                      "estudio",
+                      "fundador"
+                    ]
+                  },
+                  "trialEndsOn": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "suspended": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "slug": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "coachName": {
+                      "type": "string"
+                    },
+                    "coachEmail": {
+                      "type": "string"
+                    },
+                    "plan": {
+                      "type": "string",
+                      "enum": [
+                        "prueba",
+                        "basico",
+                        "pro",
+                        "estudio",
+                        "fundador"
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "trial",
+                        "active",
+                        "past_due",
+                        "canceled",
+                        "comp"
+                      ]
+                    },
+                    "access": {
+                      "type": "string",
+                      "enum": [
+                        "ok",
+                        "locked"
+                      ]
+                    },
+                    "trialEndsAt": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "suspended": {
+                      "type": "boolean"
+                    },
+                    "activeClients": {
+                      "type": "number"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "lastActivityAt": {
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "slug",
+                    "coachName",
+                    "coachEmail",
+                    "plan",
+                    "status",
+                    "access",
+                    "trialEndsAt",
+                    "suspended",
+                    "activeClients",
+                    "createdAt",
+                    "lastActivityAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/payments/info": {
       "get": {
         "tags": [
@@ -1285,6 +1863,10 @@
                       "nullable": true,
                       "type": "string"
                     },
+                    "slug": {
+                      "nullable": true,
+                      "type": "string"
+                    },
                     "accent": {
                       "type": "string",
                       "enum": [
@@ -1297,6 +1879,12 @@
                     },
                     "published": {
                       "type": "boolean"
+                    },
+                    "platformName": {
+                      "type": "string"
+                    },
+                    "signupOpen": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -1304,8 +1892,11 @@
                     "demo",
                     "mail",
                     "studioName",
+                    "slug",
                     "accent",
-                    "published"
+                    "published",
+                    "platformName",
+                    "signupOpen"
                   ],
                   "additionalProperties": false
                 }
@@ -1400,14 +1991,41 @@
                         },
                         "coachName": {
                           "type": "string"
+                        },
+                        "slug": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "access": {
+                          "type": "string",
+                          "enum": [
+                            "ok",
+                            "locked"
+                          ]
+                        },
+                        "accent": {
+                          "type": "string",
+                          "enum": [
+                            "azul",
+                            "verde",
+                            "petroleo",
+                            "morado",
+                            "granate"
+                          ]
                         }
                       },
                       "required": [
                         "id",
                         "name",
-                        "coachName"
+                        "coachName",
+                        "slug",
+                        "access",
+                        "accent"
                       ],
                       "additionalProperties": false
+                    },
+                    "platformAdmin": {
+                      "type": "boolean"
                     },
                     "clientStatus": {
                       "nullable": true,
@@ -1436,6 +2054,230 @@
                     "email",
                     "role",
                     "studio",
+                    "platformAdmin",
+                    "clientStatus",
+                    "reminders",
+                    "emailNotifications",
+                    "twoFactor"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/slug/{slug}": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "in": "path",
+            "name": "slug",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "slug": {
+                      "type": "string"
+                    },
+                    "available": {
+                      "type": "boolean"
+                    },
+                    "reason": {
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "slug",
+                    "available",
+                    "reason"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/signup": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "studioName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  },
+                  "slug": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 40,
+                    "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "email": {
+                    "type": "string",
+                    "maxLength": 254,
+                    "format": "email",
+                    "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 200
+                  },
+                  "acceptTerms": {
+                    "type": "boolean",
+                    "enum": [
+                      true
+                    ]
+                  },
+                  "website": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 200
+                  }
+                },
+                "required": [
+                  "studioName",
+                  "slug",
+                  "name",
+                  "email",
+                  "password",
+                  "acceptTerms"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "type": "string",
+                      "enum": [
+                        "coach",
+                        "client"
+                      ]
+                    },
+                    "studio": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "coachName": {
+                          "type": "string"
+                        },
+                        "slug": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "access": {
+                          "type": "string",
+                          "enum": [
+                            "ok",
+                            "locked"
+                          ]
+                        },
+                        "accent": {
+                          "type": "string",
+                          "enum": [
+                            "azul",
+                            "verde",
+                            "petroleo",
+                            "morado",
+                            "granate"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "coachName",
+                        "slug",
+                        "access",
+                        "accent"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "platformAdmin": {
+                      "type": "boolean"
+                    },
+                    "clientStatus": {
+                      "nullable": true,
+                      "type": "string",
+                      "enum": [
+                        "invited",
+                        "pending",
+                        "active",
+                        "archived",
+                        "no_account"
+                      ]
+                    },
+                    "reminders": {
+                      "type": "boolean"
+                    },
+                    "emailNotifications": {
+                      "type": "boolean"
+                    },
+                    "twoFactor": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "role",
+                    "studio",
+                    "platformAdmin",
                     "clientStatus",
                     "reminders",
                     "emailNotifications",
@@ -1518,14 +2360,41 @@
                             },
                             "coachName": {
                               "type": "string"
+                            },
+                            "slug": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "access": {
+                              "type": "string",
+                              "enum": [
+                                "ok",
+                                "locked"
+                              ]
+                            },
+                            "accent": {
+                              "type": "string",
+                              "enum": [
+                                "azul",
+                                "verde",
+                                "petroleo",
+                                "morado",
+                                "granate"
+                              ]
                             }
                           },
                           "required": [
                             "id",
                             "name",
-                            "coachName"
+                            "coachName",
+                            "slug",
+                            "access",
+                            "accent"
                           ],
                           "additionalProperties": false
+                        },
+                        "platformAdmin": {
+                          "type": "boolean"
                         },
                         "clientStatus": {
                           "nullable": true,
@@ -1554,6 +2423,7 @@
                         "email",
                         "role",
                         "studio",
+                        "platformAdmin",
                         "clientStatus",
                         "reminders",
                         "emailNotifications",
@@ -1654,14 +2524,41 @@
                         },
                         "coachName": {
                           "type": "string"
+                        },
+                        "slug": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "access": {
+                          "type": "string",
+                          "enum": [
+                            "ok",
+                            "locked"
+                          ]
+                        },
+                        "accent": {
+                          "type": "string",
+                          "enum": [
+                            "azul",
+                            "verde",
+                            "petroleo",
+                            "morado",
+                            "granate"
+                          ]
                         }
                       },
                       "required": [
                         "id",
                         "name",
-                        "coachName"
+                        "coachName",
+                        "slug",
+                        "access",
+                        "accent"
                       ],
                       "additionalProperties": false
+                    },
+                    "platformAdmin": {
+                      "type": "boolean"
                     },
                     "clientStatus": {
                       "nullable": true,
@@ -1690,6 +2587,7 @@
                     "email",
                     "role",
                     "studio",
+                    "platformAdmin",
                     "clientStatus",
                     "reminders",
                     "emailNotifications",
@@ -2064,14 +2962,41 @@
                             },
                             "coachName": {
                               "type": "string"
+                            },
+                            "slug": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "access": {
+                              "type": "string",
+                              "enum": [
+                                "ok",
+                                "locked"
+                              ]
+                            },
+                            "accent": {
+                              "type": "string",
+                              "enum": [
+                                "azul",
+                                "verde",
+                                "petroleo",
+                                "morado",
+                                "granate"
+                              ]
                             }
                           },
                           "required": [
                             "id",
                             "name",
-                            "coachName"
+                            "coachName",
+                            "slug",
+                            "access",
+                            "accent"
                           ],
                           "additionalProperties": false
+                        },
+                        "platformAdmin": {
+                          "type": "boolean"
                         },
                         "clientStatus": {
                           "nullable": true,
@@ -2100,6 +3025,7 @@
                         "email",
                         "role",
                         "studio",
+                        "platformAdmin",
                         "clientStatus",
                         "reminders",
                         "emailNotifications",
@@ -2224,14 +3150,41 @@
                         },
                         "coachName": {
                           "type": "string"
+                        },
+                        "slug": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "access": {
+                          "type": "string",
+                          "enum": [
+                            "ok",
+                            "locked"
+                          ]
+                        },
+                        "accent": {
+                          "type": "string",
+                          "enum": [
+                            "azul",
+                            "verde",
+                            "petroleo",
+                            "morado",
+                            "granate"
+                          ]
                         }
                       },
                       "required": [
                         "id",
                         "name",
-                        "coachName"
+                        "coachName",
+                        "slug",
+                        "access",
+                        "accent"
                       ],
                       "additionalProperties": false
+                    },
+                    "platformAdmin": {
+                      "type": "boolean"
                     },
                     "clientStatus": {
                       "nullable": true,
@@ -2260,6 +3213,7 @@
                     "email",
                     "role",
                     "studio",
+                    "platformAdmin",
                     "clientStatus",
                     "reminders",
                     "emailNotifications",
@@ -2313,14 +3267,41 @@
                         },
                         "coachName": {
                           "type": "string"
+                        },
+                        "slug": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "access": {
+                          "type": "string",
+                          "enum": [
+                            "ok",
+                            "locked"
+                          ]
+                        },
+                        "accent": {
+                          "type": "string",
+                          "enum": [
+                            "azul",
+                            "verde",
+                            "petroleo",
+                            "morado",
+                            "granate"
+                          ]
                         }
                       },
                       "required": [
                         "id",
                         "name",
-                        "coachName"
+                        "coachName",
+                        "slug",
+                        "access",
+                        "accent"
                       ],
                       "additionalProperties": false
+                    },
+                    "platformAdmin": {
+                      "type": "boolean"
                     },
                     "clientStatus": {
                       "nullable": true,
@@ -2349,6 +3330,7 @@
                     "email",
                     "role",
                     "studio",
+                    "platformAdmin",
                     "clientStatus",
                     "reminders",
                     "emailNotifications",
@@ -2420,14 +3402,41 @@
                         },
                         "coachName": {
                           "type": "string"
+                        },
+                        "slug": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "access": {
+                          "type": "string",
+                          "enum": [
+                            "ok",
+                            "locked"
+                          ]
+                        },
+                        "accent": {
+                          "type": "string",
+                          "enum": [
+                            "azul",
+                            "verde",
+                            "petroleo",
+                            "morado",
+                            "granate"
+                          ]
                         }
                       },
                       "required": [
                         "id",
                         "name",
-                        "coachName"
+                        "coachName",
+                        "slug",
+                        "access",
+                        "accent"
                       ],
                       "additionalProperties": false
+                    },
+                    "platformAdmin": {
+                      "type": "boolean"
                     },
                     "clientStatus": {
                       "nullable": true,
@@ -2456,6 +3465,7 @@
                     "email",
                     "role",
                     "studio",
+                    "platformAdmin",
                     "clientStatus",
                     "reminders",
                     "emailNotifications",
@@ -4431,6 +5441,17 @@
         "tags": [
           "público"
         ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "in": "query",
+            "name": "estudio",
+            "required": false
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response",
@@ -4440,6 +5461,10 @@
                   "type": "object",
                   "properties": {
                     "name": {
+                      "type": "string"
+                    },
+                    "slug": {
+                      "nullable": true,
                       "type": "string"
                     },
                     "coachName": {
@@ -4526,6 +5551,7 @@
                   },
                   "required": [
                     "name",
+                    "slug",
                     "coachName",
                     "accent",
                     "tagline",
@@ -4560,6 +5586,17 @@
       "get": {
         "tags": [
           "público"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "in": "query",
+            "name": "estudio",
+            "required": false
+          }
         ],
         "responses": {
           "200": {
@@ -4654,6 +5691,17 @@
             }
           }
         },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 60
+            },
+            "in": "query",
+            "name": "estudio",
+            "required": false
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response",

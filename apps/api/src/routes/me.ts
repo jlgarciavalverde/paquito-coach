@@ -2,8 +2,9 @@ import { audit } from "../lib/audit";
 import type { FastifyInstance } from "fastify";
 import { and, desc, eq, isNull, ne, sql } from "drizzle-orm";
 import { z } from "zod";
-import { ChangePasswordInput, EmailChangeInput, Me, Ok, RecoveryCodes, SessionInfo, TwoFactorDisableInput, TwoFactorEnableInput, TwoFactorSetup } from "@coach/shared";
+import { studioAccess, ChangePasswordInput, EmailChangeInput, Me, Ok, RecoveryCodes, SessionInfo, TwoFactorDisableInput, TwoFactorEnableInput, TwoFactorSetup } from "@coach/shared";
 import type { DB } from "../db/client";
+import type { AppConfig } from "../config";
 import { clientProfiles, emailTokens, sessions, studios, users } from "../db/schema";
 import { brandOf } from "../lib/mail";
 import { mailTemplates } from "../lib/mail-templates";
@@ -24,7 +25,7 @@ async function firstCoachName(db: DB, studioId: string) {
   return c?.name ?? "";
 }
 
-export async function meOf(db: DB, userId: string): Promise<Me> {
+export async function meOf(db: DB, cfg: Pick<AppConfig, "platformAdminEmails">, userId: string): Promise<Me> {
   const [row] = await db
     .select({ u: users, st: studios, c: clientProfiles })
     .from(users)
@@ -38,7 +39,15 @@ export async function meOf(db: DB, userId: string): Promise<Me> {
     name: row.u.name,
     email: row.u.email,
     role: row.u.role,
-    studio: { id: row.st.id, name: row.st.name, coachName: row.u.role === "coach" ? row.u.name : await firstCoachName(db, row.st.id) },
+    studio: {
+      id: row.st.id,
+      name: row.st.name,
+      coachName: row.u.role === "coach" ? row.u.name : await firstCoachName(db, row.st.id),
+      slug: row.st.slug,
+      access: studioAccess(row.st),
+      accent: row.st.accent,
+    },
+    platformAdmin: row.u.role === "coach" && cfg.platformAdminEmails.includes(row.u.email.toLowerCase()),
     clientStatus: row.u.role === "client" ? (row.c?.status ?? null) : null,
     reminders: row.u.reminders,
     emailNotifications: row.u.emailNotifications,
@@ -51,7 +60,7 @@ export function registerMe(app: FastifyInstance, { db, cfg, mail }: Ctx) {
 
   api.get("/me", { schema: { tags: ["cuenta"], response: { 200: Me } } }, async (req, reply) => {
     reply.header("Cache-Control", "no-store");
-    return meOf(db, requireUser(req).id);
+    return meOf(db, cfg, requireUser(req).id);
   });
 
   api.patch(
@@ -61,7 +70,7 @@ export function registerMe(app: FastifyInstance, { db, cfg, mail }: Ctx) {
       const u = requireUser(req);
       const set = Object.fromEntries(Object.entries(req.body).filter(([, v]) => v !== undefined));
       if (Object.keys(set).length) await db.update(users).set(set).where(eq(users.id, u.id));
-      return meOf(db, u.id);
+      return meOf(db, cfg, u.id);
     },
   );
 

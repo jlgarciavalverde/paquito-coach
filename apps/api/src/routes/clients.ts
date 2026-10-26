@@ -3,6 +3,7 @@ import { and, asc, eq, ilike, isNull, ne, or, type SQL } from "drizzle-orm";
 import { z } from "zod";
 import { Client, ClientListQuery, CreateClientInput, InviteLink, Ok, UpdateClientInput } from "@coach/shared";
 import { clientProfiles, invites, passwordResets, sessions, users } from "../db/schema";
+import { withClientSlot } from "../lib/plan";
 import { audit } from "../lib/audit";
 import { HttpError, notFound } from "../lib/errors";
 import { toClient } from "../lib/mappers";
@@ -67,10 +68,9 @@ export function registerClients(app: FastifyInstance, ctx: Ctx) {
     async (req) => {
       const u = requireCoach(req);
       const { invite, ...fields } = req.body;
-      const [row] = await db
-        .insert(clientProfiles)
-        .values({ ...fields, tags: fields.tags ?? [], studioId: u.studioId, status: invite ? "invited" : "no_account" })
-        .returning();
+      const [row] = await withClientSlot(db, u.studioId, (tx) =>
+        tx.insert(clientProfiles).values({ ...fields, tags: fields.tags ?? [], studioId: u.studioId, status: invite ? "invited" : "no_account" }).returning(),
+      );
       const link = invite ? await issueInvite(u.studioId, row!, u) : null;
       await audit(db, req, "client.create", { type: "client", id: row!.id });
       return { client: toClient(row!), invite: link };
@@ -126,7 +126,10 @@ export function registerClients(app: FastifyInstance, ctx: Ctx) {
     const u = requireCoach(req);
     const row = await getOwned(u.studioId, req.params.id);
     if (row.status !== "pending") throw new HttpError(409, "not_pending", "Este cliente no está pendiente de aceptar");
-    const [upd] = await db.update(clientProfiles).set({ status: "active", updatedAt: new Date() }).where(eq(clientProfiles.id, row.id)).returning();
+    const [upd] = await withClientSlot(db, u.studioId, (tx) =>
+      tx.update(clientProfiles).set({ status: "active", updatedAt: new Date() }).where(and(eq(clientProfiles.id, row.id), eq(clientProfiles.status, "pending"))).returning(),
+    );
+    if (!upd) throw new HttpError(409, "not_pending", "Este cliente no está pendiente de aceptar");
     await audit(db, req, "client.accept", { type: "client", id: row.id });
     return toClient(upd!);
   });
@@ -159,11 +162,14 @@ export function registerClients(app: FastifyInstance, ctx: Ctx) {
     const u = requireCoach(req);
     const row = await getOwned(u.studioId, req.params.id);
     if (row.status !== "archived") throw new HttpError(409, "not_archived", "Este cliente no está archivado");
-    const [upd] = await db
-      .update(clientProfiles)
-      .set({ status: row.userId ? "active" : "no_account", updatedAt: new Date() })
-      .where(eq(clientProfiles.id, row.id))
-      .returning();
+    const [upd] = await withClientSlot(db, u.studioId, (tx) =>
+      tx
+        .update(clientProfiles)
+        .set({ status: row.userId ? "active" : "no_account", updatedAt: new Date() })
+        .where(and(eq(clientProfiles.id, row.id), eq(clientProfiles.status, "archived")))
+        .returning(),
+    );
+    if (!upd) throw new HttpError(409, "not_archived", "Este cliente no está archivado");
     await audit(db, req, "client.unarchive", { type: "client", id: row.id });
     return toClient(upd!);
   });

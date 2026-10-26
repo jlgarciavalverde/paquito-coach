@@ -42,6 +42,7 @@ export type StudioProfile = z.infer<typeof StudioProfile>;
 /** Página pública del estudio (sin sesión). */
 export const PublicStudio = z.object({
   name: z.string(),
+  slug: z.string().nullable(),
   coachName: z.string(),
   accent: Accent,
   tagline: z.string(),

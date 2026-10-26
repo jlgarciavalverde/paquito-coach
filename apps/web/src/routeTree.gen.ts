@@ -11,10 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccesoRouteImport } from './routes/acceso'
+import { Route as AltaRouteImport } from './routes/alta'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AvisoLegalRouteImport } from './routes/aviso-legal'
 import { Route as BajaRouteImport } from './routes/baja'
 import { Route as CoachRouteImport } from './routes/coach'
+import { Route as CondicionesRouteImport } from './routes/condiciones'
 import { Route as ConfirmarCorreoRouteImport } from './routes/confirmar-correo'
 import { Route as GaleriaRouteImport } from './routes/galeria'
 import { Route as InstalarRouteImport } from './routes/instalar'
@@ -33,12 +35,15 @@ import { Route as AppProgresoRouteImport } from './routes/app/progreso'
 import { Route as AppReservarRouteImport } from './routes/app/reservar'
 import { Route as AppSaludRouteImport } from './routes/app/salud'
 import { Route as CoachIndexRouteImport } from './routes/coach/index'
+import { Route as CoachAdminRouteImport } from './routes/coach/admin'
 import { Route as CoachAjustesRouteImport } from './routes/coach/ajustes'
 import { Route as CoachCalendarioRouteImport } from './routes/coach/calendario'
 import { Route as CoachChatRouteImport } from './routes/coach/chat'
 import { Route as CoachClientesRouteImport } from './routes/coach/clientes'
 import { Route as CoachIaRouteImport } from './routes/coach/ia'
 import { Route as CoachInformesRouteImport } from './routes/coach/informes'
+import { Route as CoachPlanRouteImport } from './routes/coach/plan'
+import { Route as ESlugRouteImport } from './routes/e.$slug'
 import { Route as AppCheckinAssignmentIdRouteImport } from './routes/app/checkin/$assignmentId'
 import { Route as AppEntrenoIndexRouteImport } from './routes/app/entreno/index'
 import { Route as AppEntrenoWorkoutIdRouteImport } from './routes/app/entreno/$workoutId'
@@ -62,6 +67,11 @@ const AccesoRoute = AccesoRouteImport.update({
   path: '/acceso',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AltaRoute = AltaRouteImport.update({
+  id: '/alta',
+  path: '/alta',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRoute = AppRouteImport.update({
   id: '/app',
   path: '/app',
@@ -80,6 +90,11 @@ const BajaRoute = BajaRouteImport.update({
 const CoachRoute = CoachRouteImport.update({
   id: '/coach',
   path: '/coach',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CondicionesRoute = CondicionesRouteImport.update({
+  id: '/condiciones',
+  path: '/condiciones',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConfirmarCorreoRoute = ConfirmarCorreoRouteImport.update({
@@ -172,6 +187,11 @@ const CoachIndexRoute = CoachIndexRouteImport.update({
   path: '/',
   getParentRoute: () => CoachRoute,
 } as any)
+const CoachAdminRoute = CoachAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => CoachRoute,
+} as any)
 const CoachAjustesRoute = CoachAjustesRouteImport.update({
   id: '/ajustes',
   path: '/ajustes',
@@ -201,6 +221,16 @@ const CoachInformesRoute = CoachInformesRouteImport.update({
   id: '/informes',
   path: '/informes',
   getParentRoute: () => CoachRoute,
+} as any)
+const CoachPlanRoute = CoachPlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
+  getParentRoute: () => CoachRoute,
+} as any)
+const ESlugRoute = ESlugRouteImport.update({
+  id: '/e/$slug',
+  path: '/e/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppCheckinAssignmentIdRoute = AppCheckinAssignmentIdRouteImport.update({
   id: '/checkin/$assignmentId',
@@ -267,10 +297,12 @@ const CoachEntrenosProgramaProgramIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/acceso': typeof AccesoRoute
+  '/alta': typeof AltaRoute
   '/app': typeof AppRouteWithChildren
   '/aviso-legal': typeof AvisoLegalRoute
   '/baja': typeof BajaRoute
   '/coach': typeof CoachRouteWithChildren
+  '/condiciones': typeof CondicionesRoute
   '/confirmar-correo': typeof ConfirmarCorreoRoute
   '/galeria': typeof GaleriaRoute
   '/instalar': typeof InstalarRoute
@@ -287,12 +319,15 @@ export interface FileRoutesByFullPath {
   '/app/progreso': typeof AppProgresoRoute
   '/app/reservar': typeof AppReservarRoute
   '/app/salud': typeof AppSaludRoute
+  '/coach/admin': typeof CoachAdminRoute
   '/coach/ajustes': typeof CoachAjustesRoute
   '/coach/calendario': typeof CoachCalendarioRoute
   '/coach/chat': typeof CoachChatRoute
   '/coach/clientes': typeof CoachClientesRouteWithChildren
   '/coach/ia': typeof CoachIaRoute
   '/coach/informes': typeof CoachInformesRoute
+  '/coach/plan': typeof CoachPlanRoute
+  '/e/$slug': typeof ESlugRoute
   '/app/': typeof AppIndexRoute
   '/coach/': typeof CoachIndexRoute
   '/app/checkin/$assignmentId': typeof AppCheckinAssignmentIdRoute
@@ -311,8 +346,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/acceso': typeof AccesoRoute
+  '/alta': typeof AltaRoute
   '/aviso-legal': typeof AvisoLegalRoute
   '/baja': typeof BajaRoute
+  '/condiciones': typeof CondicionesRoute
   '/confirmar-correo': typeof ConfirmarCorreoRoute
   '/galeria': typeof GaleriaRoute
   '/instalar': typeof InstalarRoute
@@ -329,11 +366,14 @@ export interface FileRoutesByTo {
   '/app/progreso': typeof AppProgresoRoute
   '/app/reservar': typeof AppReservarRoute
   '/app/salud': typeof AppSaludRoute
+  '/coach/admin': typeof CoachAdminRoute
   '/coach/ajustes': typeof CoachAjustesRoute
   '/coach/calendario': typeof CoachCalendarioRoute
   '/coach/chat': typeof CoachChatRoute
   '/coach/ia': typeof CoachIaRoute
   '/coach/informes': typeof CoachInformesRoute
+  '/coach/plan': typeof CoachPlanRoute
+  '/e/$slug': typeof ESlugRoute
   '/app': typeof AppIndexRoute
   '/coach': typeof CoachIndexRoute
   '/app/checkin/$assignmentId': typeof AppCheckinAssignmentIdRoute
@@ -353,10 +393,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/acceso': typeof AccesoRoute
+  '/alta': typeof AltaRoute
   '/app': typeof AppRouteWithChildren
   '/aviso-legal': typeof AvisoLegalRoute
   '/baja': typeof BajaRoute
   '/coach': typeof CoachRouteWithChildren
+  '/condiciones': typeof CondicionesRoute
   '/confirmar-correo': typeof ConfirmarCorreoRoute
   '/galeria': typeof GaleriaRoute
   '/instalar': typeof InstalarRoute
@@ -373,12 +415,15 @@ export interface FileRoutesById {
   '/app/progreso': typeof AppProgresoRoute
   '/app/reservar': typeof AppReservarRoute
   '/app/salud': typeof AppSaludRoute
+  '/coach/admin': typeof CoachAdminRoute
   '/coach/ajustes': typeof CoachAjustesRoute
   '/coach/calendario': typeof CoachCalendarioRoute
   '/coach/chat': typeof CoachChatRoute
   '/coach/clientes': typeof CoachClientesRouteWithChildren
   '/coach/ia': typeof CoachIaRoute
   '/coach/informes': typeof CoachInformesRoute
+  '/coach/plan': typeof CoachPlanRoute
+  '/e/$slug': typeof ESlugRoute
   '/app/': typeof AppIndexRoute
   '/coach/': typeof CoachIndexRoute
   '/app/checkin/$assignmentId': typeof AppCheckinAssignmentIdRoute
@@ -399,10 +444,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/acceso'
+    | '/alta'
     | '/app'
     | '/aviso-legal'
     | '/baja'
     | '/coach'
+    | '/condiciones'
     | '/confirmar-correo'
     | '/galeria'
     | '/instalar'
@@ -419,12 +466,15 @@ export interface FileRouteTypes {
     | '/app/progreso'
     | '/app/reservar'
     | '/app/salud'
+    | '/coach/admin'
     | '/coach/ajustes'
     | '/coach/calendario'
     | '/coach/chat'
     | '/coach/clientes'
     | '/coach/ia'
     | '/coach/informes'
+    | '/coach/plan'
+    | '/e/$slug'
     | '/app/'
     | '/coach/'
     | '/app/checkin/$assignmentId'
@@ -443,8 +493,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/acceso'
+    | '/alta'
     | '/aviso-legal'
     | '/baja'
+    | '/condiciones'
     | '/confirmar-correo'
     | '/galeria'
     | '/instalar'
@@ -461,11 +513,14 @@ export interface FileRouteTypes {
     | '/app/progreso'
     | '/app/reservar'
     | '/app/salud'
+    | '/coach/admin'
     | '/coach/ajustes'
     | '/coach/calendario'
     | '/coach/chat'
     | '/coach/ia'
     | '/coach/informes'
+    | '/coach/plan'
+    | '/e/$slug'
     | '/app'
     | '/coach'
     | '/app/checkin/$assignmentId'
@@ -484,10 +539,12 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/acceso'
+    | '/alta'
     | '/app'
     | '/aviso-legal'
     | '/baja'
     | '/coach'
+    | '/condiciones'
     | '/confirmar-correo'
     | '/galeria'
     | '/instalar'
@@ -504,12 +561,15 @@ export interface FileRouteTypes {
     | '/app/progreso'
     | '/app/reservar'
     | '/app/salud'
+    | '/coach/admin'
     | '/coach/ajustes'
     | '/coach/calendario'
     | '/coach/chat'
     | '/coach/clientes'
     | '/coach/ia'
     | '/coach/informes'
+    | '/coach/plan'
+    | '/e/$slug'
     | '/app/'
     | '/coach/'
     | '/app/checkin/$assignmentId'
@@ -529,10 +589,12 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccesoRoute: typeof AccesoRoute
+  AltaRoute: typeof AltaRoute
   AppRoute: typeof AppRouteWithChildren
   AvisoLegalRoute: typeof AvisoLegalRoute
   BajaRoute: typeof BajaRoute
   CoachRoute: typeof CoachRouteWithChildren
+  CondicionesRoute: typeof CondicionesRoute
   ConfirmarCorreoRoute: typeof ConfirmarCorreoRoute
   GaleriaRoute: typeof GaleriaRoute
   InstalarRoute: typeof InstalarRoute
@@ -540,6 +602,7 @@ export interface RootRouteChildren {
   RegistroRoute: typeof RegistroRoute
   RestablecerRoute: typeof RestablecerRoute
   TerminosRoute: typeof TerminosRoute
+  ESlugRoute: typeof ESlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -556,6 +619,13 @@ declare module '@tanstack/react-router' {
       path: '/acceso'
       fullPath: '/acceso'
       preLoaderRoute: typeof AccesoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/alta': {
+      id: '/alta'
+      path: '/alta'
+      fullPath: '/alta'
+      preLoaderRoute: typeof AltaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app': {
@@ -584,6 +654,13 @@ declare module '@tanstack/react-router' {
       path: '/coach'
       fullPath: '/coach'
       preLoaderRoute: typeof CoachRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/condiciones': {
+      id: '/condiciones'
+      path: '/condiciones'
+      fullPath: '/condiciones'
+      preLoaderRoute: typeof CondicionesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/confirmar-correo': {
@@ -712,6 +789,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoachIndexRouteImport
       parentRoute: typeof CoachRoute
     }
+    '/coach/admin': {
+      id: '/coach/admin'
+      path: '/admin'
+      fullPath: '/coach/admin'
+      preLoaderRoute: typeof CoachAdminRouteImport
+      parentRoute: typeof CoachRoute
+    }
     '/coach/ajustes': {
       id: '/coach/ajustes'
       path: '/ajustes'
@@ -753,6 +837,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/coach/informes'
       preLoaderRoute: typeof CoachInformesRouteImport
       parentRoute: typeof CoachRoute
+    }
+    '/coach/plan': {
+      id: '/coach/plan'
+      path: '/plan'
+      fullPath: '/coach/plan'
+      preLoaderRoute: typeof CoachPlanRouteImport
+      parentRoute: typeof CoachRoute
+    }
+    '/e/$slug': {
+      id: '/e/$slug'
+      path: '/e/$slug'
+      fullPath: '/e/$slug'
+      preLoaderRoute: typeof ESlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/app/checkin/$assignmentId': {
       id: '/app/checkin/$assignmentId'
@@ -890,12 +988,14 @@ const CoachClientesRouteWithChildren = CoachClientesRoute._addFileChildren(
 )
 
 interface CoachRouteChildren {
+  CoachAdminRoute: typeof CoachAdminRoute
   CoachAjustesRoute: typeof CoachAjustesRoute
   CoachCalendarioRoute: typeof CoachCalendarioRoute
   CoachChatRoute: typeof CoachChatRoute
   CoachClientesRoute: typeof CoachClientesRouteWithChildren
   CoachIaRoute: typeof CoachIaRoute
   CoachInformesRoute: typeof CoachInformesRoute
+  CoachPlanRoute: typeof CoachPlanRoute
   CoachIndexRoute: typeof CoachIndexRoute
   CoachEntrenosRoutineIdRoute: typeof CoachEntrenosRoutineIdRoute
   CoachNutricionPlanIdRoute: typeof CoachNutricionPlanIdRoute
@@ -907,12 +1007,14 @@ interface CoachRouteChildren {
 }
 
 const CoachRouteChildren: CoachRouteChildren = {
+  CoachAdminRoute: CoachAdminRoute,
   CoachAjustesRoute: CoachAjustesRoute,
   CoachCalendarioRoute: CoachCalendarioRoute,
   CoachChatRoute: CoachChatRoute,
   CoachClientesRoute: CoachClientesRouteWithChildren,
   CoachIaRoute: CoachIaRoute,
   CoachInformesRoute: CoachInformesRoute,
+  CoachPlanRoute: CoachPlanRoute,
   CoachIndexRoute: CoachIndexRoute,
   CoachEntrenosRoutineIdRoute: CoachEntrenosRoutineIdRoute,
   CoachNutricionPlanIdRoute: CoachNutricionPlanIdRoute,
@@ -928,10 +1030,12 @@ const CoachRouteWithChildren = CoachRoute._addFileChildren(CoachRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccesoRoute: AccesoRoute,
+  AltaRoute: AltaRoute,
   AppRoute: AppRouteWithChildren,
   AvisoLegalRoute: AvisoLegalRoute,
   BajaRoute: BajaRoute,
   CoachRoute: CoachRouteWithChildren,
+  CondicionesRoute: CondicionesRoute,
   ConfirmarCorreoRoute: ConfirmarCorreoRoute,
   GaleriaRoute: GaleriaRoute,
   InstalarRoute: InstalarRoute,
@@ -939,6 +1043,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegistroRoute: RegistroRoute,
   RestablecerRoute: RestablecerRoute,
   TerminosRoute: TerminosRoute,
+  ESlugRoute: ESlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

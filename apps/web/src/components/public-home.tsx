@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Clock, EnvelopeSimple, InstagramLogo, MapPin, Phone } from "@phosphor-icons/react";
 import { formatEuros, type PublicStudio } from "@coach/shared";
 import { api } from "../lib/api";
+import { withStudio } from "../lib/public";
 import { useSubmit } from "../lib/use-form";
 import { useDocumentTitle } from "../lib/title";
 import { Brand } from "./brand";
@@ -16,10 +17,11 @@ const priceDetail = (p: PublicStudio["prices"][number]) =>
   p.kind === "subscription" ? "Cada mes" : p.kind === "pack" ? `${p.sessions} sesiones${p.validDays ? `, para usar en ${p.validDays} días` : ""}` : "Una sesión";
 
 /**
- * Página pública del estudio en `/` (para quien aún no es cliente): quién es, qué hace, dónde, cuánto cuesta y un
+ * Página pública del estudio en `/` de su dominio propio o en `/e/<slug>` (`slug`: entonces todo se pide con
+ * `?estudio=`) para quien aún no es cliente: quién es, qué hace, dónde, cuánto cuesta y un
  * formulario para empezar. Mismo lenguaje visual que la app (hoja de entrenamiento, ADR 0008), sin artificios.
  */
-export function PublicHome({ s }: { s: PublicStudio }) {
+export function PublicHome({ s, slug }: { s: PublicStudio; slug?: string }) {
   useDocumentTitle(null);
   const contact = [
     s.location && { icon: MapPin, text: s.location },
@@ -32,7 +34,7 @@ export function PublicHome({ s }: { s: PublicStudio }) {
   return (
     <div className="min-h-dvh">
       <header className="mx-auto flex max-w-[1080px] items-center justify-between gap-4 px-5 py-5 sm:px-8">
-        <Brand />
+        <Brand name={slug ? s.name : undefined} />
         <Link to="/acceso" className={buttonClass("quiet")}>
           Entrar
         </Link>
@@ -58,7 +60,7 @@ export function PublicHome({ s }: { s: PublicStudio }) {
             </div>
           </div>
           {s.hasPhoto && (
-            <img src="/api/v1/public/studio/photo" alt={s.coachName ? `${s.coachName} entrenando` : s.name} width={540} height={640} className="aspect-[4/5] w-full rounded-[var(--radius-zone)] bg-tray object-cover" />
+            <img src={withStudio("/api/v1/public/studio/photo", slug)} alt={s.coachName ? `${s.coachName} entrenando` : s.name} width={540} height={640} className="aspect-[4/5] w-full rounded-[var(--radius-zone)] bg-tray object-cover" />
           )}
         </section>
 
@@ -123,23 +125,23 @@ export function PublicHome({ s }: { s: PublicStudio }) {
                 </ul>
               </section>
             )}
-            <StartForm />
+            <StartForm slug={slug} />
           </div>
         </div>
       </main>
 
       <footer className="mx-auto flex max-w-[1080px] flex-wrap items-center justify-between gap-4 border-t border-rule px-5 py-6 sm:px-8">
         <p className="text-[13px] text-ink-3">© {new Date().getFullYear()} {s.name}</p>
-        <LegalLinks />
+        <LegalLinks estudio={slug} />
       </footer>
     </div>
   );
 }
 
-function StartForm() {
+function StartForm({ slug }: { slug?: string }) {
   const [f, setF] = useState({ name: "", email: "", phone: "", message: "", website: "", consent: false });
   const [sent, setSent] = useState(false);
-  const { pending, error, onSubmit } = useSubmit(() => api("/public/contact", { body: f }), () => setSent(true));
+  const { pending, error, onSubmit } = useSubmit(() => api(withStudio("/public/contact", slug), { body: f }), () => setSent(true));
   return (
     <section id="empezar" className="scroll-mt-6 rounded-[var(--radius-zone)] bg-tray p-5 sm:p-6">
       <BlockTitle>Quiero empezar</BlockTitle>
@@ -170,7 +172,7 @@ function StartForm() {
             description={
               <>
                 Solo para eso; se borran como mucho al año.{" "}
-                <Link to="/privacidad" className="text-primary underline underline-offset-4">
+                <Link to="/privacidad" search={{ estudio: slug }} className="text-primary underline underline-offset-4">
                   Privacidad
                 </Link>
               </>

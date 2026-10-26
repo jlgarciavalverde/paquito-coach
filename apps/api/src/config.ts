@@ -48,6 +48,23 @@ export interface AppConfig {
   mailFrom: string;
   /** Correo simulado (e2e): no sale nada y se puede leer en GET /api/v1/test/mails. */
   mailFake?: boolean;
+  // ── S1: plataforma (ADR 0018) ──
+  /** Nombre de la plataforma (web de alta, correos de la plataforma). Provisional hasta elegir marca. */
+  platformName: string;
+  /** Correos de las cuentas que administran la plataforma (panel /admin). */
+  platformAdminEmails: string[];
+  /** Alta pública de entrenadores en /alta. Cerrada salvo `SIGNUP_OPEN=1`. */
+  signupOpen: boolean;
+  /**
+   * Dominios propios de un estudio: `paquito.redgarverde.com=paquito`. En ellos `/` es la página del estudio (como antes de
+   * la plataforma). `@first` es el primer estudio creado (instalaciones de un solo estudio y e2e).
+   */
+  hostStudios: Record<string, string>;
+  /** Responsable de la plataforma (aviso legal y condiciones para entrenadores). */
+  platformLegalName: string;
+  platformTaxId: string;
+  platformAddress: string;
+  platformEmail: string;
 }
 
 export function configFromEnv(env = process.env): AppConfig {
@@ -86,5 +103,17 @@ export function configFromEnv(env = process.env): AppConfig {
     mailSmtpPass: env.MAIL_SMTP_PASS || undefined,
     mailFrom: env.MAIL_FROM || "Paquito Coach <hola@envios.redgarverde.com>",
     mailFake: env.MAIL_FAKE === "1",
+    platformName: env.PLATFORM_NAME || "Coach",
+    platformAdminEmails: list(env.PLATFORM_ADMIN_EMAILS, "").map((e) => e.toLowerCase()),
+    signupOpen: env.SIGNUP_OPEN === "1",
+    hostStudios: Object.fromEntries(
+      list(env.HOST_STUDIOS, "")
+        .map((pair) => pair.split("=").map((x) => x.trim().toLowerCase()))
+        .filter((kv): kv is [string, string] => kv.length === 2 && Boolean(kv[0]) && Boolean(kv[1])),
+    ),
+    platformLegalName: env.PLATFORM_LEGAL_NAME || "",
+    platformTaxId: env.PLATFORM_TAX_ID || "",
+    platformAddress: env.PLATFORM_ADDRESS || "",
+    platformEmail: env.PLATFORM_EMAIL || "",
   };
 }

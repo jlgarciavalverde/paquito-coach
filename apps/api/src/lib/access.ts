@@ -26,6 +26,10 @@ export const PUBLIC_ROUTES = new Set([
   "POST /api/v1/public/contact",
   "POST /api/v1/stripe/webhook", // autenticado por la firma de Stripe
   "POST /api/v1/stripe/simulate", // solo existe con la pasarela simulada (e2e)
+  // S1: plataforma
+  "GET /api/v1/platform",
+  "GET /api/v1/auth/slug/:slug",
+  "POST /api/v1/auth/signup",
 ]);
 
 /** Rutas fuera de `/me` que también puede usar un cliente (cada una limita por dentro qué ve). */
@@ -60,4 +64,15 @@ export function gate(method: string, route: string | undefined, user: { role: "c
   // Un cliente pendiente de aceptar aún no ve la biblioteca, los entrenos ni los archivos del estudio.
   if (CLIENT_ROUTES.has(k)) return user.clientStatus === "active" || NOT_ACTIVE_OK.has(k) ? "ok" : "coach-only";
   return "coach-only";
+}
+
+/**
+ * Estudio bloqueado (prueba terminada, impago o suspensión): se puede mirar todo (GET) y solo esto otro. Así el entrenador
+ * puede pagar, exportar sus datos o darse de baja, y nadie pierde el acceso a su cuenta.
+ */
+const LOCKED_OK = [/^\/api\/v1\/auth\//, /^\/api\/v1\/me(\/|$)/, /^\/api\/v1\/studio\/billing(\/|$)/, /^\/api\/v1\/push\//, /^\/api\/v1\/stripe\//, /^\/api\/v1\/admin\//];
+export function lockedAllows(method: string, route: string | undefined) {
+  if (method === "GET" || method === "HEAD" || method === "OPTIONS") return true;
+  if (!route || !route.startsWith("/api/v1/")) return true;
+  return LOCKED_OK.some((r) => r.test(route));
 }

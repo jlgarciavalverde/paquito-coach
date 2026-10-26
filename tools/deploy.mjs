@@ -44,6 +44,12 @@ sh("ssh", [
   `cd ${DIR} && { grep -q '^DEMO_POSTGRES_PASSWORD=.' .env || { sed -i '/^DEMO_POSTGRES_PASSWORD=/d' .env; echo "DEMO_POSTGRES_PASSWORD=$(openssl rand -hex 24)" >> .env; }; grep -q '^DEMO_PUBLIC_URL=.' .env || { sed -i '/^DEMO_PUBLIC_URL=/d' .env; echo "DEMO_PUBLIC_URL=https://demo-paquito.redgarverde.com" >> .env; }; }`,
 ]);
 
+// S1 (ADR 0018): el dominio de cada instancia sigue siendo el de su primer estudio (Paquito y la demo), si no se ha dicho otra cosa.
+sh("ssh", [
+  HOST,
+  `cd ${DIR} && { grep -q '^HOST_STUDIOS=' .env || echo "HOST_STUDIOS=$(grep '^PUBLIC_URL=' .env | cut -d= -f2- | sed -E 's|^https?://||;s|/.*||')=@first" >> .env; grep -q '^DEMO_HOST_STUDIOS=' .env || echo "DEMO_HOST_STUDIOS=$(grep '^DEMO_PUBLIC_URL=' .env | cut -d= -f2- | sed -E 's|^https?://||;s|/.*||')=@first" >> .env; }`,
+]);
+
 // Carpeta de datos (fotos del chat) y claves de avisos push: se crean en el VPS la primera vez, sin salir de él.
 sh("ssh", [HOST, `mkdir -p ${DIR}/data/media`]);
 sh("ssh", [

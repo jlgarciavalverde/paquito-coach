@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useSearch } from "@tanstack/react-router";
 import { Brand } from "./brand";
 import { useDocumentTitle } from "../lib/title";
 
@@ -23,29 +23,38 @@ export function LegalLayout({ title, updated, intro, children }: { title: string
 
 export const LegalH = ({ children }: { children: ReactNode }) => <h2 className="font-wide mt-10 mb-2 text-[19px]">{children}</h2>;
 
-export function LegalLinks({ className }: { className?: string }) {
+/** Enlaces legales del estudio (`estudio`: el de `/e/<slug>`; si no, el de la página actual o el de la plataforma). */
+export function LegalLinks({ className, estudio }: { className?: string; estudio?: string | null }) {
+  const current = useStudioSearch();
+  const search = { estudio: estudio ?? current };
   const a = "inline-flex min-h-10 items-center text-ink-2 underline-offset-4 hover:text-ink hover:underline";
   return (
     <nav aria-label="Información legal" className={className}>
       <ul className="flex flex-wrap gap-x-6 text-[13.5px]">
         <li>
-          <Link to="/aviso-legal" className={a}>
+          <Link to="/aviso-legal" search={search} className={a}>
             Aviso legal
           </Link>
         </li>
         <li>
-          <Link to="/privacidad" className={a}>
+          <Link to="/privacidad" search={search} className={a}>
             Privacidad y cookies
           </Link>
         </li>
         <li>
-          <Link to="/terminos" className={a}>
+          <Link to="/terminos" search={search} className={a}>
             Términos de uso
           </Link>
         </li>
       </ul>
     </nav>
   );
+}
+
+/** `?estudio=` de la página legal actual (las páginas legales lo aceptan todas). */
+export function useStudioSearch(): string | undefined {
+  const s = useSearch({ strict: false }) as { estudio?: unknown };
+  return typeof s.estudio === "string" ? s.estudio : undefined;
 }
 
 /** «Francisco Pérez (NIF 12345678Z), C/ Mayor 1, Murcia», con lo que haya rellenado el entrenador. */

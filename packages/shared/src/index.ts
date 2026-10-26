@@ -17,3 +17,4 @@ export * from "./library";
 export * from "./ai";
 export * from "./payments";
 export * from "./studio";
+export * from "./platform";

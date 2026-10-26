@@ -3,8 +3,9 @@ import { and, eq, isNull } from "drizzle-orm";
 import type { DB } from "../db/client";
 import { clientProfiles, sessions, studios, users } from "../db/schema";
 import { hashToken, newToken } from "./tokens";
-import { forbidden, unauthorized } from "./errors";
+import { HttpError, forbidden, unauthorized } from "./errors";
 import type { AppConfig } from "../config";
+import { studioAccess, type StudioAccess } from "@coach/shared";
 
 export const SESSION_TTL_MS = 60 * 24 * 3600 * 1000; // 60 días desde el último uso
 /** Vida máxima de una sesión aunque se use a diario: pasado este tiempo hay que volver a entrar. */
@@ -22,6 +23,11 @@ export interface AuthUser {
   clientId: string | null;
   clientStatus: "invited" | "pending" | "active" | "archived" | "no_account" | null;
   studioName: string;
+  studioSlug: string | null;
+  /** `locked`: el estudio no puede cambiar nada hasta elegir plan (ver `lockedAllows` en access.ts). */
+  studioAccess: StudioAccess;
+  /** Administra la plataforma (se rellena en app.ts con `PLATFORM_ADMIN_EMAILS`). */
+  platformAdmin: boolean;
 }
 
 export const cookieName = (cfg: AppConfig) => (cfg.secureCookies ? "__Host-sid" : "sid");
@@ -75,6 +81,9 @@ export async function authenticate(db: DB, token: string | undefined): Promise<A
     clientId: row.c?.id ?? null,
     clientStatus: row.c?.status ?? null,
     studioName: row.st.name,
+    studioSlug: row.st.slug,
+    studioAccess: studioAccess(row.st),
+    platformAdmin: false,
   };
 }
 
@@ -93,6 +102,13 @@ export function requireUser(req: FastifyRequest): AuthUser {
 export function requireCoach(req: FastifyRequest): AuthUser {
   const u = requireUser(req);
   if (u.role !== "coach") throw forbidden();
+  return u;
+}
+
+/** Administración de la plataforma. 404 para el resto: no se anuncia que el panel existe. */
+export function requirePlatformAdmin(req: FastifyRequest): AuthUser {
+  const u = requireUser(req);
+  if (!u.platformAdmin) throw new HttpError(404, "not_found", "No encontrado");
   return u;
 }
 

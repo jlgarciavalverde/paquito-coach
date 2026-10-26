@@ -1,13 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { LegalH, LegalLayout, responsibleText } from "../components/legal-layout";
-import { legalQuery } from "../lib/public";
+import { LegalH, LegalLayout, responsibleText, useStudioSearch } from "../components/legal-layout";
+import { StudioSearch, legalQuery } from "../lib/public";
 
-export const Route = createFileRoute("/aviso-legal")({ component: LegalNotice });
+export const Route = createFileRoute("/aviso-legal")({ validateSearch: StudioSearch, component: LegalNotice });
 
 /** Aviso legal (LSSI, art. 10): quién está detrás de la web. Los datos los rellena el entrenador en Ajustes. */
 function LegalNotice() {
-  const l = useQuery(legalQuery).data;
+  const l = useQuery(legalQuery(useStudioSearch())).data;
   return (
     <LegalLayout title="Aviso legal" updated="1 de octubre de 2026" intro="Quién está detrás de esta web y de la app.">
       <LegalH>Titular</LegalH>

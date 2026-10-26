@@ -49,7 +49,18 @@ export const Me = z.object({
   name: z.string(),
   email: z.string(),
   role: Role,
-  studio: z.object({ id: z.string(), name: z.string(), coachName: z.string() }),
+  studio: z.object({
+    id: z.string(),
+    name: z.string(),
+    coachName: z.string(),
+    /** Dirección pública `/e/<slug>` (null en estudios antiguos sin dirección). */
+    slug: z.string().nullable(),
+    /** `locked`: prueba terminada o impago; se consulta pero no se cambia nada (ver `studioAccess`). */
+    access: z.enum(["ok", "locked"]),
+    accent: z.enum(["azul", "verde", "petroleo", "morado", "granate"]),
+  }),
+  /** Administra la plataforma (lista de correos `PLATFORM_ADMIN_EMAILS` del servidor). */
+  platformAdmin: z.boolean(),
   /** Solo clientes: estado de su vínculo con el entrenador. */
   clientStatus: z.enum(["invited", "pending", "active", "archived", "no_account"]).nullable(),
   /** Recibir recordatorios push. */
@@ -82,15 +93,19 @@ export const EmailChangeInput = z.object({ email: Email, password: z.string().mi
 /** `demo`: esta instancia es la demostración pública (datos de ejemplo que se borran cada noche). */
 /**
  * Estado público de la instalación. `mail`: el correo está configurado (si no, «He olvidado la contraseña» remite al
- * entrenador). `studioName`/`accent`: la marca (nombre de la app y color). `published`: hay página pública en `/`.
+ * entrenador). `studioName`/`accent`/`slug`: el estudio de esta dirección (por el dominio o `?estudio=`), o null si es la
+ * web de la plataforma. `published`: ese estudio tiene página pública. `platformName`: nombre de la plataforma.
  */
 export const SetupStatus = z.object({
   needsSetup: z.boolean(),
   demo: z.boolean(),
   mail: z.boolean(),
   studioName: z.string().nullable(),
+  slug: z.string().nullable(),
   accent: z.enum(["azul", "verde", "petroleo", "morado", "granate"]),
   published: z.boolean(),
+  platformName: z.string(),
+  signupOpen: z.boolean(),
 });
 
 export const InvitePreview = z.object({

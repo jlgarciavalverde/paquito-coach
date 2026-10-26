@@ -1,6 +1,20 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [2.0.0] — 2026-10-26 · Plataforma para varios entrenadores (S1)
+### Añadido
+- **Varios estudios en la misma app** (ADR 0018): cada uno con su página en `/e/<slug>`; los que tienen dominio propio (Paquito) siguen con su página en `/`.
+- **Alta de entrenadores** en `/alta` con **14 días de prueba** sin tarjeta (cerrada hasta `SIGNUP_OPEN=1`) y web de la plataforma en `/` con lo que incluye y los planes.
+- **Planes** por número de clientes a la vez (Básico 15, Pro 50, Estudio sin límite; precios provisionales), pago mensual con Stripe y portal para cambiar o darse de baja. **Ajustes → Plan** y aviso cuando la prueba se acaba o falla un cobro.
+- **Estudio en pausa** al acabar la prueba o tras 7 días de impago: se consulta y exporta todo, pero no se crea ni cambia nada.
+- **Administración de la plataforma** (`PLATFORM_ADMIN_EMAILS`): estudios, ingresos al mes, plan a mano, alargar prueba, suspender.
+- **Condiciones para entrenadores** con el encargo de tratamiento (RGPD art. 28).
+- Auditoría de Harbiz con REA y hoja de ruta S1–S10 (`docs/producto/harbiz-auditoria.md`).
+### Cambiado
+- El estudio de Paquito queda como **fundador** (sin límite ni cobro) con dirección `/e/<nombre>`.
+### Pruebas
+- `platform.test.ts` (14), web de plataforma en `studio.p2.test.ts`, e2e `20-plataforma` (2). API 279, web 74, e2e 47 + demo.
+
 ## [1.18.0] — 2026-10-01 · Imagen pública de Paquito
 ### Añadido
 - **Página pública** en la dirección de la app (ADR 0017): presentación, foto, especialidades, dónde y cuándo, tarifas que él marque y formulario **«Quiero empezar»**. Las solicitudes le llegan por aviso y correo y se convierten en cliente con «Dar de alta».

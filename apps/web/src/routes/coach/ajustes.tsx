@@ -1,7 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { JoinCode } from "@coach/shared";
-import { Button } from "../../components/ui/button";
+import { Button, buttonClass } from "../../components/ui/button";
+import { billingQuery } from "../../lib/platform";
 import { CopyField } from "../../components/ui/copy-field";
 import { BlockTitle, PageTitle } from "../../components/ui/layout";
 import { Skeleton } from "../../components/ui/spinner";
@@ -28,6 +29,7 @@ function Settings() {
       <PageTitle title="Ajustes" lead={`${me.name}, ${me.email}. Estudio «${me.studio.name}».`} />
       <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 [&>*]:min-w-0">
         <div className="flex flex-col gap-12">
+          <PlanSetting />
           <PublicPageSettings />
           <JoinCodeSetting />
           <PushSetting />
@@ -43,6 +45,29 @@ function Settings() {
         </div>
       </div>
     </>
+  );
+}
+
+function PlanSetting() {
+  const me = useMe()!;
+  const b = useQuery(billingQuery).data;
+  return (
+    <section>
+      <BlockTitle>Plan</BlockTitle>
+      <p className="max-w-[56ch] text-sm text-ink-2">
+        {b ? `${b.planLabel}: ${b.activeClients}${b.maxClients === null ? "" : ` de ${b.maxClients}`} clientes${b.access === "locked" ? ". El estudio está en pausa." : "."}` : "Tu plan y cuántos clientes puedes llevar."}
+      </p>
+      <div className="mt-4 flex flex-wrap gap-3">
+        <Link to="/coach/plan" className={buttonClass("secondary")}>
+          Ver el plan
+        </Link>
+        {me.platformAdmin && (
+          <Link to="/coach/admin" className={buttonClass("quiet")}>
+            Administrar la plataforma
+          </Link>
+        )}
+      </div>
+    </section>
   );
 }
 

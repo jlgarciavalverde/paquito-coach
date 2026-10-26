@@ -15,6 +15,7 @@ import { assertQuota } from "../lib/quota";
 import { requireCoach } from "../lib/session";
 import { sniffImage } from "../lib/sniff";
 import { newJoinCode } from "../lib/tokens";
+import { studioOfRequest } from "../lib/tenant";
 import { typed, type Ctx } from "./ctx";
 
 type StudioRow = typeof studios.$inferSelect;
@@ -23,11 +24,6 @@ const toProfile = (s: StudioRow): StudioProfile => ({
   phone: s.phone, contactEmail: s.contactEmail, instagram: s.instagram, legalName: s.legalName, taxId: s.taxId, legalAddress: s.legalAddress,
 });
 
-/** El estudio de esta instalación (hoy, uno por instalación: el de Paquito). Las rutas públicas hablan de él. */
-export async function mainStudio(db: Ctx["db"]) {
-  const [s] = await db.select().from(studios).orderBy(asc(studios.createdAt)).limit(1);
-  return s ?? null;
-}
 async function coachOf(db: Ctx["db"], studioId: string) {
   const [c] = await db.select({ id: users.id, name: users.name, email: users.email, notify: users.emailNotifications }).from(users).where(and(eq(users.studioId, studioId), eq(users.role, "coach"), isNull(users.deletedAt))).orderBy(asc(users.createdAt)).limit(1);
   return c ?? null;
@@ -110,37 +106,44 @@ export function registerStudio(app: FastifyInstance, { db, cfg, mail }: Ctx, dep
 
   // ── Público (sin sesión) ──
   /** Página pública: solo si el entrenador la ha publicado. */
-  api.get("/public/studio", { schema: { tags: ["público"], response: { 200: PublicStudio } } }, async (_req, reply) => {
-    const s = await mainStudio(db);
+  const PublicQuery = z.object({ estudio: z.string().max(60).optional() });
+  api.get("/public/studio", { schema: { tags: ["público"], querystring: PublicQuery, response: { 200: PublicStudio } } }, async (req, reply) => {
+    const s = await studioOfRequest(db, cfg, req);
     if (!s?.published) throw notFound("Página");
     const coach = await coachOf(db, s.id);
     const ps = await db.select().from(prices).where(and(eq(prices.studioId, s.id), eq(prices.active, true), eq(prices.public, true))).orderBy(prices.kind, prices.amountCents);
     reply.header("Cache-Control", "no-cache");
     return {
-      name: s.name, coachName: coach?.name ?? "", accent: s.accent, tagline: s.tagline, bio: s.bio, specialties: s.specialties, location: s.location, hours: s.hours,
+      name: s.name, slug: s.slug, coachName: coach?.name ?? "", accent: s.accent, tagline: s.tagline, bio: s.bio, specialties: s.specialties, location: s.location, hours: s.hours,
       phone: s.phone, contactEmail: s.contactEmail, instagram: s.instagram, hasPhoto: Boolean(s.photoMediaId),
       prices: ps.map((p) => ({ name: p.name, kind: p.kind, amount: fromCents(p.amountCents), sessions: p.sessions, validDays: p.validDays })),
     };
   });
-  app.get("/public/studio/photo", async (_req, reply) => {
-    const s = await mainStudio(db);
+  app.get("/public/studio/photo", async (req, reply) => {
+    const s = await studioOfRequest(db, cfg, req);
     if (!s?.published || !s.photoMediaId) throw notFound("Foto");
     const [m] = await db.select().from(media).where(eq(media.id, s.photoMediaId));
     const path = join(deps.mediaDir, s.photoMediaId);
     if (!m || !existsSync(path)) throw notFound("Foto");
     return reply.header("Content-Type", m.mime).header("Cache-Control", "public, max-age=300").header("Content-Disposition", "inline").send(createReadStream(path));
   });
-  /** Datos del responsable (aviso legal, términos, privacidad): públicos aunque la página no esté publicada. */
-  api.get("/public/legal", { schema: { tags: ["público"], response: { 200: LegalInfo } } }, async () => {
-    const s = await mainStudio(db);
-    if (!s) throw notFound("Estudio");
+  /**
+   * Datos del responsable (aviso legal, términos, privacidad): públicos aunque la página no esté publicada. Sin estudio
+   * (la web de la plataforma), el responsable es el titular de la plataforma.
+   */
+  api.get("/public/legal", { schema: { tags: ["público"], querystring: PublicQuery, response: { 200: LegalInfo } } }, async (req) => {
+    const s = await studioOfRequest(db, cfg, req);
+    if (!s) {
+      if (typeof req.query.estudio === "string") throw notFound("Estudio");
+      return { studioName: cfg.platformName, legalName: cfg.platformLegalName, taxId: cfg.platformTaxId, legalAddress: cfg.platformAddress, contactEmail: cfg.platformEmail };
+    }
     const coach = await coachOf(db, s.id);
     return { studioName: s.name, legalName: s.legalName || coach?.name || "", taxId: s.taxId, legalAddress: s.legalAddress, contactEmail: s.contactEmail || coach?.email || "" };
   });
 
   /** «Quiero empezar»: crea una solicitud y avisa al entrenador. Campo trampa + freno por IP contra el spam. */
-  api.post("/public/contact", { schema: { tags: ["público"], body: LeadInput, response: { 200: Ok } }, config: { rateLimit: { max: 3, timeWindow: "10 minutes" } } }, async (req) => {
-    const s = await mainStudio(db);
+  api.post("/public/contact", { schema: { tags: ["público"], querystring: PublicQuery, body: LeadInput, response: { 200: Ok } }, config: { rateLimit: { max: 3, timeWindow: "10 minutes" } } }, async (req) => {
+    const s = await studioOfRequest(db, cfg, req);
     if (!s?.published) throw notFound("Página");
     const b = req.body;
     if (b.website) return { ok: true as const }; // un robot: se le dice que sí y no se guarda nada

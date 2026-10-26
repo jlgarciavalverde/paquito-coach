@@ -3,6 +3,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Barbell, CalendarBlank, ChatCircle, ForkKnife, ClipboardText, DotsThreeCircle, Sparkle, GearSix, MagnifyingGlass, SignOut, SunHorizon, UsersThree, type Icon } from "@phosphor-icons/react";
 import { Brand } from "./brand";
+import { PlanBanner } from "./platform/plan-banner";
 import { Monogram } from "./ui/layout";
 import { Menu, MenuItem } from "./ui/menu";
 import { Dialog } from "./ui/dialog";
@@ -123,6 +124,7 @@ export function CoachShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
+      <PlanBanner />
 
       <CommandPalette open={palette} onOpenChange={setPalette} />
       <Dialog open={help} onOpenChange={setHelp} title="Atajos de teclado" description="Para ir más rápido desde el ordenador.">

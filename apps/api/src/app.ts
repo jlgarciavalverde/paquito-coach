@@ -25,7 +25,7 @@ import { HttpError, notFound } from "./lib/errors";
 import { redactUrl } from "./lib/redact";
 import { canonicalPath } from "./lib/path";
 import { clientIp } from "./lib/ip";
-import { gate } from "./lib/access";
+import { gate, lockedAllows } from "./lib/access";
 import { stripNul } from "./lib/sanitize";
 import { authenticate, cookieName } from "./lib/session";
 import { registerAuth } from "./routes/auth";
@@ -58,6 +58,7 @@ import { createFakeTransport, createMailer, createSmtpTransport, type MailTransp
 import { seedExercises } from "./db/seed";
 import type { Ctx } from "./routes/ctx";
 import { registerSeo } from "./routes/seo";
+import { registerPlatform } from "./routes/platform";
 
 export type App = FastifyInstance & { db: DB; push: PushSender; routeList: { method: string; url: string }[]; billing: Billing; mail: Mailer };
 
@@ -195,6 +196,7 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
   app.addHook("onRequest", async (req) => {
     const token = req.cookies[cookieName(cfg)];
     req.user = token ? await authenticate(db, token) : null;
+    if (req.user) req.user.platformAdmin = req.user.role === "coach" && cfg.platformAdminEmails.includes(req.user.email.toLowerCase());
   });
 
   // Postgres no admite el carácter NUL en textos: se quita de todo lo que entra (cuerpo, consulta y parámetros).
@@ -209,6 +211,13 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
     const g = gate(req.method, req.routeOptions.url, req.user);
     if (g === "login") return reply.code(401).send({ error: "unauthorized", message: "Inicia sesión para continuar" });
     if (g === "coach-only") return reply.code(403).send({ error: "forbidden", message: "No tienes permiso para esto" });
+    if (req.user?.studioAccess === "locked" && !lockedAllows(req.method, req.routeOptions.url)) {
+      const message =
+        req.user.role === "coach"
+          ? "Tu estudio está en pausa: elige un plan en Ajustes → Plan para seguir creando y cambiando cosas. Puedes consultar y exportar todo."
+          : "La app de tu entrenador está en pausa ahora mismo. Puedes consultar tus datos; escríbele si necesitas algo.";
+      return reply.code(402).send({ error: "studio_locked", message });
+    }
   });
 
   // CSRF: además de SameSite=Lax, toda petición que modifica datos debe venir de un origen permitido.
@@ -263,7 +272,8 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
   await app.register(
     async (api) => {
       // Cobros primero: su servicio (Billing) lo usan el borrado de clientes y las reservas.
-      billing = registerPayments(api, ctx, { gateway, push });
+      const platformEvent = registerPlatform(api, ctx, { gateway });
+      billing = registerPayments(api, ctx, { gateway, push, platformEvent });
       registerAuth(api, ctx);
       registerMe(api, ctx);
       registerClients(api, ctx);
@@ -334,7 +344,7 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
   const hasWeb = Boolean(webDir && existsSync(webDir));
   const sendApp = registerSeo(app, ctx, hasWeb ? webDir : undefined);
   if (hasWeb) {
-    app.get("/", (_req, reply) => sendApp("/", reply));
+    app.get("/", (req, reply) => sendApp("/", req, reply));
     await app.register(fastifyStatic, {
       root: webDir!,
       // `/` no sale del disco: pasa por `sendApp`, que rellena la cabecera de la página pública.
@@ -348,7 +358,7 @@ export async function buildApp(cfg: AppConfig, opts: { push?: PushSender; ai?: A
   }
   app.setNotFoundHandler((req, reply) => {
     const isApi = req.url.startsWith("/api") || req.url.startsWith("/ws");
-    if (hasWeb && req.method === "GET" && !isApi) return sendApp(new URL(req.url, "http://x").pathname, reply);
+    if (hasWeb && req.method === "GET" && !isApi) return sendApp(new URL(req.url, "http://x").pathname, req, reply);
     return reply.code(404).send({ error: "not_found", message: "No encontrado" });
   });
 

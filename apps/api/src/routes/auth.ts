@@ -4,7 +4,7 @@ import { and, count, eq, gt, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   EmailChangeInput, ForgotPasswordInput, InvitePreview, LoginInput, LoginResult, Me, Ok, RegisterInput, ResetPasswordInput, SetupInput, SetupStatus,
-  TwoFactorLoginInput,
+  TwoFactorLoginInput, SignupInput, Slug, SlugCheck, TRIAL_DAYS, slugify,
 } from "@coach/shared";
 import { clientProfiles, emailTokens, invites, passwordResets, sessions, studios, users } from "../db/schema";
 import { endChallenge, newChallenge, useChallengeAttempt } from "../lib/challenges";
@@ -20,6 +20,7 @@ import { clearSessionCookie, cookieName, createSession } from "../lib/session";
 import { safeEqual } from "../lib/compare";
 import { meOf } from "./me";
 import { DEMO_CLIENT, DEMO_COACH } from "../demo/seed";
+import { studioBySlug, studioOfRequest } from "../lib/tenant";
 import { typed, type Ctx } from "./ctx";
 
 const INVALID_LOGIN = new HttpError(401, "invalid_credentials", "Correo o contraseña incorrectos");
@@ -40,15 +41,19 @@ export function registerAuth(app: FastifyInstance, ctx: Ctx) {
   const api = typed(app);
   const strict = { rateLimit: { max: cfg.authRateLimit, timeWindow: "1 minute" } };
 
-  api.get("/auth/setup-status", { schema: { tags: ["auth"], response: { 200: SetupStatus } } }, async () => {
-    const [s] = await db.select().from(studios).orderBy(studios.createdAt).limit(1);
+  api.get("/auth/setup-status", { schema: { tags: ["auth"], response: { 200: SetupStatus } } }, async (req) => {
+    const [first] = await db.select({ id: studios.id }).from(studios).limit(1);
+    const s = await studioOfRequest(db, cfg, req);
     return {
-      needsSetup: !cfg.demoMode && !s,
+      needsSetup: !cfg.demoMode && !first,
       demo: Boolean(cfg.demoMode),
       mail: ctx.mail.enabled,
       studioName: s?.name ?? null,
+      slug: s?.slug ?? null,
       accent: s?.accent ?? "azul",
       published: Boolean(s?.published),
+      platformName: cfg.platformName,
+      signupOpen: cfg.signupOpen && !cfg.demoMode,
     };
   });
 
@@ -62,7 +67,7 @@ export function registerAuth(app: FastifyInstance, ctx: Ctx) {
       await tx.execute(sql`lock table studios in exclusive mode`);
       const [existing] = await tx.select({ n: count() }).from(studios);
       if ((existing?.n ?? 0) > 0) throw new HttpError(409, "already_setup", "La app ya está configurada");
-      const [studio] = await tx.insert(studios).values({ name: b.studioName, joinCode: newJoinCode() }).returning();
+      const [studio] = await tx.insert(studios).values({ name: b.studioName, joinCode: newJoinCode(), slug: slugify(b.studioName) }).returning();
       const [user] = await tx
         .insert(users)
         .values({ studioId: studio!.id, role: "coach", name: b.name, email: b.email, passwordHash, healthConsentAt: new Date() })
@@ -70,7 +75,47 @@ export function registerAuth(app: FastifyInstance, ctx: Ctx) {
       return user!.id;
     });
     await createSession(db, cfg, reply, userId, req.headers["user-agent"], req.cookies[cookieName(cfg)]);
-    return meOf(db, userId);
+    return meOf(db, cfg, userId);
+  });
+
+  // ── S1: alta pública de entrenadores (ADR 0018) ──
+  async function slugProblem(slug: string): Promise<string | null> {
+    const parsed = Slug.safeParse(slug);
+    if (!parsed.success) return parsed.error.issues[0]?.message ?? "Dirección no válida";
+    return (await studioBySlug(db, parsed.data)) ? "Esa dirección ya la usa otro estudio" : null;
+  }
+  api.get("/auth/slug/:slug", { schema: { tags: ["auth"], params: z.object({ slug: z.string().max(60) }), response: { 200: SlugCheck } }, config: { rateLimit: { max: 60, timeWindow: "1 minute" } } }, async (req) => {
+    const reason = await slugProblem(req.params.slug);
+    return { slug: req.params.slug.trim().toLowerCase(), available: reason === null, reason };
+  });
+
+  /** Un entrenador crea su estudio: prueba de 14 días sin tarjeta. Freno por IP y campo trampa contra robots. */
+  api.post("/auth/signup", { schema: { tags: ["auth"], body: SignupInput, response: { 200: Me } }, config: { rateLimit: { max: 5, timeWindow: "1 hour" } } }, async (req, reply) => {
+    if (!cfg.signupOpen || cfg.demoMode) throw new HttpError(403, "signup_closed", "El alta de estudios nuevos no está abierta todavía.");
+    const b = req.body;
+    if (b.website) throw new HttpError(400, "validation", "No se ha podido crear la cuenta");
+    assertStrong(b.password);
+    const problem = await slugProblem(b.slug);
+    if (problem) throw new HttpError(409, "slug_taken", problem);
+    if (await emailExists(db, b.email)) throw EMAIL_TAKEN;
+    const passwordHash = await hashPassword(b.password);
+    const userId = await db
+      .transaction(async (tx) => {
+        const [studio] = await tx
+          .insert(studios)
+          .values({ name: b.studioName, joinCode: newJoinCode(), slug: b.slug, plan: "prueba", billingStatus: "trial", trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 86_400_000) })
+          .returning();
+        const [user] = await tx.insert(users).values({ studioId: studio!.id, role: "coach", name: b.name, email: b.email, passwordHash, healthConsentAt: new Date() }).returning();
+        return user!.id;
+      })
+      .catch((e) => {
+        // Dos altas a la vez con el mismo correo o la misma dirección: gana una.
+        if ((e as { code?: string }).code === "23505") throw new HttpError(409, "taken", "Ese correo o esa dirección ya están en uso.");
+        throw e;
+      });
+    await audit(db, req, "platform.signup", { type: "user", id: userId }, { slug: b.slug });
+    await createSession(db, cfg, reply, userId, req.headers["user-agent"], req.cookies[cookieName(cfg)]);
+    return meOf(db, cfg, userId);
   });
 
   /** Tras la contraseña (o el restablecimiento): sesión directa o, con 2FA, un reto. */
@@ -78,7 +123,7 @@ export function registerAuth(app: FastifyInstance, ctx: Ctx) {
     const [u] = await db.select({ totp: users.totpSecret }).from(users).where(eq(users.id, userId));
     if (u?.totp) return { twoFactorRequired: true as const, challenge: newChallenge(userId) };
     await createSession(db, cfg, reply, userId, req.headers["user-agent"], req.cookies[cookieName(cfg)]);
-    return meOf(db, userId);
+    return meOf(db, cfg, userId);
   }
 
   api.post("/auth/login", { schema: { tags: ["auth"], body: LoginInput, response: { 200: LoginResult } }, config: strict }, async (req, reply) => {
@@ -133,7 +178,7 @@ export function registerAuth(app: FastifyInstance, ctx: Ctx) {
     }
     endChallenge(req.body.challenge);
     await createSession(db, cfg, reply, u.id, req.headers["user-agent"], req.cookies[cookieName(cfg)]);
-    return meOf(db, u.id);
+    return meOf(db, cfg, u.id);
   });
 
   /**
@@ -205,7 +250,7 @@ export function registerAuth(app: FastifyInstance, ctx: Ctx) {
         const [u] = await db.select({ id: users.id }).from(users).where(eq(users.email, email));
         if (!u) throw new HttpError(503, "demo_resetting", "La demo se está reiniciando. Prueba en un minuto.");
         await createSession(db, cfg, reply, u.id, req.headers["user-agent"], req.cookies[cookieName(cfg)]);
-        return meOf(db, u.id);
+        return meOf(db, cfg, u.id);
       },
     );
   }
@@ -299,7 +344,7 @@ export function registerAuth(app: FastifyInstance, ctx: Ctx) {
     await createSession(db, cfg, reply, userId, req.headers["user-agent"], req.cookies[cookieName(cfg)]);
     req.user = null;
     await audit(db, req, b.inviteToken ? "client.register.invite" : "client.register.code", { type: "user", id: userId });
-    return meOf(db, userId);
+    return meOf(db, cfg, userId);
   });
 
 }

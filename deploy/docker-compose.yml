@@ -82,6 +82,7 @@ services:
       DATABASE_URL: postgres://coach:${DEMO_POSTGRES_PASSWORD}@demo-db:5432/coach
       PUBLIC_URL: ${DEMO_PUBLIC_URL}
       ALLOWED_ORIGINS: ${DEMO_PUBLIC_URL}
+      HOST_STUDIOS: ${DEMO_HOST_STUDIOS}
       DATA_DIR: /tmp
       LOG_LEVEL: warn
     tmpfs: [/tmp]

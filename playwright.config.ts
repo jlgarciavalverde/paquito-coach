@@ -2,6 +2,8 @@ import { defineConfig, devices } from "@playwright/test";
 
 const PORT = 4310;
 const BASE = `http://localhost:${PORT}`;
+/** La misma app por otra dirección: `localhost` hace de dominio propio del estudio de Paquito y `127.0.0.1`, de la plataforma. */
+export const PLATFORM = `http://127.0.0.1:${PORT}`;
 
 /**
  * E2E contra la app compilada (API + web estática), como en producción.
@@ -25,7 +27,11 @@ export default defineConfig({
       PORT: String(PORT),
       DATABASE_URL: "postgres://coach:coach@127.0.0.1:5433/coach_e2e",
       WEB_DIR: "apps/web/dist",
-      ALLOWED_ORIGINS: BASE,
+      ALLOWED_ORIGINS: `${BASE},${PLATFORM}`,
+      HOST_STUDIOS: `localhost:${PORT}=@first`,
+      SIGNUP_OPEN: "1",
+      PLATFORM_NAME: "Plataforma e2e",
+      PLATFORM_ADMIN_EMAILS: "admin@example.com",
       PUBLIC_URL: BASE,
       SETUP_CODE: "e2e-setup",
       AUTH_RATE_LIMIT: "1000",

@@ -1,13 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { LegalH, LegalLayout } from "../components/legal-layout";
-import { legalQuery } from "../lib/public";
+import { LegalH, LegalLayout, useStudioSearch } from "../components/legal-layout";
+import { StudioSearch, legalQuery } from "../lib/public";
 
-export const Route = createFileRoute("/terminos")({ component: Terms });
+export const Route = createFileRoute("/terminos")({ validateSearch: StudioSearch, component: Terms });
 
 /** Términos de uso de la app (cuenta, pagos, cancelaciones). Texto base: el entrenador lo revisa. */
 function Terms() {
-  const name = useQuery(legalQuery).data?.studioName ?? "el estudio";
+  const name = useQuery(legalQuery(useStudioSearch())).data?.studioName ?? "el estudio";
   return (
     <LegalLayout title="Términos de uso" updated="1 de octubre de 2026" intro={`Las normas para usar la app de ${name}.`}>
       <LegalH>Tu cuenta</LegalH>

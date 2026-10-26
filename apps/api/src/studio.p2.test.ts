@@ -44,7 +44,8 @@ beforeAll(async () => {
   await resetDb();
   mkdirSync(WEB, { recursive: true });
   writeFileSync(join(WEB, "index.html"), `<!doctype html><html lang="es"><head><meta name="description" content="x" /><title>Paquito Coach</title></head><body><div id="root"></div></body></html>`);
-  app = await testApp({ webDir: WEB }, { mail: fake.send });
+  // Como en producción: el dominio propio del estudio de Paquito (`HOST_STUDIOS`), donde `/` es su página.
+  app = await testApp({ webDir: WEB, hostStudios: { "localhost:80": "@first" } }, { mail: fake.send });
   coach = await setupCoach(app);
 });
 afterAll(() => app.close());
@@ -147,7 +148,7 @@ describe("buscadores y compartir", () => {
     expect(r.headers["x-robots-tag"]).toBeUndefined();
     expect(r.body).toContain("<title>Estudio Paquito · Fuerza &quot;real&quot; &lt;script&gt;alert(1)&lt;/script&gt;</title>");
     expect(r.body).not.toContain("<script>alert(1)");
-    expect(r.body).toContain('<meta property="og:image" content="http://test.local/api/v1/public/studio/photo" />');
+    expect(r.body).toContain('<meta property="og:image" content="http://localhost:80/api/v1/public/studio/photo" />');
     expect(r.body.match(/<title>/g)).toHaveLength(1);
     expect(r.body.match(/name="description"/g)).toHaveLength(1);
   });
@@ -158,8 +159,21 @@ describe("buscadores y compartir", () => {
     expect(robots).toContain("Allow: /aviso-legal");
     expect(robots).toContain("Disallow: /");
     const sitemap = (await app.inject({ method: "GET", url: "/sitemap.xml" })).body;
-    expect(sitemap).toContain("<loc>http://test.local/</loc>");
+    expect(sitemap).toContain("<loc>http://localhost:80/</loc>");
     expect(sitemap).not.toContain("/coach");
+  });
+
+  it("en el dominio de la plataforma, `/` es la web de alta y cada estudio está en /e/<slug>", async () => {
+    const at = (url: string) => app.inject({ method: "GET", url, headers: { host: "plataforma.example.com" } });
+    const home = await at("/");
+    expect(home.body).toContain("<title>Plataforma · Gestiona tus clientes de entrenamiento</title>");
+    const page = await at("/e/estudio-paquito");
+    expect(page.headers["x-robots-tag"]).toBeUndefined();
+    expect(page.body).toContain("<title>Estudio Paquito · ");
+    expect(page.body).toContain('<link rel="canonical" href="http://test.local/e/estudio-paquito" />');
+    expect((await at("/e/no-existe")).headers["x-robots-tag"]).toBe("noindex");
+    expect((await at("/sitemap.xml")).body).toContain("<loc>http://test.local/e/estudio-paquito</loc>");
+    expect((await at("/manifest.webmanifest")).json()).toMatchObject({ name: "Plataforma" });
   });
 
   it("el manifest (lo que se ve al instalar la app) lleva el nombre del estudio", async () => {
