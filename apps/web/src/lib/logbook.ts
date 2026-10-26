@@ -1,6 +1,7 @@
-import type { LastSets, RoutineItem, SetLog } from "@coach/shared";
+import { epley, parseLoadKg, parseReps, type LastSets, type RoutineItem, type SetLog } from "@coach/shared";
 
-export type Suggestion = { reps: string; load: string };
+/** Propuesta para una serie vacía y de dónde sale (se le explica a la persona: no es lo mismo que el objetivo). */
+export type Suggestion = { reps: string; load: string; from: "prev" | "last" | "plan" };
 
 export const fmtKg = (n: number) => String(Math.round(n * 10) / 10).replace(".", ",");
 const num = (t: string) => Number(t.trim().replace(",", "."));
@@ -13,11 +14,31 @@ export const prescribedKg = (load: string) => load.trim().match(/^(\d+(?:[.,]\d+
  */
 export function suggestSet(it: RoutineItem, idx: number, today: SetLog[] | undefined, last: LastSets): Suggestion {
   const prev = idx > 0 ? today?.[idx - 1] : undefined;
-  if (prev?.done && (prev.reps || prev.load)) return { reps: prev.reps, load: prev.load };
+  if (prev?.done && (prev.reps || prev.load)) return { reps: prev.reps, load: prev.load, from: "prev" };
   const l = last[it.exerciseId]?.sets;
   const ls = l?.[idx] ?? l?.at(-1);
-  if (ls) return { reps: ls.reps, load: ls.load };
-  return { reps: it.reps.match(/^\d+/)?.[0] ?? "", load: prescribedKg(it.load) };
+  if (ls) return { reps: ls.reps, load: ls.load, from: "last" };
+  return { reps: it.reps.match(/^\d+/)?.[0] ?? "", load: prescribedKg(it.load), from: "plan" };
+}
+
+/** 1RM estimado de una serie (Epley, como en Progreso); con la carga y las reps prescritas si la serie no las lleva. */
+export function setE1rm(it: RoutineItem, s: SetLog): number | null {
+  const kg = parseLoadKg(s.load) ?? parseLoadKg(it.load);
+  const reps = parseReps(s.reps) ?? parseReps(it.reps);
+  return kg && reps ? epley(kg, reps) : null;
+}
+
+/**
+ * ¿La serie `idx`, recién marcada, es un récord? Solo si supera el mejor 1RM estimado de los entrenos anteriores y el de
+ * las demás series hechas hoy (un récord por ejercicio y sesión: la siguiente serie igual ya no avisa). Sin historial no
+ * hay récord (la primera vez no se compara con nada).
+ */
+export function isRecord(it: RoutineItem, sets: SetLog[], idx: number, best: number | null | undefined): number | null {
+  if (best === null || best === undefined) return null;
+  const e = setE1rm(it, sets[idx]!);
+  if (e === null || e <= best) return null;
+  const others = sets.filter((s, i) => i !== idx && s.done).map((s) => setE1rm(it, s) ?? 0);
+  return others.some((o) => o >= e) ? null : e;
 }
 
 /** Sube o baja reps o kg a partir de lo escrito (o de lo sugerido); nunca por debajo de 0. Texto no numérico: sin cambio. */

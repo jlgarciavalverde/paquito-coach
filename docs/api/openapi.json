@@ -594,6 +594,264 @@
         }
       }
     },
+    "/api/v1/client-errors": {
+      "post": {
+        "tags": [
+          "plataforma"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "stack": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 4000
+                  },
+                  "path": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "version": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "requestId": {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "kind": {
+                    "default": "error",
+                    "type": "string",
+                    "enum": [
+                      "error",
+                      "rejection",
+                      "api",
+                      "render"
+                    ]
+                  }
+                },
+                "required": [
+                  "message"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "nullable": true,
+                  "enum": [
+                    null
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/errors": {
+      "get": {
+        "tags": [
+          "administración"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "in": "query",
+            "name": "todos",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "source": {
+                        "type": "string",
+                        "enum": [
+                          "web",
+                          "api"
+                        ]
+                      },
+                      "kind": {
+                        "type": "string"
+                      },
+                      "message": {
+                        "type": "string"
+                      },
+                      "stack": {
+                        "type": "string"
+                      },
+                      "path": {
+                        "type": "string"
+                      },
+                      "version": {
+                        "type": "string"
+                      },
+                      "userAgent": {
+                        "type": "string"
+                      },
+                      "lastRequestId": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "count": {
+                        "type": "number"
+                      },
+                      "firstSeen": {
+                        "type": "string"
+                      },
+                      "lastSeen": {
+                        "type": "string"
+                      },
+                      "resolved": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "source",
+                      "kind",
+                      "message",
+                      "stack",
+                      "path",
+                      "version",
+                      "userAgent",
+                      "lastRequestId",
+                      "count",
+                      "firstSeen",
+                      "lastSeen",
+                      "resolved"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/errors/{id}/resolve": {
+      "post": {
+        "tags": [
+          "administración"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "source": {
+                      "type": "string",
+                      "enum": [
+                        "web",
+                        "api"
+                      ]
+                    },
+                    "kind": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "stack": {
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "userAgent": {
+                      "type": "string"
+                    },
+                    "lastRequestId": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "count": {
+                      "type": "number"
+                    },
+                    "firstSeen": {
+                      "type": "string"
+                    },
+                    "lastSeen": {
+                      "type": "string"
+                    },
+                    "resolved": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "source",
+                    "kind",
+                    "message",
+                    "stack",
+                    "path",
+                    "version",
+                    "userAgent",
+                    "lastRequestId",
+                    "count",
+                    "firstSeen",
+                    "lastSeen",
+                    "resolved"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/payments/info": {
       "get": {
         "tags": [
@@ -13177,11 +13435,17 @@
                           ],
                           "additionalProperties": false
                         }
+                      },
+                      "bestE1rm": {
+                        "default": null,
+                        "nullable": true,
+                        "type": "number"
                       }
                     },
                     "required": [
                       "date",
-                      "sets"
+                      "sets",
+                      "bestE1rm"
                     ],
                     "additionalProperties": false
                   }

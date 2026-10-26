@@ -134,6 +134,12 @@ Los textos de aviso legal, términos y privacidad son una base: que Paquito los 
 4. Portal de clientes: activarlo también para las cuentas conectadas (Connect → Settings → Customer portal).
 Cada entrenador pulsa Ajustes → Cobros → «Activar cobros con tarjeta». Sin eso, su estudio no cobra con tarjeta.
 
+## Depurar un fallo (Q1)
+- **Admin → Errores** (cuenta de `PLATFORM_ADMIN_EMAILS`): errores de los navegadores y del servidor agrupados, con versión, ruta y el último request id.
+- Con el request id: `ssh joseluis@192.168.18.7 'docker logs coach 2>&1 | grep <id>'`. Toda respuesta lleva `x-request-id` (y los 500, `requestId` en el cuerpo).
+- Lento: `pnpm slow-queries --vps` (top 20 de `pg_stat_statements`; `--reset` para medir un cambio). Postgres apunta en su log las consultas de más de 500 ms sin los valores de los parámetros; la API, las peticiones de más de 500 ms («petición lenta»).
+- En local: VS Code → «API + Web», o `pnpm dev:debug` (inspector de Node en 9229).
+
 ## Verificación en dos pasos
 Ajustes (entrenador) o Perfil (cliente) → «Verificación en dos pasos» → escanear el QR con Google Authenticator, Authy,
 1Password… → código → guardar los 10 códigos de recuperación. Muy recomendable para la cuenta del entrenador.

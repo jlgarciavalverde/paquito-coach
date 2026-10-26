@@ -1,28 +1,8 @@
 import type { ProgressExercise, ProgressPoint, RoutineBlock, WorkoutLog } from "@coach/shared";
 
-/**
- * Carga en kg a partir del texto que anota el cliente o prescribe el entrenador: «82,5», «80 kg», «2×12 kg» (dos
- * mancuernas de 12 → 24), «70% 1RM» no es una carga (null). Devuelve null si no hay un número de kilos claro.
- */
-export function parseLoadKg(text: string | null | undefined): number | null {
-  if (!text) return null;
-  const t = text.toLowerCase().replace(",", ".").trim();
-  if (/%|rpe|rir|pc|peso corporal|bw/.test(t)) return null;
-  const pair = t.match(/^(\d+)\s*[x×]\s*(\d+(?:\.\d+)?)\s*(kg)?$/);
-  if (pair) return Number(pair[1]) * Number(pair[2]);
-  const m = t.match(/^(\d+(?:\.\d+)?)\s*(kg|kgs|kilos)?$/);
-  if (!m) return null;
-  const v = Number(m[1]);
-  return v > 0 && v < 1000 ? v : null;
-}
-
-export const parseReps = (text: string | null | undefined): number | null => {
-  const m = text?.trim().match(/^(\d{1,3})$/);
-  return m ? Number(m[1]) : null;
-};
-
-/** 1RM estimado (Epley). Solo fiable hasta ~12 repeticiones; por encima se devuelve null. */
-export const epley = (kg: number, reps: number) => (reps >= 1 && reps <= 12 ? Math.round(kg * (1 + reps / 30) * 10) / 10 : null);
+// Carga, repeticiones y 1RM estimado viven en `@coach/shared` (la web calcula los récords durante el entreno igual).
+export { epley, parseLoadKg, parseReps } from "@coach/shared";
+import { epley, parseLoadKg, parseReps } from "@coach/shared";
 
 type W = { id: string; date: string; blocks: RoutineBlock[]; log: WorkoutLog };
 

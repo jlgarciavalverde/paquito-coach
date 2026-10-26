@@ -8,6 +8,8 @@ import { test, type Browser, type Page } from "@playwright/test";
 const SHOTS = process.env.SHOTS_DIR;
 test.skip(!SHOTS, "Solo con SHOTS_DIR");
 test.setTimeout(10 * 60_000);
+// Si un paso no encuentra lo que busca, que falle en segundos y diga cuál (no que se quede esperando 10 minutos).
+test.use({ actionTimeout: 15_000, navigationTimeout: 30_000 });
 
 const COACH = [
   ["hoy", "/coach"],
@@ -93,9 +95,16 @@ for (const view of VIEWS) {
       }
       // El cuaderno de series: el entreno de hoy desde «Empezar».
       await client.goto("/app");
-      await client.getByRole("link", { name: "Empezar" }).or(client.getByRole("button", { name: "Empezar" })).first().click();
+      await client.getByRole("link", { name: /Empezar|Seguir entrenando/ }).first().click();
       await client.waitForURL(/\/app\/entreno\/.+/);
       await shot(client, dir, "c20-cuaderno");
+      // Una serie más pesada que su mejor marca: descanso en marcha y aviso de récord. Solo una vez (la serie queda
+      // guardada en la demo hasta la re-siembra nocturna).
+      if (scheme !== "light" || view.name !== "movil") return;
+      await client.getByLabel("Kilos, serie 1").first().fill("80");
+      await client.getByRole("button", { name: /^Serie 1 hecha/ }).first().click();
+      await client.waitForTimeout(700);
+      await client.screenshot({ path: `${dir}/c21-cuaderno-record.png` });
     });
   }
 }

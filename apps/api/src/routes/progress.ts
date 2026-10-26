@@ -4,7 +4,7 @@ import { z } from "zod";
 import { BodyMetric, BodyMetricInput, DateOnly, LastSets, Ok, ProgressExercise, ProgressPoint } from "@coach/shared";
 import { bodyMetrics, clientProfiles, workouts } from "../db/schema";
 import { notFound } from "../lib/errors";
-import { exerciseSummaries, progressFromWorkouts } from "../lib/progress";
+import { epley, exerciseSummaries, parseLoadKg, parseReps, progressFromWorkouts } from "../lib/progress";
 import { requireActiveClient, requireCoach, type AuthUser } from "../lib/session";
 import type { FastifyRequest } from "fastify";
 import { typed, type Ctx } from "./ctx";
@@ -91,14 +91,24 @@ export function registerProgress(app: FastifyInstance, { db }: Ctx) {
       if (req.query.excludeWorkoutId) where.push(ne(workouts.id, req.query.excludeWorkoutId));
       const rows = await db.select({ date: workouts.date, blocks: workouts.blocks, log: workouts.log }).from(workouts).where(and(...where)).orderBy(desc(workouts.date)).limit(60);
       const out: LastSets = {};
+      // Última vez de cada ejercicio y, de paso, su mejor 1RM estimado en esos entrenos (para avisar de un récord).
       for (const w of rows) {
         for (const b of w.blocks)
           for (const it of b.items) {
-            if (!wanted.has(it.exerciseId) || out[it.exerciseId]) continue;
-            const sets = (w.log[it.id] ?? []).filter((s) => s.done).map((s) => ({ reps: s.reps, load: s.load, rpe: s.rpe }));
-            if (sets.length) out[it.exerciseId] = { date: w.date, sets };
+            if (!wanted.has(it.exerciseId)) continue;
+            const done = (w.log[it.id] ?? []).filter((s) => s.done);
+            let best: number | null = null;
+            for (const s of done) {
+              const kg = parseLoadKg(s.load) ?? parseLoadKg(it.load);
+              const reps = parseReps(s.reps) ?? parseReps(it.reps);
+              const e = kg && reps ? epley(kg, reps) : null;
+              if (e !== null && (best === null || e > best)) best = e;
+            }
+            const prev = out[it.exerciseId];
+            if (!prev) {
+              if (done.length) out[it.exerciseId] = { date: w.date, sets: done.map((s) => ({ reps: s.reps, load: s.load, rpe: s.rpe })), bestE1rm: best };
+            } else if (best !== null && (prev.bestE1rm === null || best > prev.bestE1rm)) prev.bestE1rm = best;
           }
-        if (Object.keys(out).length === wanted.size) break;
       }
       return out;
     },

@@ -1,6 +1,16 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [2.3.0] — 2026-10-26 · Cuaderno de series y errores a la vista (D3 + Q1)
+### Añadido
+- **Cuaderno de series renovado**: objetivo del entrenador y propuesta para la siguiente serie separados y explicados («Propuesta: 6 × 75 kg, como la última vez»); casillas más grandes (el RPE pasa a los ajustes de la serie activa); marcar una serie responde al toque.
+- **Descanso protagonista**: cuenta atrás grande con ±15 s y saltar; se pone en verde y vibra al terminar.
+- **Récord en el momento**: si una serie supera tu mejor 1RM estimado, aparece el aviso con el disco que se carga en la barra (una vez por ejercicio y sesión).
+- **Registro propio de errores** (Admin → Errores): lo que falla en los navegadores y en el servidor, agrupado y sin datos personales; `x-request-id` en cada respuesta y en los logs para seguir un fallo de punta a punta.
+- **Consultas lentas**: `pg_stat_statements` en desarrollo y producción y `pnpm slow-queries` (o `--vps`); aviso en el log de peticiones de más de 500 ms. Depuración local con `.vscode/launch.json` y `pnpm dev:debug`.
+### Pruebas
+- `errors.q1.test.ts` (7), récords y propuestas en `logbook.test.ts`, e2e del registro de errores. API 293, web 77, e2e 47 + demo.
+
 ## [2.2.0] — 2026-10-26 · Diseño: cimientos (tanda D1–D2)
 ### Añadido
 - **Auditoría de diseño** con capturas de todas las pantallas (móvil y escritorio, claro y oscuro) sobre la demo: `SHOTS_DIR=… pnpm e2e:demo`; hallazgos en `docs/diseno-auditoria.md`.

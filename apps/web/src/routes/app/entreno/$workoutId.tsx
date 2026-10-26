@@ -1,4 +1,5 @@
-import { bumpValue, createLogSaver, suggestSet, type SaveState, type Suggestion } from "../../../lib/logbook";
+import { bumpValue, createLogSaver, isRecord, suggestSet, type SaveState, type Suggestion } from "../../../lib/logbook";
+import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -47,6 +48,7 @@ function Logbook({ w }: { w: Workout }) {
   const [log, setLog] = useState<WorkoutLog>(() => Object.fromEntries(items.map((it) => [it.id, w.log[it.id]?.length ? w.log[it.id]! : blankSets(it)])));
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [rest, setRest] = useState<{ until: number; total: number; name: string } | null>(null);
+  const [record, setRecord] = useState<{ name: string; e1rm: number; key: number } | null>(null);
   const [finishOpen, setFinishOpen] = useState(false);
   const last = useQuery(lastSetsQuery(items.map((it) => it.exerciseId), w.id)).data ?? {};
   const [active, setActive] = useState<string | null>(null);
@@ -67,6 +69,7 @@ function Logbook({ w }: { w: Workout }) {
     };
   }, [saver]);
   const endRest = useCallback(() => setRest(null), []);
+  const adjustRest = useCallback((sec: number) => setRest((r) => (r ? { ...r, until: Math.max(Date.now(), r.until + sec * 1000), total: Math.max(r.total, Math.ceil((r.until + sec * 1000 - Date.now()) / 1000)) } : r)), []);
 
   const update = (itemId: string, idx: number, patch: Partial<SetLog>) =>
     setLog((l) => {
@@ -79,7 +82,14 @@ function Logbook({ w }: { w: Workout }) {
     const s = log[it.id]![idx]!;
     if (s.done) return update(it.id, idx, { done: false });
     const sg = suggest(it, idx);
-    update(it.id, idx, { done: true, reps: s.reps || sg.reps, load: s.load || sg.load });
+    const filled = { done: true, reps: s.reps || sg.reps, load: s.load || sg.load };
+    update(it.id, idx, filled);
+    // Récord: se mira con la serie tal como queda (con lo propuesto si no se escribió nada).
+    const e = isRecord(it, log[it.id]!.map((x, i) => (i === idx ? { ...x, ...filled } : x)), idx, last[it.exerciseId]?.bestE1rm);
+    if (e !== null) {
+      setRecord({ name: it.exerciseName, e1rm: e, key: Date.now() });
+      navigator.vibrate?.([30, 60, 30]);
+    }
     if (it.restSec) setRest({ until: Date.now() + it.restSec * 1000, total: it.restSec, name: it.exerciseName });
     // El foco pasa a la siguiente serie pendiente (de este ejercicio o del siguiente).
     const order = items.flatMap((x) => log[x.id]!.map((_, i) => `${x.id}:${i}`));
@@ -97,6 +107,8 @@ function Logbook({ w }: { w: Workout }) {
     }
   };
 
+  // Sin nada tocado todavía, solo la primera serie pendiente de todo el entreno lleva los ajustes abiertos.
+  const firstKey = items.flatMap((x) => log[x.id]!.map((s, i) => (s.done ? null : `${x.id}:${i}`))).find(Boolean) ?? null;
   const doneSets = Object.values(log).flat().filter((s) => s.done).length;
   const totalSets = Object.values(log).flat().length;
 
@@ -113,7 +125,10 @@ function Logbook({ w }: { w: Workout }) {
         </div>
       )}
 
-      <div className="mt-8 flex flex-col gap-8">
+      <p className="mt-6 max-w-[56ch] text-[13.5px] text-ink-2">
+        Los números en gris son la propuesta: pulsa <Check size={13} weight="bold" className="inline align-[-1px]" aria-label="hecha" /> para apuntarla tal cual, o escribe lo que hayas hecho.
+      </p>
+      <div className="mt-6 flex flex-col gap-10">
         {items.map((it) => (
           <ExerciseLog
             key={it.id}
@@ -122,7 +137,7 @@ function Logbook({ w }: { w: Workout }) {
             sets={log[it.id]!}
             last={last[it.exerciseId]}
             suggest={(i) => suggest(it, i)}
-            active={active}
+            active={active ?? firstKey}
             setActive={setActive}
             onChange={(i, p) => update(it.id, i, p)}
             onToggle={(i) => toggleDone(it, i)}
@@ -131,7 +146,8 @@ function Logbook({ w }: { w: Workout }) {
       </div>
 
       <div className="fixed inset-x-0 bottom-14 z-20 border-t border-rule bg-paper sm:bottom-0">
-        {rest && <RestBar rest={rest} onEnd={endRest} />}
+        <AnimatePresence>{record && <RecordMoment key={record.key} record={record} onDone={() => setRecord(null)} />}</AnimatePresence>
+        {rest && <RestBar rest={rest} onEnd={endRest} onAdjust={adjustRest} />}
         <div className="mx-auto flex max-w-[760px] items-center gap-3 px-4 py-3">
           <div className="min-w-0 flex-1">
             <p className="font-narrow text-[17px] leading-none text-ink">
@@ -195,8 +211,11 @@ function ExerciseLog({
       <div className="flex items-baseline gap-3">
         <span className="font-narrow text-[18px] text-primary">{label}</span>
         <div className="min-w-0 flex-1">
-          <h2 className="text-[16px] font-medium text-ink">{it.exerciseName}</h2>
-          <ItemSpec it={it} />
+          <h2 className="text-[17px] font-medium text-ink">{it.exerciseName}</h2>
+          <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2">
+            <span className="text-[12.5px] text-ink-3">Objetivo</span>
+            <ItemSpec it={it} />
+          </div>
           {it.notes && <p className="mt-1 text-sm text-ink-2">{it.notes}</p>}
           {last && (
             <p className="mt-1 text-[13px] text-ink-2">
@@ -204,6 +223,7 @@ function ExerciseLog({
               <span className="font-narrow text-ink">{last.sets.map((s) => `${s.reps || "—"}×${s.load || "—"}`).join("  ")}</span>
             </p>
           )}
+          {firstPending >= 0 && <Proposal sg={suggest(firstPending)} />}
         </div>
       </div>
       <button type="button" onClick={() => setHowOpen((o) => !o)} className="mt-1 ml-8 text-[13.5px] font-medium text-primary hover:underline" aria-expanded={howOpen}>
@@ -239,8 +259,7 @@ function ExerciseLog({
             <th className="w-12 pb-1 text-left font-normal">Serie</th>
             <th className="pb-1 font-normal">Reps</th>
             <th className="pb-1 font-normal">Kg</th>
-            <th className="w-20 pb-1 font-normal">RPE</th>
-            <th className="w-14 pb-1 font-normal">
+            <th className="w-16 pb-1 font-normal">
               <span className="sr-only">Hecha</span>
             </th>
           </tr>
@@ -248,7 +267,7 @@ function ExerciseLog({
         <tbody>
           {sets.map((s, i) => {
             const key = `${it.id}:${i}`;
-            const isActive = active === key || (active === null && i === firstPending);
+            const isActive = active === key;
             const sg = suggest(i);
             return [
               <tr key={key} className={cn(s.done ? "bg-plate-green-soft" : isActive && "bg-primary-soft")} onFocus={() => setActive(key)}>
@@ -259,16 +278,6 @@ function ExerciseLog({
                 <td className="px-1 py-1">
                   <input aria-label={`Kilos, serie ${i + 1}`} inputMode="decimal" className={input} placeholder={sg.load || "—"} value={s.load} onChange={(e) => onChange(i, { load: e.target.value })} />
                 </td>
-                <td className="px-1 py-1">
-                  <select aria-label={`RPE, serie ${i + 1}`} className={cn(input, "px-1")} value={s.rpe ?? ""} onChange={(e) => onChange(i, { rpe: e.target.value ? Number(e.target.value) : null })}>
-                    <option value="">—</option>
-                    {RPE_SCALE.map((r) => (
-                      <option key={r.value} value={r.value}>
-                        {r.value}
-                      </option>
-                    ))}
-                  </select>
-                </td>
                 <td className="py-1 pr-1 text-right">
                   <button
                     type="button"
@@ -276,19 +285,26 @@ function ExerciseLog({
                     onClick={() => onToggle(i)}
                     aria-pressed={s.done}
                     aria-label={`Serie ${i + 1} hecha${!s.done && (sg.reps || sg.load) ? ` (${sg.reps || "—"} × ${sg.load || "—"} kg)` : ""}`}
-                    className={cn("inline-flex size-11 items-center justify-center rounded-[var(--radius-control)] border", s.done ? "border-plate-green bg-plate-green text-paper" : "border-rule-strong text-ink-3 hover:border-plate-green")}
+                    className={cn(
+                      "inline-flex size-12 items-center justify-center rounded-[var(--radius-control)] border transition-colors duration-[var(--duration-quick)]",
+                      s.done ? "border-plate-green bg-plate-green text-paper" : "border-rule-strong text-ink-3 hover:border-plate-green active:bg-plate-green-soft",
+                    )}
                   >
-                    <Check size={20} weight="bold" />
+                    <motion.span key={s.done ? "hecha" : "pendiente"} initial={s.done ? { scale: 0.4, rotate: -12 } : false} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 600, damping: 22 }} className="inline-flex">
+                      <Check size={22} weight="bold" />
+                    </motion.span>
                   </button>
+                  {s.done && s.rpe ? <span className="sr-only">, RPE {s.rpe}</span> : null}
                 </td>
               </tr>,
-              isActive && !s.done ? (
-                <tr key={`${key}-tools`} className="bg-primary-soft">
+              isActive ? (
+                <tr key={`${key}-tools`} className={s.done ? "bg-plate-green-soft" : "bg-primary-soft"}>
                   <td />
-                  <td colSpan={4} className="px-1 pb-2">
-                    <div className="flex flex-wrap gap-1" role="group" aria-label={`Ajustes rápidos de la serie ${i + 1}`}>
-                      {(
-                        [
+                  <td colSpan={3} className="px-1 pb-2">
+                    <div className="flex flex-wrap items-center gap-1" role="group" aria-label={`Ajustes rápidos de la serie ${i + 1}`}>
+                      {!s.done &&
+                        (
+                          [
                           ["−1 rep", "reps", -1],
                           ["+1 rep", "reps", 1],
                           ["−2,5 kg", "load", -2.5],
@@ -298,8 +314,19 @@ function ExerciseLog({
                         <button key={l} type="button" onClick={() => bump(i, f, d)} className="font-narrow h-9 rounded-[var(--radius-control)] border border-rule-strong bg-paper px-2.5 text-[14px] text-ink hover:border-primary">
                           {l}
                         </button>
-                      ))}
-                      {i > 0 && sets[i - 1]!.done && (
+                        ))}
+                      <label className="mr-2 inline-flex items-center gap-1.5 text-[13px] text-ink-2">
+                        RPE
+                        <select aria-label={`RPE, serie ${i + 1}`} className="font-narrow h-9 rounded-[var(--radius-control)] border border-rule-strong bg-paper px-1.5 text-[15px] text-ink" value={s.rpe ?? ""} onChange={(e) => onChange(i, { rpe: e.target.value ? Number(e.target.value) : null })}>
+                          <option value="">—</option>
+                          {RPE_SCALE.map((r) => (
+                            <option key={r.value} value={r.value}>
+                              {r.value}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      {!s.done && i > 0 && sets[i - 1]!.done && (
                         <button type="button" onClick={() => onChange(i, { reps: sets[i - 1]!.reps, load: sets[i - 1]!.load, rpe: sets[i - 1]!.rpe })} className="h-9 rounded-[var(--radius-control)] px-2.5 text-[13.5px] font-medium text-primary hover:underline">
                           Igual que la anterior
                         </button>
@@ -316,8 +343,44 @@ function ExerciseLog({
   );
 }
 
-/** Descanso tras marcar una serie: cuenta atrás con barra, se puede saltar. */
-function RestBar({ rest, onEnd }: { rest: { until: number; total: number; name: string }; onEnd: () => void }) {
+/** De dónde sale la propuesta de la siguiente serie (los números en gris de las casillas). */
+function Proposal({ sg }: { sg: Suggestion }) {
+  if (!sg.reps && !sg.load) return null;
+  const from = sg.from === "prev" ? "igual que la serie anterior" : sg.from === "last" ? "como la última vez" : "lo que marca tu plan";
+  return (
+    <p className="mt-1 text-[13px] text-ink-2">
+      Propuesta: <span className="font-narrow text-ink">{sg.reps || "—"} × {sg.load ? `${sg.load} kg` : "—"}</span>, {from}
+    </p>
+  );
+}
+
+/**
+ * Récord durante el entreno (1RM estimado por encima del mejor anterior): un disco que se carga en la barra y el dato.
+ * Breve (5 s) y una sola vez por ejercicio y sesión; se anuncia a los lectores de pantalla.
+ */
+function RecordMoment({ record, onDone }: { record: { name: string; e1rm: number }; onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 5000);
+    return () => clearTimeout(t);
+  }, [onDone]);
+  return (
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }} transition={{ type: "spring", stiffness: 420, damping: 32 }} className="border-b border-rule bg-plate-yellow">
+      <div className="mx-auto flex max-w-[760px] items-center gap-3 px-4 py-2.5" role="status">
+        <svg viewBox="0 0 64 28" className="h-7 w-16 shrink-0" aria-hidden="true">
+          <rect x="0" y="12.5" width="64" height="3" rx="1.5" fill="var(--ink)" />
+          <rect x="14" y="2" width="5" height="24" rx="1" fill="var(--ink-2)" />
+          <motion.rect initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.15, type: "spring", stiffness: 260, damping: 18 }} x="21" y="0" width="7" height="28" rx="1.5" fill="var(--plate-red)" />
+        </svg>
+        <p className="min-w-0 text-[14.5px] text-ink">
+          <span className="font-medium">Récord en {record.name}.</span> 1RM estimado: <span className="font-narrow text-[17px]">{String(record.e1rm).replace(".", ",")} kg</span>
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
+/** Descanso tras marcar una serie: cuenta atrás grande con barra, ±15 s y saltar. Vibra al terminar. */
+function RestBar({ rest, onEnd, onAdjust }: { rest: { until: number; total: number; name: string }; onEnd: () => void; onAdjust: (sec: number) => void }) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 250);
@@ -331,14 +394,27 @@ function RestBar({ rest, onEnd }: { rest: { until: number; total: number; name: 
       return () => clearTimeout(t);
     }
   }, [left, onEnd]);
+  const small = "font-narrow h-10 rounded-[var(--radius-control)] border border-rule-strong bg-paper px-2.5 text-[14px] text-ink hover:border-primary pointer-coarse:h-11";
   return (
-    <div className="relative border-b border-rule bg-tray">
-      <div className="absolute inset-y-0 left-0 bg-primary-soft transition-[width] duration-200" style={{ width: `${(left / rest.total) * 100}%` }} aria-hidden="true" />
-      <div className="relative mx-auto flex max-w-[760px] items-center gap-3 px-4 py-2" role="timer" aria-live="off">
-        <span className="font-narrow text-[22px] text-ink">{left === 0 ? "¡Siguiente serie!" : fmtRest(left)}</span>
-        <span className="min-w-0 flex-1 truncate text-[13px] text-ink-2">Descanso, {rest.name}</span>
+    <div className={cn("relative border-b border-rule", left === 0 ? "bg-plate-green-soft" : "bg-tray")}>
+      <div className="absolute inset-y-0 left-0 bg-primary-soft transition-[width] duration-200 ease-linear" style={{ width: `${(left / rest.total) * 100}%` }} aria-hidden="true" />
+      <div className="relative mx-auto flex max-w-[760px] items-center gap-3 px-4 py-2.5" role="timer" aria-live="off">
+        <div className="min-w-0 flex-1">
+          <p className="font-narrow text-[34px] leading-none text-ink tabular">{left === 0 ? "¡Siguiente serie!" : fmtRest(left)}</p>
+          <p className="mt-1 truncate text-[13px] text-ink-2">Descanso, {rest.name}</p>
+        </div>
+        {left > 0 && (
+          <>
+            <button type="button" onClick={() => onAdjust(-15)} className={small} aria-label="Quitar 15 segundos">
+              −15 s
+            </button>
+            <button type="button" onClick={() => onAdjust(15)} className={small} aria-label="Añadir 15 segundos">
+              +15 s
+            </button>
+          </>
+        )}
         <button type="button" onClick={onEnd} className="inline-flex size-10 items-center justify-center rounded-[var(--radius-control)] text-ink-2 hover:bg-tray-2 pointer-coarse:size-11" aria-label="Saltar descanso">
-          <X size={16} />
+          <X size={18} />
         </button>
       </div>
     </div>
