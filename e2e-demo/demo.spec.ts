@@ -11,6 +11,15 @@ test("la demo se prueba con un clic y avisa de que es una demo", async ({ browse
   await expect(coach).toHaveURL(/\/coach$/);
   await expect(coach.getByText("Necesitan atención")).toBeVisible();
   await expect(coach.getByText(/Récord en/).first()).toBeVisible();
+  // Nombre de estudio largo («Estudio de demostración»): en el móvil ninguna pantalla desborda en horizontal.
+  const phone = await (await browser.newContext({ locale: "es-ES", viewport: { width: 390, height: 844 }, isMobile: true })).newPage();
+  await phone.goto("/acceso");
+  await phone.getByRole("button", { name: "Entrar como entrenador" }).click();
+  await expect(phone).toHaveURL(/\/coach$/);
+  for (const path of ["/coach", "/coach/clientes", "/coach/calendario", "/coach/ajustes"]) {
+    await phone.goto(path);
+    expect(await phone.evaluate(() => document.documentElement.scrollWidth), path).toBeLessThanOrEqual(390);
+  }
   await expectAccessible(coach, "hoy del entrenador (demo)");
   await coach.goto("/coach/ajustes");
   await coach.getByLabel("Contraseña actual").fill("x");

@@ -4,6 +4,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Check, CaretLeft, X } from "@phosphor-icons/react";
 import { RPE_SCALE, type RoutineItem, type SetLog, type Workout, type WorkoutLog } from "@coach/shared";
+import { Figure } from "../../../components/ui/figure";
 import { Button } from "../../../components/ui/button";
 import { Dialog } from "../../../components/ui/dialog";
 import { TextArea } from "../../../components/ui/field";
@@ -134,7 +135,7 @@ function Logbook({ w }: { w: Workout }) {
         <div className="mx-auto flex max-w-[760px] items-center gap-3 px-4 py-3">
           <div className="min-w-0 flex-1">
             <p className="font-narrow text-[17px] leading-none text-ink">
-              {doneSets} de {totalSets} series
+              <Figure value={doneSets} /> de {totalSets} series
             </p>
             <p className="mt-1 text-[12.5px] text-ink-3" aria-live="polite">
               {saveState === "saving" ? "Guardando…" : saveState === "saved" ? "Guardado" : saveState === "error" ? "No se ha podido guardar. Revisa la conexión." : "Se guarda solo"}

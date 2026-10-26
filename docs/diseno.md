@@ -71,6 +71,7 @@ Radios: 6 px controles y objetos, 12 px bandejas y hojas. Sombra solo en lo que 
 | Aviso de lesión/limitación | `HealthAlert` |
 | Gráfica de evolución | `LineChart` (`components/progress/line-chart.tsx`): tokens `--chart-1/--chart-2` validados con la skill dataviz, un solo eje, marcador círculo/cuadrado, tabla alternativa |
 | Cargando | `Skeleton`, `Spinner` |
+| Cifra que cambia (contadores, cargas, kcal, cobros) | `Figure` (`components/ui/figure.tsx`): sube o baja con un muelle corto; texto normal (accesible) |
 | Confirmación breve | `useToast()` |
 
 ## Maquetación
@@ -79,3 +80,11 @@ Radios: 6 px controles y objetos, 12 px bandejas y hojas. Sombra solo en lo que 
 - Cliente: una columna de 680 px; barra inferior en móvil, pestañas arriba en escritorio.
 - Alineación a la izquierda siempre; líneas de texto < 75 caracteres.
 - Capturas de verificación: móvil 390×844 y escritorio 1360×860, claro y oscuro.
+
+## Movimiento y transiciones (tanda D, 2.2.0)
+- Tokens: `--duration-quick` 120 ms, `--duration-base` 200 ms, `--duration-slow` 320 ms; curvas `--ease-out-soft` y `--ease-in-out-soft`. Solo movimiento que responde a una acción.
+- `MotionConfig reducedMotion="user"` en la raíz: con «reducir movimiento» del sistema, Motion deja solo opacidad.
+- **Cambio de pantalla**: View Transitions del navegador (fundido + 6 px), solo cuando cambia la ruta: nunca al cargar o recargar (la pantalla quedaba un instante con estado viejo y un toque se perdía) ni al cambiar filtros. `::view-transition { pointer-events: none }`.
+- **Hojas**: `SidePanel` es lateral en escritorio y **hoja inferior** (Vaul) por debajo de 640 px, con asa y cierre arrastrando. Dentro de diálogos y hojas, los hijos de las rejillas encogen (`[&_.grid>*]:min-w-0`).
+- Titulares con `text-wrap: balance`; párrafos y listas con `pretty`.
+- No usar NumberFlow ni bibliotecas que pinten texto en shadow DOM: el número deja de ser texto de la página (lectores de pantalla y pruebas).

@@ -1,4 +1,5 @@
 import { StrictMode } from "react";
+import { MotionConfig } from "motion/react";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
@@ -33,6 +34,10 @@ const router = createRouter({
   defaultPreload: "intent",
   defaultPreloadStaleTime: 0,
   scrollRestoration: true,
+  // Paso de una pantalla a otra con un fundido corto del navegador (View Transitions); sin soporte o con movimiento
+  // reducido, cambio directo (ver `::view-transition` en styles.css). Solo al cambiar de pantalla: ni al cargar o recargar
+  // (la pantalla quedaría un instante con el estado viejo y un toque se perdería) ni al cambiar filtros de la dirección.
+  defaultViewTransition: { types: ({ fromLocation, pathChanged }) => (fromLocation && pathChanged ? ["pantalla"] : false) },
 });
 
 // Sesión caducada o cerrada desde otro dispositivo en mitad del uso: fuera la caché y a la pantalla de entrar.
@@ -54,11 +59,14 @@ declare module "@tanstack/react-router" {
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <ConfirmProvider>
-          <RouterProvider router={router} />
-        </ConfirmProvider>
-      </ToastProvider>
+      {/* Con «reducir movimiento» del sistema, Motion quita desplazamientos y escalas y deja solo opacidad. */}
+      <MotionConfig reducedMotion="user">
+        <ToastProvider>
+          <ConfirmProvider>
+            <RouterProvider router={router} />
+          </ConfirmProvider>
+        </ToastProvider>
+      </MotionConfig>
     </QueryClientProvider>
   </StrictMode>,
 );

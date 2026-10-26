@@ -73,7 +73,7 @@ export function CoachShell({ children }: { children: ReactNode }) {
     <div className="min-h-dvh">
       <header className="sticky top-0 z-30 border-b border-rule bg-paper/95 backdrop-blur-sm">
         <div className="mx-auto flex h-14 max-w-[1280px] items-center gap-8 px-4 sm:px-6">
-          <Link to="/coach" className="shrink-0" aria-label="Ir a Hoy">
+          <Link to="/coach" className="min-w-0 shrink" aria-label="Ir a Hoy">
             <Brand />
           </Link>
           <nav className="hidden h-full items-stretch gap-6 md:flex" aria-label="Principal">
@@ -113,7 +113,7 @@ export function CoachShell({ children }: { children: ReactNode }) {
             </button>
             <Link to="/coach/ajustes" className="hidden items-center gap-2 rounded-[var(--radius-control)] py-1 pr-2 pl-1 text-sm text-ink-2 hover:bg-tray hover:text-ink sm:flex" aria-label="Ajustes de la cuenta">
               <Monogram name={me.name} size={28} />
-              <span className="max-w-[16ch] truncate">{me.studio.name}</span>
+              <span className="max-w-[16ch] truncate">{me.name}</span>
             </Link>
             <Link to="/coach/ajustes" className="rounded-[var(--radius-control)] p-2 text-ink-2 hover:bg-tray sm:hidden" aria-label="Ajustes">
               <GearSix size={20} />

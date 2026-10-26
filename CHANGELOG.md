@@ -1,6 +1,19 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [2.2.0] — 2026-10-26 · Diseño: cimientos (tanda D1–D2)
+### Añadido
+- **Auditoría de diseño** con capturas de todas las pantallas (móvil y escritorio, claro y oscuro) sobre la demo: `SHOTS_DIR=… pnpm e2e:demo`; hallazgos en `docs/diseno-auditoria.md`.
+- **Hojas inferiores en el móvil** (se cierran arrastrando) en lugar de pantallas completas.
+- **Transiciones entre pantallas** (fundido corto del navegador) y **cifras que se animan** al cambiar (series hechas en el cuaderno).
+- Tokens de movimiento, «reducir movimiento» del sistema respetado en toda la app, titulares y párrafos mejor partidos.
+### Corregido
+- Con un nombre de estudio largo, la cabecera del entrenador desbordaba en el móvil en todas las pantallas.
+- El menú de cuenta del entrenador mostraba el nombre del estudio en vez del suyo.
+- Formulario de cita: fecha, hora y duración ya no se salen de la hoja en el móvil.
+### Pruebas
+- La demo comprueba que ninguna pantalla desborda con un nombre largo. API 286, web 74, e2e 47 + demo.
+
 ## [2.1.0] — 2026-10-26 · Cada entrenador cobra en su cuenta (S2a)
 ### Añadido
 - **Stripe Connect Express** (ADR 0019): en Ajustes → Cobros, «Activar cobros con tarjeta» lleva al alta de Stripe (datos e IBAN) y el dinero llega directo a la cuenta del entrenador; «Abrir mi panel de Stripe» para ver pagos y transferencias. Sin comisión de la plataforma.

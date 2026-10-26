@@ -30,9 +30,10 @@ export function Brand({ className, name: own }: { className?: string; name?: str
   const fallback = useBrandName();
   const name = own ?? fallback;
   return (
-    <span className={cn("inline-flex items-center gap-2", className)}>
-      <BarbellMark />
-      <span className="font-wide text-[17px] leading-none text-ink">{name}</span>
+    <span className={cn("inline-flex min-w-0 items-center gap-2", className)} title={name}>
+      <BarbellMark className="shrink-0" />
+      {/* Nombres largos de estudio: se recortan con «…» antes que empujar la cabecera fuera de la pantalla. */}
+      <span className="min-w-0 truncate py-0.5 font-wide text-[17px] leading-none text-ink">{name}</span>
     </span>
   );
 }

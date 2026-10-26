@@ -118,6 +118,11 @@
   --radius-zone: 12px;
   --shadow-float: var(--float-shadow);
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Movimiento (tanda D): solo responde a una acción. Corto para lo pequeño, algo más para lo que entra o sale de pantalla. */
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-quick: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
 }
 
 @layer base {
@@ -175,5 +180,41 @@
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Tanda D: tipografía y transiciones ── */
+@layer base {
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+  p, li, dd {
+    text-wrap: pretty;
+  }
+}
+
+/*
+ * Cambio de pantalla: fundido corto y un leve desplazamiento hacia arriba de lo que entra. Los toques atraviesan la capa
+ * de la transición: un toque rápido justo al llegar tiene que llegar al botón, no perderse en la animación.
+ */
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-old(root) {
+  animation: var(--duration-quick) ease-out both vt-out;
+}
+::view-transition-new(root) {
+  animation: var(--duration-base) var(--ease-out-soft) both vt-in;
+}
+@keyframes vt-out {
+  to { opacity: 0; }
+}
+@keyframes vt-in {
+  from { opacity: 0; transform: translateY(6px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
   }
 }

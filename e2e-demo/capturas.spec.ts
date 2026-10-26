@@ -79,6 +79,12 @@ for (const view of VIEWS) {
       await coach.goto("/coach/entrenos");
       await coach.locator('a[href^="/coach/entrenos/"]').first().click();
       await shot(coach, dir, "e21-rutina");
+      // Una hoja abierta (lateral en escritorio, inferior en el móvil): nueva cita desde la agenda.
+      await coach.goto("/coach/calendario");
+      await coach.getByRole("button", { name: "Nueva cita" }).first().click();
+      await coach.getByRole("dialog").waitFor();
+      await coach.waitForTimeout(400);
+      await coach.screenshot({ path: `${dir}/e22-hoja.png` });
 
       const client = await session(browser, "clienta", view, scheme);
       for (const [i, [name, path]] of CLIENT.entries()) {

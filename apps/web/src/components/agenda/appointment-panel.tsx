@@ -102,10 +102,10 @@ export function AppointmentPanel({ appointment, draft, onClose }: { appointment?
           </Select>
           <TextField label="Título" aside="opcional" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder={f.clientId ? "" : "Formación, reunión…"} />
         </div>
-        <div className="grid grid-cols-[1fr_auto_auto] gap-3">
-          <TextField label="Día" type="date" value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} />
-          <TextField label="Hora" type="time" step={300} value={f.time} onChange={(e) => setF({ ...f, time: e.target.value })} className="w-32" />
-          <Select label="Duración" value={f.duration} onChange={(e) => setF({ ...f, duration: Number(e.target.value) })} className="w-28">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-[minmax(0,1fr)_8rem_7rem]">
+          <TextField label="Día" type="date" value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} className="col-span-2 sm:col-span-1" />
+          <TextField label="Hora" type="time" step={300} value={f.time} onChange={(e) => setF({ ...f, time: e.target.value })} />
+          <Select label="Duración" value={f.duration} onChange={(e) => setF({ ...f, duration: Number(e.target.value) })}>
             {durations.map((d) => (
               <option key={d} value={d}>
                 {d} min
