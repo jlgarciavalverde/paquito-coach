@@ -1,6 +1,14 @@
 # Changelog
 Formato [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/), versiones [SemVer](https://semver.org/lang/es/).
 
+## [Sin publicar] — 2026-10-28 · Documentación y licencia
+### Cambiado
+- **Licencia propietaria** (todos los derechos reservados) en lugar de MIT. Las versiones anteriores siguen siendo MIT.
+- `docs/arquitectura.md` al día: plataforma con varios estudios, Stripe en dos niveles, modelo de datos completo (42 tablas) y tiempo real.
+### Añadido
+- `docs/requisitos.md` (actores, requisitos funcionales y no funcionales) y `docs/flujos.md` (alta, cuaderno de series, reserva con pago, IA, estudio en pausa).
+- Capturas nuevas de la demo en el README.
+
 ## [2.3.0] — 2026-10-26 · Cuaderno de series y errores a la vista (D3 + Q1)
 ### Añadido
 - **Cuaderno de series renovado**: objetivo del entrenador y propuesta para la siguiente serie separados y explicados («Propuesta: 6 × 75 kg, como la última vez»); casillas más grandes (el RPE pasa a los ajustes de la serie activa); marcar una serie responde al toque.
