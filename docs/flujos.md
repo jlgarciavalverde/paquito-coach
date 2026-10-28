@@ -1,5 +1,7 @@
 # Flujos principales
 
+[← Documentación](README.md) · [README del proyecto](../README.md)
+
 Complementa [arquitectura.md](arquitectura.md), donde están la petición autenticada, el ciclo de alta de clientes y el chat en tiempo real.
 
 ## Del alta del estudio al primer cliente

@@ -1,5 +1,7 @@
 # Estado del proyecto
 
+[← Documentación](README.md) · [README del proyecto](../README.md)
+
 > Registro vivo. Lo primero que lee cualquier agente; lo último que actualiza al cerrar una sesión.
 > Formato: fecha · quién (modelo/herramienta) · qué. Lo más reciente arriba.
 

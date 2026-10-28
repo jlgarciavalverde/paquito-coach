@@ -1,5 +1,7 @@
 # Operaciones
 
+[← Documentación](README.md) · [README del proyecto](../README.md)
+
 ## Primera instalación en el VPS (una vez)
 En una terminal normal del Mac: `ssh-add --apple-use-keychain ~/.ssh/id_ed25519`. Después, en el VPS:
 ```sh

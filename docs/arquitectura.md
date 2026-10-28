@@ -1,5 +1,7 @@
 # Arquitectura
 
+[← Documentación](README.md) · [README del proyecto](../README.md)
+
 ## Sistema
 ```mermaid
 flowchart LR

@@ -1,5 +1,7 @@
 # Sistema de diseño — «hoja de entrenamiento clínica»
 
+[← Documentación](README.md) · [README del proyecto](../README.md)
+
 Referencia viva: **`/galeria`** (todas las piezas, en claro y oscuro).
 
 ## De dónde sale

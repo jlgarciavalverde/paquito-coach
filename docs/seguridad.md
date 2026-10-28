@@ -1,5 +1,7 @@
 # Seguridad
 
+[← Documentación](README.md) · [README del proyecto](../README.md)
+
 | Amenaza | Medida | Dónde | Test |
 |---|---|---|---|
 | Robo de sesión por XSS | Token opaco en cookie `HttpOnly`, `Secure`, `SameSite=Lax`, prefijo `__Host-` en producción; nada en `localStorage`. CSP `script-src 'self'` sin inline | `lib/session.ts`, `app.ts` | `auth.test.ts` «login, /me, logout» |

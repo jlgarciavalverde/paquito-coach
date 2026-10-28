@@ -1,5 +1,7 @@
 # Requisitos
 
+[← Documentación](README.md) · [README del proyecto](../README.md)
+
 Resumen de lo que la plataforma debe hacer y con qué garantías. El detalle del producto está en [`producto/mvp.md`](producto/mvp.md), la comparación con Harbiz en [`producto/harbiz-auditoria.md`](producto/harbiz-auditoria.md) y el porqué de cada decisión en [`adr/`](adr/).
 
 ## Actores

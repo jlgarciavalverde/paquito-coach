@@ -7,108 +7,82 @@
 ![React 19](https://img.shields.io/badge/react-19-61DAFB?logo=react&logoColor=black)
 ![Postgres 17](https://img.shields.io/badge/postgres-17-4169E1?logo=postgresql&logoColor=white)
 
-Plataforma web para entrenadores de fuerza y readaptación y sus clientes, nacida para Paquito e
-inspirada en Harbiz: alta y vínculo de clientes, rutinas y programas, cuaderno de series, plan de
-comidas, agenda y reservas, bonos y cobros, check-ins, salud, chat e IA. Desde la 2.0 es **SaaS**:
-cada entrenador tiene su estudio, con su página pública y su cuenta de Stripe. Con **demo pública**
-de un clic para probarla sin cuenta.
+**Plataforma SaaS para entrenadores personales de fuerza y readaptación y sus clientes.** Nació para Paquito (entrenador CAFYD) como alternativa a Harbiz y desde la 2.0 la puede usar cualquier entrenador: cada uno tiene su estudio, su página pública y su propia cuenta de Stripe.
+
+**[Pruébala en la demo pública →](https://demo-paquito.redgarverde.com)** (un clic, datos inventados que se vuelven a sembrar cada noche)
 
 ![El día a día del entrenador: citas, entrenos pendientes y alertas](docs/capturas/coach-hoy.png)
 
 ## Dos vistas, una sola app
 
-**Escritorio, para el entrenador** — panel del día (citas, entrenos por revisar, solicitudes),
-ficha completa por clienta (entreno, progreso, check-ins, salud, nutrición, agenda y chat),
-biblioteca de rutinas y programas de varias semanas, agenda semanal arrastrable y asistente de IA:
+**Para el entrenador (escritorio)**: panel del día, ficha completa de cada cliente, biblioteca de rutinas y programas, agenda arrastrable y asistente de IA.
 
-| Clientes | Ficha de clienta | Agenda | Entrenos |
+| Clientes | Ficha | Agenda | Entrenos |
 |---|---|---|---|
 | ![Clientes](docs/capturas/coach-clientes.png) | ![Ficha](docs/capturas/coach-ficha.png) | ![Agenda](docs/capturas/coach-calendario.png) | ![Entrenos](docs/capturas/coach-entrenos.png) |
 
-| Planes de comida | Acceso a la demo (un clic) |
-|---|---|
-| ![Nutrición](docs/capturas/coach-nutricion.png) | ![Acceso a la demo](docs/capturas/demo-acceso.png) |
-
-**Móvil, para la clienta** — su entreno de hoy, próximas citas, comidas, check-ins y chat con el
-entrenador, con avisos push:
+**Para el cliente (móvil)**: su entreno de hoy con cuaderno de series, citas, comidas, progreso, check-ins y chat con avisos push.
 
 | Hoy | Entreno (oscuro) | Progreso |
 |---|---|---|
-| ![Hoy de la clienta](docs/capturas/clienta-hoy.png) | ![Entrenos en tema oscuro](docs/capturas/clienta-entrenos-oscuro.png) | ![Progreso](docs/capturas/clienta-progreso.png) |
+| ![Hoy del cliente](docs/capturas/clienta-hoy.png) | ![Entrenos en tema oscuro](docs/capturas/clienta-entrenos-oscuro.png) | ![Progreso](docs/capturas/clienta-progreso.png) |
 
-**Asistente de IA** sobre los documentos del entrenador (tema oscuro):
+<details>
+<summary><b>Más capturas</b> (nutrición, IA y acceso a la demo)</summary>
+
+| Planes de comida | Acceso a la demo |
+|---|---|
+| ![Nutrición](docs/capturas/coach-nutricion.png) | ![Acceso a la demo](docs/capturas/demo-acceso.png) |
 
 ![Asistente de IA](docs/capturas/coach-ia-oscuro.png)
 
-*Capturas reales de la instancia demo (datos inventados que se re-siembran cada noche).*
+</details>
 
 ## Qué incluye
 
-- **Clientes**: alta por invitación, ficha con lesiones y objetivos, medidas y fotos de progreso,
-  check-ins periódicos con alertas, cuaderno de seguimiento.
-- **Entrenamiento**: rutinas con progresión de cargas, programas de varias semanas, semana de
-  entrenos por clienta, récords y material descargable para la clienta.
-- **Nutrición**: plan de comidas por clienta con intercambios.
-- **Agenda**: citas y sesiones con bonos de sesiones, reserva y pago online (Stripe), asistencia.
-- **Comunicación**: chat privado en tiempo real con fotos y avisos push (Web Push).
-- **Seguridad de verdad**: sesiones con cookie `__Host`, 2FA (TOTP), verificación de correo,
-  acceso por defecto denegado, aislamiento total por estudio, auditoría de acciones sensibles y
-  RGPD (exportación y borrado de datos).
-- **IA**: generación de rutinas a partir de los documentos del entrenador (Gemini, en el servidor,
-  nunca en el navegador de la clienta).
-- **Plataforma (SaaS)**: alta pública con prueba de 14 días, planes por número de clientes,
-  página propia por estudio (`/e/<slug>` o dominio propio) y cobros con Stripe Connect Express
-  en la cuenta de cada entrenador, sin comisión.
-- **Demo pública**: instancia aparte con datos de ejemplo, entrada con un clic y re-siembra
-  nocturna.
+| Área | Funciones |
+|---|---|
+| 👥 **Clientes** | Alta por invitación, por código del estudio o como ficha sin cuenta. Ficha con lesiones y objetivos, y panel «Hoy» con quién necesita atención. |
+| 🏋️ **Entrenamiento** | Biblioteca de ejercicios, rutinas y programas de varias semanas, cuaderno de series con descanso y récord en el momento, 1RM estimado. |
+| 🥗 **Nutrición** | Plan de comidas por cliente, con intercambios y comidas marcadas. |
+| 📅 **Agenda y cobros** | Agenda semanal, reservas, bonos de sesiones y cobros con Stripe (bonos, cuotas, pago al reservar y enlaces). Cada estudio cobra en su cuenta de Stripe Connect. |
+| 📈 **Seguimiento y salud** | Check-ins con formularios propios, fotos y métricas de progreso, PAR-Q+ con alertas e informes. |
+| 💬 **Comunicación** | Chat en tiempo real con fotos, avisos push, recordatorios y correo transaccional. |
+| 🤖 **IA** | Rutinas, programas y planes de comidas propuestos a partir de los documentos del entrenador (Gemini, datos del cliente seudonimizados). El entrenador revisa antes de guardar. |
+| 🏢 **Plataforma** | Alta pública con prueba de 14 días, planes por número de clientes, página por estudio (`/e/<slug>` o dominio propio) y panel de administración. |
+| 🔐 **Seguridad y RGPD** | Acceso denegado por defecto, aislamiento por estudio, 2FA, auditoría, exportación y borrado de datos. |
 
-## Cómo está hecho
+## Cómo funciona
 
 ```mermaid
 flowchart LR
-    subgraph Web["apps/web — React 19 + Vite + TanStack Router/Query + Tailwind v4"]
-        Coach["Vista entrenador<br/>/coach/*"] 
-        Cliente["Vista clienta<br/>/app/*"]
-    end
-    subgraph API["apps/api — Fastify 5 + Zod + Drizzle"]
-        Auth["Sesiones cookie + 2FA<br/>scrypt · CSRF · rate-limit"]
-        Rutas["Rutas por módulo<br/>(autorización explícita)"]
-        IA2["Asistente IA (Gemini)"]
-        WS["Chat en tiempo real<br/>(WebSocket)"]
-    end
-    DB[("Postgres 17<br/>aislamiento por studio_id")]
-    Stripe["Stripe Checkout<br/>+ webhook firmado"]
-    Brevo["Brevo SMTP<br/>correo transaccional"]
-    Web --> API
-    Coach --> Rutas
-    Cliente --> Rutas
-    Auth --> DB
-    Rutas --> DB
-    IA2 --> DB
-    WS --> DB
-    Rutas --> Stripe
-    Rutas --> Brevo
-    subgraph Demo["Demo pública (DEMO_MODE)"]
-        DDB[("coach_demo<br/>re-siembra nocturna")]
-    end
-    API -.-> DDB
+  subgraph web["apps/web · React 19 + Vite"]
+    coach["/coach/* entrenador"]
+    cliente["/app/* cliente"]
+  end
+  subgraph api["apps/api · Fastify 5 + Zod + Drizzle"]
+    rutas["Rutas por módulo<br/>acceso denegado por defecto"]
+    ws["Tiempo real /ws"]
+    ia["IA (Gemini)"]
+  end
+  shared["packages/shared<br/>esquemas Zod"] -.-> web & api
+  web --> api
+  api --> db[("Postgres 17<br/>studio_id en todo")]
+  api --> stripe["Stripe Billing + Connect"]
+  api --> mail["Correo (Brevo)"]
 ```
 
-- **Contrato compartido**: los esquemas Zod viven en `packages/shared` y los usan la API (valida
-  entrada/salida) y la web (tipos) — nada de tipos duplicados.
-- **Tests**: Vitest contra Postgres real (API y web) y Playwright + axe contra la build de
-  producción, e2e incluidos de la demo.
-- **Despliegue**: imagen Docker amd64 construida en el Mac, subida por SSH al VPS y vuelta atrás
-  automática si `/health` no responde (`node tools/deploy.mjs X.Y.Z`); detrás de Cloudflare Tunnel.
+Un solo contenedor sirve la API y la web, y Postgres solo es accesible desde una red interna. La demo es otra instancia con su propia base de datos. Detalle en [arquitectura](docs/arquitectura.md).
 
-## Documentación
+| Capa | Tecnología |
+|---|---|
+| Web | React 19, Vite 8, TanStack Router y Query, Tailwind 4, Radix, Motion |
+| API | Fastify 5, `fastify-type-provider-zod`, Zod 4, Drizzle ORM, Postgres 17 |
+| Contrato | `packages/shared`: los mismos esquemas Zod validan en la API y tipan la web |
+| Tests | Vitest contra Postgres real (293 de API, 77 de web) y Playwright + axe sobre la build de producción (47 e2e + demo) |
+| Despliegue | Docker en un VPS casero, detrás de Cloudflare Tunnel, con vuelta atrás automática ([homelab](https://github.com/jlgarciavalverde/homelab)) |
 
-- **Estado y siguiente paso**: [`docs/ESTADO.md`](docs/ESTADO.md)
-- **Qué incluye el MVP** (para Paquito): [`docs/producto/mvp.md`](docs/producto/mvp.md)
-- **Cómo trabajar en el código** (humanos y agentes): [`AGENTS.md`](AGENTS.md)
-- Arquitectura: [`docs/arquitectura.md`](docs/arquitectura.md) · Requisitos: [`docs/requisitos.md`](docs/requisitos.md) · Flujos: [`docs/flujos.md`](docs/flujos.md) · API: [`docs/api/`](docs/api/README.md) · Seguridad: [`docs/seguridad.md`](docs/seguridad.md) · Operaciones: [`docs/OPERACIONES.md`](docs/OPERACIONES.md) · Diseño: [`docs/diseno.md`](docs/diseno.md) · Decisiones: [`docs/adr/`](docs/adr/)
-
-## Arrancar en local
+## Empezar
 
 ```sh
 export PATH="/opt/homebrew/opt/node@22/bin:$PATH"
@@ -116,10 +90,36 @@ pnpm install && pnpm db:up && cp .env.example .env && echo SETUP_CODE=dev >> .en
 pnpm dev:api & pnpm dev:web     # http://localhost:5173
 ```
 
-Verificación completa antes de dar algo por hecho: `pnpm typecheck && pnpm test && pnpm build && pnpm e2e`.
+| Comando | Qué hace |
+|---|---|
+| `pnpm typecheck && pnpm test` | Tipos + tests de API y web |
+| `pnpm build && pnpm e2e` | e2e contra la build de producción |
+| `pnpm openapi` | Regenera `docs/api/openapi.json` |
+| `node tools/deploy.mjs X.Y.Z` | Despliegue de producción y demo ([operaciones](docs/OPERACIONES.md)) |
+
+## Estructura
+
+```
+apps/api/src     app.ts, db/schema.ts (única definición de tablas), lib/ (sesión, acceso, Stripe, IA…), routes/
+apps/web/src     routes/ (/coach, /app, públicas), components/ui (sistema de diseño), lib/
+packages/shared  esquemas Zod y tipos compartidos
+e2e/ · e2e-demo/ Playwright
+deploy/ · tools/ producción, despliegue, copias y vigilancia
+docs/            documentación y ADR
+```
+
+## Documentación
+
+Índice completo en [docs/](docs/README.md).
+
+| Para… | Lee |
+|---|---|
+| Entender el producto | [Requisitos](docs/requisitos.md) · [Flujos](docs/flujos.md) · [MVP](docs/producto/mvp.md) · [Comparación con Harbiz](docs/producto/harbiz-auditoria.md) |
+| Entender cómo está hecho | [Arquitectura](docs/arquitectura.md) · [Seguridad](docs/seguridad.md) · [API](docs/api/README.md) · [Decisiones (ADR)](docs/adr/) |
+| Diseño visual | [Sistema de diseño](docs/diseno.md) |
+| Operar | [Operaciones](docs/OPERACIONES.md) · [Estado](docs/ESTADO.md) · [CHANGELOG](CHANGELOG.md) |
+| Programar en el repo | [AGENTS.md](AGENTS.md) |
 
 ## Licencia
 
-Todos los derechos reservados desde la 2.3.0: el código se puede consultar, pero no usar, copiar
-ni desplegar sin permiso. Ver [LICENSE](LICENSE). Las versiones publicadas antes de este cambio
-se distribuyeron con licencia MIT y conservan esa licencia.
+Todos los derechos reservados desde la 2.3.0: el código se puede consultar, pero no usar, copiar ni desplegar sin permiso. Ver [LICENSE](LICENSE). Las versiones publicadas antes de este cambio se distribuyeron con licencia MIT y conservan esa licencia.

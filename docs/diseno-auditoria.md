@@ -1,5 +1,7 @@
 # Auditoría de diseño (tanda D, 2026-10-26)
 
+[← Documentación](README.md) · [README del proyecto](../README.md)
+
 Capturas con `SHOTS_DIR=/ruta pnpm e2e:demo` (`e2e-demo/capturas.spec.ts`): 28 pantallas × móvil/escritorio × claro/oscuro
 sobre la semilla de la demo. Revisadas a mano hasta ahora: Hoy (cliente y entrenador), cuaderno de series (oscuro),
 Progreso, Comidas, ficha de cliente, editor de rutina, agenda. El resto queda para la pasada con Impeccable `/audit` y
