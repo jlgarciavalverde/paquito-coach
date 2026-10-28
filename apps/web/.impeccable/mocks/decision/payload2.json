@@ -1,0 +1,55 @@
+{
+  "title": "Elige el mundo visual de la 3.0 (segunda tirada)",
+  "question": "A partir de tus referencias (Whoop/Apple Fitness, Linear/Vercel, Nike/Strava). Abre cada boceto en grande con el botón de ampliar: la tarjeta lo dibuja como esqueleto.",
+  "options": [
+    {
+      "id": "pulso",
+      "kind": "grounded",
+      "label": "Pulso",
+      "lineage": "Whoop y Apple Fitness con el acabado de Linear",
+      "thesis": "La constancia de cada cliente se ve como anillos vivos: entreno, comidas y check-in de un vistazo.",
+      "palette": ["#0A0C11", "#11141B", "#ECEEF3", "#B6F23F", "#FF5D72", "#41C9F2"],
+      "materials": ["grafito profundo", "anillos de color vivo", "cifras condensadas grandes", "bordes de 1 px"],
+      "viewport": "Barra lateral; «Hoy» con un titular grande, una fila de anillos por cliente, el volumen del estudio con su curva, y a la derecha la cola de atención y la agenda con la cita en curso resaltada.",
+      "risk": "Los anillos recuerdan a Apple; si se ponen en todas partes se vuelven un adorno.",
+      "html": ".impeccable/mocks/decision/pulso.html"
+    },
+    {
+      "id": "precision",
+      "kind": "grounded",
+      "label": "Precisión",
+      "lineage": "Linear, Vercel y Arc",
+      "thesis": "Una bandeja de revisión rapidísima: el entrenador despacha entrenos, check-ins y avisos con el teclado.",
+      "palette": ["#F7F7F8", "#FFFFFF", "#16171B", "#4F5BD5", "#D93F3F", "#2F9E5B"],
+      "materials": ["grises precisos", "bordes finísimos", "profundidad sutil", "atajos visibles"],
+      "viewport": "Tres columnas: navegación con clientes fijados, la bandeja de lo pendiente y el detalle de lo previsto frente a lo hecho, con «Marcar revisado (E)».",
+      "risk": "Es el aspecto que copian muchas herramientas de software; para el cliente en el móvil puede resultar sobrio.",
+      "html": ".impeccable/mocks/decision/precision.html"
+    },
+    {
+      "id": "atleta",
+      "kind": "grounded",
+      "label": "Atleta",
+      "lineage": "Nike Training Club y Strava",
+      "thesis": "Energía de deporte: titulares condensados enormes, récords celebrados y un registro semanal tipo Strava.",
+      "palette": ["#F2F2EF", "#0B0B0C", "#D63C05", "#DFFF3A", "#FFFFFF"],
+      "materials": ["condensada en mayúsculas", "negro y naranja", "verde lima para lo de hoy"],
+      "viewport": "Barra superior negra; un titular enorme del día con cifras de la semana; el registro con círculos por cliente y día, y a la derecha la tarjeta de récord nuevo, la atención y la agenda.",
+      "risk": "Ruidoso para datos de salud si no se dosifica; muy reconocible como «Nike».",
+      "html": ".impeccable/mocks/decision/atleta.html"
+    }
+  ],
+  "reroll": {"registers": ["safer", "bolder"]},
+  "canon": true,
+  "canonCard": {
+    "kind": "canon",
+    "label": "El estándar de la categoría",
+    "thesis": "Harbiz, Trainerize y TrueCoach, ejecutados con todo el cuidado.",
+    "palette": ["#FFFFFF", "#F4F5F7", "#111827", "#2563EB"],
+    "materials": ["barra lateral", "tarjetas limpias", "grotesca neutra"],
+    "viewport": "Barra lateral, tarjetas de resumen arriba y listas debajo.",
+    "risk": "Indistinguible de la competencia, por diseño.",
+    "html": ".impeccable/mocks/decision/canon.html"
+  },
+  "steer": true
+}

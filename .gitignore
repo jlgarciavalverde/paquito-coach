@@ -14,3 +14,4 @@ e2e/.data/
 .tmp-prod/
 .test-data/
 .claude/settings.local.json
+apps/web/.impeccable/hook.cache.json

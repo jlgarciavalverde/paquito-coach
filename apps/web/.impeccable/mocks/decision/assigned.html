@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{width:1440px;height:900px;overflow:hidden;background:#EEF1F3;color:#172033;font:15px/1.5 "Schibsted Grotesk",sans-serif;display:grid;grid-template-columns:232px 1fr}
+.num{font-family:"Barlow Semi Condensed",sans-serif;font-variant-numeric:tabular-nums}
+nav{background:#172033;color:#C9D3E3;padding:24px 16px;display:flex;flex-direction:column;gap:4px}
+nav .brand{color:#fff;font-weight:700;font-size:17px;margin-bottom:28px;display:flex;gap:10px;align-items:center}
+nav .brand i{width:22px;height:22px;border-radius:6px;background:#C2413A;display:block}
+nav a{padding:9px 12px;border-radius:8px;display:flex;justify-content:space-between}
+nav a.on{background:#25304A;color:#fff}
+nav a b{background:#C2413A;color:#fff;border-radius:10px;padding:0 7px;font-size:12px}
+main{padding:28px 36px;display:grid;grid-template-columns:1fr 360px;gap:28px}
+header{grid-column:1/-1;display:flex;align-items:end;justify-content:space-between;border-bottom:1px solid #C9D1D8;padding-bottom:18px}
+h1{font-size:34px;letter-spacing:-.02em;font-weight:700}
+.sub{color:#56637A}
+.btn{background:#2F5DA8;color:#fff;border-radius:8px;padding:9px 16px;font-weight:600}
+.btn.q{background:#fff;color:#172033;border:1px solid #C9D1D8}
+.plate{background:#F8F9FA;border:1px solid #D5DCE2;border-radius:14px;padding:22px;display:grid;grid-template-columns:1fr 1fr 220px;gap:8px;position:relative}
+.plate h2,.side h2{font-size:17px;font-weight:600;margin-bottom:8px}
+.lbl{position:absolute;font-size:13px;color:#172033;display:flex;align-items:center;gap:8px}
+.lbl:before{content:"";width:64px;height:1px;background:#172033}
+.lbl.r{color:#C2413A}.lbl.r:before{background:#C2413A}
+.leg{font-size:13px;color:#56637A;display:flex;flex-direction:column;gap:10px}
+.leg span{display:flex;gap:8px;align-items:center}.leg i{width:14px;height:14px;border-radius:3px;display:block}
+.stats{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #D5DCE2;margin-top:10px;padding-top:14px}
+.stats div{display:flex;flex-direction:column}.stats .num{font-size:30px;font-weight:600}
+.side{display:flex;flex-direction:column;gap:16px}
+.card{background:#F8F9FA;border:1px solid #D5DCE2;border-radius:14px;padding:18px}
+.row{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid #E1E6EA}
+.av{width:36px;height:36px;border-radius:50%;background:#DCE3EC;display:grid;place-items:center;font-weight:600;font-size:13px}
+.row small{color:#56637A;display:block}
+.plan{display:flex;gap:6px;margin-top:6px}
+.plan i{height:8px;flex:1;border-radius:4px;background:#2F5DA8}
+.plan i.p{background:none;border:1.5px dashed #2F5DA8}
+.plan i.x{background:#C2413A}
+</style></head><body>
+<nav>
+<div class="brand"><i></i>Estudio Paquito</div>
+<a>Hoy</a><a class="on">Clientes <b>1</b></a><a>Entrenos</a><a>Nutrición</a><a>Agenda</a><a>Mensajes <b>2</b></a><a>Seguimiento</a><a>IA</a>
+</nav>
+<main>
+<header>
+<div><div class="sub">Clienta desde marzo · Dolor lumbar: fortalecer y volver al pádel</div><h1>Carmen Vidal</h1></div>
+<div style="display:flex;gap:8px"><span class="btn q">Escribir</span><span class="btn q">Nueva cita</span><span class="btn">Asignar rutina</span></div>
+</header>
+<section class="plate">
+<div style="grid-column:1/3"><h2>Lo que ha trabajado esta semana</h2></div>
+<svg viewBox="0 0 200 400" width="240" height="420" style="justify-self:center">
+<g fill="#E4E9EE" stroke="#8C99A8" stroke-width="1"><circle cx="100" cy="36" r="24"/><path d="M62 70h76l16 120-14 4-12-90v120l10 170h-28l-10-150-10 150H62l10-170V104l-12 90-14-4z"/></g>
+<path d="M74 78h52l-4 34H78z" fill="#E7A79E"/><path d="M80 116h40v44H80z" fill="#F2C9C2"/>
+<path d="M74 210h24l-4 90H76zM102 210h24l-2 90h-18z" fill="#C2413A"/>
+</svg>
+<svg viewBox="0 0 200 400" width="240" height="420" style="justify-self:center">
+<g fill="#E4E9EE" stroke="#8C99A8" stroke-width="1"><circle cx="100" cy="36" r="24"/><path d="M62 70h76l16 120-14 4-12-90v120l10 170h-28l-10-150-10 150H62l10-170V104l-12 90-14-4z"/></g>
+<path d="M72 76h56l-6 60H78z" fill="#F2C9C2"/><path d="M76 190h48v34H76z" fill="#C2413A"/>
+<path d="M84 150h32v34H84z" fill="none" stroke="#C2413A" stroke-width="2" stroke-dasharray="4 3"/>
+</svg>
+<div class="leg"><h2 style="color:#172033">Leyenda</h2>
+<span><i style="background:#C2413A"></i>Mucho volumen</span><span><i style="background:#F2C9C2"></i>Algo</span><span><i style="background:#E4E9EE;border:1px solid #8C99A8"></i>Nada</span>
+<span><i style="border:2px dashed #C2413A"></i>Lesión o limitación</span></div>
+<div class="lbl" style="left:330px;top:250px">Cuádriceps · 14 series</div>
+<div class="lbl r" style="left:610px;top:200px">Zona lumbar · evitar flexión cargada</div>
+<div class="lbl" style="left:620px;top:280px">Glúteo · 12 series</div>
+<div class="stats"><div><span class="num">4/4</span><span class="sub">entrenos hechos</span></div><div><span class="num">8 400 kg</span><span class="sub">volumen semanal</span></div><div><span class="num">RPE 7,5</span><span class="sub">esfuerzo medio</span></div></div>
+</section>
+<aside class="side">
+<div class="card"><h2>Plan de la semana</h2>
+<div class="sub" style="font-size:13px">Lo previsto por ti, frente a lo hecho</div>
+<div class="plan"><i></i><i></i><i></i><i class="p"></i><i class="p"></i></div>
+<div class="sub num" style="margin-top:6px">L M X J V</div></div>
+<div class="card"><h2>Necesitan atención</h2>
+<div class="row"><span class="av">IS</span><div>Iker Salas<small>Check-in nuevo por revisar</small></div></div>
+<div class="row"><span class="av">LM</span><div>Lucía Martín<small>Bono: queda 1 sesión</small></div></div>
+<div class="row"><span class="av">NO</span><div>Nuria Ortega<small>Sin entrenar desde hace 9 días</small></div></div>
+</div>
+</aside>
+</main>
+</body></html>

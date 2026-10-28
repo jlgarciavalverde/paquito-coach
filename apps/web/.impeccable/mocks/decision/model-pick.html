@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{width:1440px;height:900px;overflow:hidden;background:#fff;color:#1E2A33;font:15px/1.5 "Hanken Grotesk",sans-serif;display:grid;grid-template-columns:220px 1fr}
+nav{border-right:1px solid #E1E4E6;padding:24px 0}
+nav .brand{font-weight:700;font-size:18px;padding:0 20px 24px}
+nav a{display:flex;align-items:center;gap:12px;padding:10px 20px;font-weight:500}
+nav a i{width:24px;height:24px;display:block}
+nav a.on{background:#EAF5FC}
+main{padding:32px 40px}
+h1{font-size:40px;font-weight:700;letter-spacing:-.02em}
+.sub{color:#5B6870}
+.bands{display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px;margin:28px 0}
+.band{padding:22px;color:#fff;min-height:170px;display:flex;flex-direction:column;justify-content:space-between}
+.band b{font-size:48px;font-weight:700;line-height:1}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+h2{font-size:20px;font-weight:700;margin-bottom:10px}
+.row{display:flex;align-items:center;gap:14px;padding:12px 0;border-top:1px solid #E1E4E6}
+.row .t{width:64px;font-weight:600}
+.pic{width:32px;height:32px;display:grid;place-items:center}
+.btn{background:#1E2A33;color:#fff;padding:10px 18px;font-weight:600}
+</style></head><body>
+<nav><div class="brand">Estudio Paquito</div>
+<a class="on"><i style="background:#5FB4E5"></i>Hoy</a><a><i style="background:#3E9B4F"></i>Clientes</a><a><i style="background:#F18A2E"></i>Entrenos</a><a><i style="background:#C9CDD0"></i>Nutrición</a><a><i style="background:#5FB4E5"></i>Agenda</a><a><i style="background:#3E9B4F"></i>Mensajes</a></nav>
+<main>
+<div style="display:flex;justify-content:space-between;align-items:end"><div><div class="sub">Hola, Paquito</div><h1>Viernes 2 de octubre</h1></div><span class="btn">Nuevo cliente</span></div>
+<div class="bands">
+<div class="band" style="background:#5FB4E5"><span>Citas de hoy</span><b>2</b><span>La primera a las 09:00 con Lucía Martín</span></div>
+<div class="band" style="background:#3E9B4F"><span>Entrenan hoy</span><b>2</b><span>Carmen e Iker</span></div>
+<div class="band" style="background:#F18A2E"><span>Por revisar</span><b>5</b><span>entrenos terminados</span></div>
+</div>
+<div class="grid">
+<section><h2>Citas de hoy</h2>
+<div class="row"><span class="t">09:00</span><svg class="pic" viewBox="0 0 32 32"><circle cx="16" cy="6" r="4" fill="#5FB4E5"/><path d="M8 30l6-14-4-4 6-2 8 6-4 2 2 12" stroke="#5FB4E5" stroke-width="4" fill="none"/></svg><div>Sesión con Lucía Martín<div class="sub">Estudio</div></div></div>
+<div class="row"><span class="t">18:00</span><svg class="pic" viewBox="0 0 32 32"><circle cx="16" cy="6" r="4" fill="#5FB4E5"/><path d="M4 16h24M8 12v8M24 12v8M16 10v20" stroke="#5FB4E5" stroke-width="4" fill="none"/></svg><div>Sesión con Iker Salas<div class="sub">Estudio</div></div></div>
+</section>
+<section><h2>Necesitan atención</h2>
+<div class="row"><span class="pic" style="background:#F18A2E"></span><div>Iker Salas<div class="sub">Check-in nuevo por revisar</div></div></div>
+<div class="row"><span class="pic" style="background:#3E9B4F"></span><div>Carmen Vidal<div class="sub">Cuestionario de salud con 1 alerta</div></div></div>
+<div class="row"><span class="pic" style="background:#5FB4E5"></span><div>Lucía Martín<div class="sub">Bono: queda 1 sesión</div></div></div>
+</section>
+</div>
+</main>
+</body></html>

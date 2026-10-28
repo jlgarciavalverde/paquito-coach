@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{width:1440px;height:900px;overflow:hidden;background:#F7F7F5;color:#111418;font:15px/1.5 "Public Sans",sans-serif}
+.num{font-family:"Archivo Narrow",sans-serif;font-variant-numeric:tabular-nums}
+header{height:64px;background:#111418;color:#fff;display:flex;align-items:center;gap:28px;padding:0 32px}
+header b{font-size:18px}header a{color:#B7BDC6}header a.on{color:#fff;border-bottom:2px solid #F2A900;padding-bottom:4px}
+main{padding:28px 32px;display:grid;grid-template-columns:1fr 420px;gap:28px}
+h1{font-size:32px;font-weight:700;letter-spacing:-.01em}
+.sub{color:#5C6470}
+table{width:100%;border-collapse:collapse;margin-top:18px;background:#fff;border:1px solid #E3E5E8}
+th{text-align:left;font-size:13px;color:#5C6470;font-weight:500;padding:10px 16px;border-bottom:1px solid #E3E5E8}
+td{padding:14px 16px;border-bottom:1px solid #EEF0F2}
+td.num{font-size:22px;font-weight:600}
+tr.chg td{background:#FFF6DB}tr.chg .st{color:#8A5A00;font-weight:600}
+.st{font-weight:500}
+.pass{background:#fff;border:1px solid #E3E5E8;border-radius:12px;display:grid;grid-template-columns:1fr 120px;overflow:hidden}
+.pass .a{padding:20px;border-right:2px dashed #E3E5E8}
+.pass .b{padding:20px;background:#111418;color:#fff}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.seg span{font-size:12px;color:#5C6470}.seg b{display:block;font-size:20px}
+.btn{background:#2B6CB0;color:#fff;border-radius:6px;padding:9px 16px;font-weight:600;display:inline-block;margin-top:14px}
+h2{font-size:17px;margin-bottom:10px}
+</style></head><body>
+<header><b>Estudio Paquito</b><a class="on">Hoy</a><a>Clientes</a><a>Entrenos</a><a>Nutrición</a><a>Agenda</a><a>Mensajes</a></header>
+<main>
+<section><div class="sub">Viernes 2 de octubre</div><h1>Hoy en el estudio</h1>
+<table><tr><th>Hora</th><th>Cliente</th><th>Qué</th><th>Lugar</th><th>Estado</th></tr>
+<tr><td class="num">09:00</td><td>Lucía Martín</td><td>Sesión · fase 2 LCA</td><td>Estudio</td><td class="st">Hecha</td></tr>
+<tr class="chg"><td class="num">11:30</td><td>Carmen Vidal</td><td>Pierna A, fase 2</td><td>En casa</td><td class="st">Cambió a 12:00</td></tr>
+<tr><td class="num">17:00</td><td>Andrés Molina</td><td>Torso y glúteo</td><td>Estudio</td><td class="st">Previsto</td></tr>
+<tr><td class="num">18:00</td><td>Iker Salas</td><td>Sesión</td><td>Estudio</td><td class="st">Previsto</td></tr>
+<tr><td class="num">—</td><td>Nuria Ortega</td><td>Sin entreno 9 días</td><td>—</td><td class="st">Avisar</td></tr>
+</table></section>
+<aside><h2>Próxima sesión</h2>
+<div class="pass"><div class="a"><div class="sub">Cliente</div><b style="font-size:22px">Andrés Molina</b>
+<div class="seg"><div><span>Hora</span><b class="num">17:00</b></div><div><span>Sala</span><b class="num">A</b></div><div><span>Sesión</span><b class="num">12/20</b></div></div>
+<span class="btn">Abrir ficha</span></div>
+<div class="b"><div class="sub" style="color:#B7BDC6">Bono</div><b class="num" style="font-size:40px">8</b><div style="color:#B7BDC6">restantes</div></div></div>
+</aside>
+</main>
+</body></html>

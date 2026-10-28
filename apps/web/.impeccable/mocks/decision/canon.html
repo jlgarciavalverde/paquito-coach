@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{width:1440px;height:900px;overflow:hidden;background:#F4F5F7;color:#111827;font:14px/1.5 Inter,sans-serif;display:grid;grid-template-columns:240px 1fr}
+nav{background:#fff;border-right:1px solid #E5E7EB;padding:20px 12px}
+nav b{display:block;font-size:16px;padding:0 10px 20px}
+nav a{display:block;padding:8px 10px;border-radius:8px;color:#4B5563}
+nav a.on{background:#EFF6FF;color:#2563EB;font-weight:600}
+main{padding:28px 32px}
+h1{font-size:26px;font-weight:700}
+.sub{color:#6B7280}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:20px 0}
+.card{background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:18px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.kpis b{font-size:28px;display:block}
+.grid{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+.row{display:flex;justify-content:space-between;padding:12px 0;border-top:1px solid #F3F4F6}
+.pill{background:#ECFDF5;color:#047857;border-radius:999px;padding:2px 10px;font-size:12px}
+.btn{background:#2563EB;color:#fff;border-radius:8px;padding:9px 16px;font-weight:600}
+</style></head><body>
+<nav><b>Estudio Paquito</b><a class="on">Panel</a><a>Clientes</a><a>Entrenos</a><a>Nutrición</a><a>Agenda</a><a>Mensajes</a><a>Seguimiento</a></nav>
+<main>
+<div style="display:flex;justify-content:space-between;align-items:center"><div><h1>Panel</h1><div class="sub">Viernes 2 de octubre</div></div><span class="btn">Nuevo cliente</span></div>
+<div class="kpis"><div class="card"><span class="sub">Clientes activos</span><b>5</b></div><div class="card"><span class="sub">Citas hoy</span><b>2</b></div><div class="card"><span class="sub">Por revisar</span><b>5</b></div><div class="card"><span class="sub">Cobrado este mes</span><b>640 €</b></div></div>
+<div class="grid">
+<div class="card"><b>Citas de hoy</b>
+<div class="row"><span>09:00 · Lucía Martín</span><span class="pill">Confirmada</span></div>
+<div class="row"><span>18:00 · Iker Salas</span><span class="pill">Confirmada</span></div></div>
+<div class="card"><b>Necesitan atención</b>
+<div class="row"><span>Iker Salas</span><span class="sub">Check-in</span></div>
+<div class="row"><span>Carmen Vidal</span><span class="sub">Salud</span></div>
+<div class="row"><span>Lucía Martín</span><span class="sub">Bono</span></div></div>
+</div>
+</main>
+</body></html>

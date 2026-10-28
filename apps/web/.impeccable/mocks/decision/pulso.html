@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Saira+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+:root{--bg:#0A0C11;--s1:#11141B;--s2:#171B24;--line:rgba(255,255,255,.07);--t:#ECEEF3;--t2:#9097A6;--t3:#7F8696;--lime:#B6F23F;--coral:#FF5D72;--cyan:#41C9F2;--amber:#FFB547;--acc:#7C93FF}
+body{width:1440px;height:900px;overflow:hidden;background:var(--bg);color:var(--t);font:14px/1.5 Manrope,sans-serif;display:grid;grid-template-columns:232px 1fr}
+.n{font-family:"Saira Semi Condensed",sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+nav{border-right:1px solid var(--line);padding:20px 14px;display:flex;flex-direction:column;gap:2px;background:linear-gradient(180deg,#0E1118,#0A0C11)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15px;padding:4px 8px 22px}
+.brand i{width:26px;height:26px;border-radius:8px;background:conic-gradient(from 200deg,var(--lime),var(--cyan),var(--coral),var(--lime));display:block}
+nav a{display:flex;align-items:center;gap:11px;padding:8px 10px;border-radius:8px;color:var(--t2);font-weight:600}
+nav a svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8}
+nav a.on{background:var(--s2);color:var(--t);box-shadow:inset 0 0 0 1px var(--line)}
+nav a b{margin-left:auto;font-size:11px;background:var(--coral);color:#0A0C11;border-radius:6px;padding:0 6px}
+.me{margin-top:auto;display:flex;gap:10px;align-items:center;padding:10px;border-top:1px solid var(--line)}
+.av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;background:#262C3A;color:var(--t)}
+main{padding:22px 32px;display:grid;grid-template-columns:1fr 372px;grid-template-rows:auto auto 1fr;gap:20px}
+.top{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between}
+.search{width:340px;display:flex;align-items:center;gap:8px;background:var(--s1);border:1px solid var(--line);border-radius:10px;padding:8px 12px;color:var(--t3)}
+.search kbd{margin-left:auto;font:600 11px Manrope;border:1px solid var(--line);border-radius:5px;padding:1px 6px;color:var(--t2)}
+.btn{background:var(--lime);color:#0A0C11;font-weight:800;border-radius:10px;padding:9px 16px}
+.btn.g{background:var(--s2);color:var(--t);box-shadow:inset 0 0 0 1px var(--line);font-weight:600}
+.hero{grid-column:1/-1;display:flex;align-items:end;justify-content:space-between}
+.hero h1{font-size:44px;font-weight:800;letter-spacing:-.035em;line-height:1.05}
+.hero p{color:var(--t2);margin-top:6px;font-size:15px}
+.hero p em{font-style:normal;color:var(--t)}
+.card{background:var(--s1);border:1px solid var(--line);border-radius:16px;padding:18px 20px}
+.card h2{font-size:14px;font-weight:700;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.card h2 span{color:var(--t3);font-weight:600;font-size:12px}
+.rings{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.cl{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 6px;border-radius:12px}
+.cl.sel{background:var(--s2)}
+
+.cl b{font-size:13px}.cl small{color:var(--t2);font-size:12px}
+.legend{display:flex;gap:16px;color:var(--t2);font-size:12px;margin-top:12px}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.chart{display:flex;flex-direction:column}
+.kpi{display:flex;gap:28px;margin-bottom:8px}
+.kpi div{display:flex;flex-direction:column}.kpi .n{font-size:30px;font-weight:600;line-height:1.1}
+.kpi small{color:var(--t2);font-size:12px}.up{color:var(--lime);font-size:12px;font-weight:700}
+.side{grid-row:2/4;grid-column:2;display:flex;flex-direction:column;gap:16px}
+.att{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-top:1px solid var(--line)}
+.att:first-of-type{border-top:0}
+.dot{width:8px;height:8px;border-radius:50%;margin-top:7px;flex:none}
+.att b{font-weight:700}.att p{color:var(--t2);font-size:13px}
+.att .act{margin-left:auto;font-size:12px;font-weight:700;color:var(--acc);white-space:nowrap}
+.tl{display:flex;flex-direction:column;gap:2px}
+.slot{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:10px 12px;border-radius:10px}
+.slot.now{background:linear-gradient(90deg,rgba(182,242,63,.12),rgba(182,242,63,0));box-shadow:inset 0 0 0 1px rgba(182,242,63,.25)}
+.slot .n{font-size:17px;font-weight:600;color:var(--t2)}.slot.now .n{color:var(--lime)}
+.slot small{display:block;color:var(--t2);font-size:12px}
+.chip{font-size:11px;font-weight:700;border-radius:6px;padding:2px 8px;background:var(--s2);color:var(--t2)}
+</style></head><body>
+<nav>
+<div class="brand"><i></i>Estudio Paquito</div>
+<a class="on"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Hoy</a>
+<a><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5c2 .7 3.2 2.6 3.5 5.5"/></svg>Clientes<b>1</b></a>
+<a><svg viewBox="0 0 24 24"><path d="M3 9v6M6 6v12M18 6v12M21 9v6M6 12h12"/></svg>Entrenos</a>
+<a><svg viewBox="0 0 24 24"><path d="M7 3v8a3 3 0 0 0 3 3v7M7 3v5M10 3v5M17 3c-2 2-2 6 0 8v10"/></svg>Nutrición</a>
+<a><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Agenda</a>
+<a><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>Mensajes<b>2</b></a>
+<a><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 4 8-8"/></svg>Seguimiento</a>
+<div class="me"><span class="av">PG</span><div><b style="font-size:13px">Paquito García</b><div style="color:var(--t3);font-size:12px">Plan Estudio</div></div></div>
+</nav>
+<main>
+<div class="top"><div class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Buscar cliente, rutina o acción<kbd>⌘K</kbd></div>
+<div style="display:flex;gap:8px"><span class="btn g">Nueva cita</span><span class="btn">Nuevo cliente</span></div></div>
+<div class="hero"><div><h1>Viernes 2 de octubre</h1><p><em>2 citas</em>, la primera a las 09:00 · <em>2 clientes</em> entrenan hoy · <em>5 entrenos</em> sin revisar</p></div></div>
+<section class="card"><h2>Constancia esta semana <span>Entreno · Comidas · Check-in</span></h2>
+<div class="rings">
+<div class="cl sel"><svg width="96" height="96" viewBox="0 0 96 96" fill="none" stroke-linecap="round"><circle cx="48" cy="48" r="42" stroke="#1E2a12" stroke-width="9"/><circle cx="48" cy="48" r="42" stroke="#B6F23F" stroke-width="9" stroke-dasharray="264" stroke-dashoffset="0" transform="rotate(-90 48 48)"/><circle cx="48" cy="48" r="30" stroke="#33141A" stroke-width="9"/><circle cx="48" cy="48" r="30" stroke="#FF5D72" stroke-width="9" stroke-dasharray="188" stroke-dashoffset="38" transform="rotate(-90 48 48)"/><circle cx="48" cy="48" r="18" stroke="#0F2A33" stroke-width="9"/><circle cx="48" cy="48" r="18" stroke="#41C9F2" stroke-width="9" stroke-dasharray="113" stroke-dashoffset="0" transform="rotate(-90 48 48)"/></svg><b>Andrés M.</b><small class="n">100 %</small></div>
+<div class="cl"><svg width="96" height="96" viewBox="0 0 96 96" fill="none" stroke-linecap="round"><circle cx="48" cy="48" r="42" stroke="#1E2a12" stroke-width="9"/><circle cx="48" cy="48" r="42" stroke="#B6F23F" stroke-width="9" stroke-dasharray="264" stroke-dashoffset="66" transform="rotate(-90 48 48)"/><circle cx="48" cy="48" r="30" stroke="#33141A" stroke-width="9"/><circle cx="48" cy="48" r="30" stroke="#FF5D72" stroke-width="9" stroke-dasharray="188" stroke-dashoffset="20" transform="rotate(-90 48 48)"/><circle cx="48" cy="48" r="18" stroke="#0F2A33" stroke-width="9"/><circle cx="48" cy="48" r="18" stroke="#41C9F2" stroke-width="9" stroke-dasharray="113" stroke-dashoffset="0" transform="rotate(-90 48 48)"/></svg><b>Carmen V.</b><small class="n">82 %</small></div>
+<div class="cl"><svg width="96" height="96" viewBox="0 0 96 96" fill="none" stroke-linecap="round"><circle cx="48" cy="48" r="42" stroke="#1E2a12" stroke-width="9"/><circle cx="48" cy="48" r="42" stroke="#B6F23F" stroke-width="9" stroke-dasharray="264" stroke-dashoffset="132" transform="rotate(-90 48 48)"/><circle cx="48" cy="48" r="30" stroke="#33141A" stroke-width="9"/><circle cx="48" cy="48" r="30" stroke="#FF5D72" stroke-width="9" stroke-dasharray="188" stroke-dashoffset="94" transform="rotate(-90 48 48)"/><circle cx="48" cy="48" r="18" stroke="#0F2A33" stroke-width="9"/><circle cx="48" cy="48" r="18" stroke="#41C9F2" stroke-width="9" stroke-dasharray="113" stroke-dashoffset="113" transform="rotate(-90 48 48)"/></svg><b>Iker S.</b><small class="n">44 %</small></div>
+<div class="cl"><svg width="96" height="96" viewBox="0 0 96 96" fill="none" stroke-linecap="round"><circle cx="48" cy="48" r="42" stroke="#1E2a12" stroke-width="9"/><circle cx="48" cy="48" r="42" stroke="#B6F23F" stroke-width="9" stroke-dasharray="264" stroke-dashoffset="88" transform="rotate(-90 48 48)"/><circle cx="48" cy="48" r="30" stroke="#33141A" stroke-width="9"/><circle cx="48" cy="48" r="30" stroke="#FF5D72" stroke-width="9" stroke-dasharray="188" stroke-dashoffset="60" transform="rotate(-90 48 48)"/><circle cx="48" cy="48" r="18" stroke="#0F2A33" stroke-width="9"/><circle cx="48" cy="48" r="18" stroke="#41C9F2" stroke-width="9" stroke-dasharray="113" stroke-dashoffset="0" transform="rotate(-90 48 48)"/></svg><b>Lucía M.</b><small class="n">71 %</small></div>
+<div class="cl"><svg width="96" height="96" viewBox="0 0 96 96" fill="none" stroke-linecap="round"><circle cx="48" cy="48" r="42" stroke="#1E2a12" stroke-width="9"/><circle cx="48" cy="48" r="42" stroke="#B6F23F" stroke-width="9" stroke-dasharray="264" stroke-dashoffset="230" transform="rotate(-90 48 48)"/><circle cx="48" cy="48" r="30" stroke="#33141A" stroke-width="9"/><circle cx="48" cy="48" r="18" stroke="#0F2A33" stroke-width="9"/></svg><b>Nuria O.</b><small class="n" style="color:var(--amber)">9 días sin entrenar</small></div>
+</div>
+<div class="legend"><span><i style="background:var(--lime)"></i>Entrenos hechos</span><span><i style="background:var(--coral)"></i>Comidas cumplidas</span><span><i style="background:var(--cyan)"></i>Check-in enviado</span></div>
+</section>
+<section class="card chart"><h2>Volumen del estudio <span>Últimas 8 semanas</span></h2>
+<div class="kpi"><div><span class="n">41 280 kg</span><small>esta semana <span class="up">+12 %</span></small></div><div><span class="n">23</span><small>entrenos hechos</small></div><div><span class="n">6</span><small>récords nuevos</small></div></div>
+<svg viewBox="0 0 700 120" width="100%" height="120" preserveAspectRatio="none"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B6F23F" stop-opacity=".35"/><stop offset="1" stop-color="#B6F23F" stop-opacity="0"/></linearGradient></defs>
+<g stroke="rgba(255,255,255,.05)"><path d="M0 30h700M0 60h700M0 90h700"/></g>
+<path d="M0 92 L100 84 L200 88 L300 70 L400 74 L500 52 L600 46 L700 30 L700 120 L0 120Z" fill="url(#g)"/>
+<path d="M0 92 L100 84 L200 88 L300 70 L400 74 L500 52 L600 46 L700 30" fill="none" stroke="#B6F23F" stroke-width="2.5"/>
+<circle cx="700" cy="30" r="5" fill="#B6F23F"/><circle cx="700" cy="30" r="11" fill="#B6F23F" opacity=".2"/></svg>
+</section>
+<aside class="side">
+<section class="card"><h2>Necesitan atención <span>4</span></h2>
+<div class="att"><span class="dot" style="background:var(--coral)"></span><div><b>Carmen Vidal</b><p>PAR-Q con 1 alerta: dolor lumbar</p></div><span class="act">Revisar</span></div>
+<div class="att"><span class="dot" style="background:var(--amber)"></span><div><b>Nuria Ortega</b><p>9 días sin entrenar</p></div><span class="act">Escribir</span></div>
+<div class="att"><span class="dot" style="background:var(--cyan)"></span><div><b>Iker Salas</b><p>Check-in nuevo · sueño 5/10</p></div><span class="act">Abrir</span></div>
+<div class="att"><span class="dot" style="background:var(--amber)"></span><div><b>Lucía Martín</b><p>Bono: queda 1 sesión</p></div><span class="act">Renovar</span></div>
+</section>
+<section class="card"><h2>Agenda de hoy <span>Abrir agenda</span></h2>
+<div class="tl">
+<div class="slot"><span class="n">09:00</span><div><b>Lucía Martín</b><small>Readaptación LCA · Estudio</small></div><span class="chip">Hecha</span></div>
+<div class="slot now"><span class="n">12:30</span><div><b>Carmen Vidal</b><small>Pierna A, fase 2 · en curso</small></div><span class="chip" style="background:rgba(182,242,63,.15);color:var(--lime)">Ahora</span></div>
+<div class="slot"><span class="n">18:00</span><div><b>Iker Salas</b><small>Torso y glúteo · Estudio</small></div><span class="chip">18:00</span></div>
+</div></section>
+</aside>
+</main>
+</body></html>

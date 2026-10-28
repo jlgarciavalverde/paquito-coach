@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+:root{--bg:#F7F7F8;--s1:#FFFFFF;--s2:#F1F1F3;--line:#E6E6EA;--line2:#D9D9DF;--t:#16171B;--t2:#5F6270;--t3:#666975;--acc:#4F5BD5;--accs:#EEF0FC;--red:#D93F3F;--amb:#9A6210;--grn:#2F9E5B}
+body{width:1440px;height:900px;overflow:hidden;background:var(--bg);color:var(--t);font:13.5px/1.5 Onest,sans-serif;display:grid;grid-template-columns:220px 400px 1fr}
+.n{font-variant-numeric:tabular-nums}
+nav{padding:14px 10px;display:flex;flex-direction:column;gap:1px}
+.ws{display:flex;align-items:center;gap:9px;padding:6px 8px 14px;font-weight:600}
+.ws i{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,#4F5AC9,#3D47B8);box-shadow:inset 0 1px 0 rgba(255,255,255,.3);display:block}
+.cmd{display:flex;align-items:center;gap:8px;margin:0 2px 12px;padding:6px 9px;border-radius:8px;background:var(--s1);border:1px solid var(--line);color:var(--t3);box-shadow:0 1px 2px rgba(16,17,20,.04)}
+kbd{margin-left:auto;font:500 11px Onest;color:var(--t3);border:1px solid var(--line);border-radius:4px;padding:0 5px;background:var(--bg)}
+nav a{display:flex;align-items:center;gap:10px;padding:6px 9px;border-radius:7px;color:var(--t2);font-weight:500}
+nav a svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7}
+nav a.on{background:var(--s2);color:var(--t)}
+nav a span{margin-left:auto;font-size:12px;color:var(--t3)}
+nav .sec{font-size:12px;color:var(--t3);padding:16px 9px 4px;font-weight:500}
+nav .cl{display:flex;align-items:center;gap:9px;padding:5px 9px;color:var(--t2)}
+.av{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff}
+.list{background:var(--s1);border-left:1px solid var(--line);border-right:1px solid var(--line);display:flex;flex-direction:column}
+.lh{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line)}
+.lh b{font-size:15px}
+.tabs{display:flex;gap:4px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.tabs span{padding:3px 10px;border-radius:6px;color:var(--t2);font-weight:500}.tabs .on{background:var(--s2);color:var(--t);box-shadow:inset 0 0 0 1px var(--line)}
+.it{display:grid;grid-template-columns:28px 1fr auto;gap:10px;padding:12px 18px;border-bottom:1px solid var(--line)}
+.it.sel{background:var(--accs);box-shadow:inset 2px 0 0 var(--acc)}
+.it .av{width:28px;height:28px;font-size:11px}
+.it b{font-weight:600}.it p{color:var(--t2);font-size:13px}
+.it time{color:var(--t3);font-size:12px}
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--t2);border:1px solid var(--line);border-radius:999px;padding:0 8px;margin-top:5px;background:var(--s1)}
+.tag i{width:6px;height:6px;border-radius:50%;display:block}
+.det{padding:22px 36px;display:flex;flex-direction:column;gap:18px}
+.bc{color:var(--t3);display:flex;gap:6px;align-items:center}
+.dh{display:flex;align-items:center;gap:14px}
+.dh .av{width:44px;height:44px;font-size:15px}
+h1{font-size:24px;font-weight:600;letter-spacing:-.02em}
+.acts{margin-left:auto;display:flex;gap:6px}
+.b{border:1px solid var(--line2);background:var(--s1);border-radius:8px;padding:6px 12px;font-weight:500;box-shadow:0 1px 2px rgba(16,17,20,.05);display:flex;gap:8px;align-items:center}
+.b.p{background:var(--t);color:#fff;border-color:var(--t);box-shadow:0 1px 2px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.12)}
+.b kbd{background:transparent;border-color:rgba(255,255,255,.25);color:rgba(255,255,255,.7)}
+.props{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:12px;background:var(--s1);box-shadow:0 1px 2px rgba(16,17,20,.04)}
+.props div{padding:12px 16px;border-left:1px solid var(--line)}.props div:first-child{border:0}
+.props small{color:var(--t3);display:block;font-size:12px}.props b{font-size:18px;font-weight:600}
+.grid{display:grid;grid-template-columns:1.2fr 1fr;gap:16px}
+.panel{background:var(--s1);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:0 1px 2px rgba(16,17,20,.04)}
+.panel h2{font-size:13.5px;font-weight:600;margin-bottom:12px;display:flex;justify-content:space-between}
+.panel h2 span{color:var(--t3);font-weight:500}
+.q{display:grid;grid-template-columns:1fr 150px 36px;gap:12px;align-items:center;padding:7px 0;border-top:1px solid var(--line)}
+.q:first-of-type{border:0}
+.bar{height:6px;border-radius:3px;background:var(--s2);overflow:hidden}.bar i{display:block;height:100%;border-radius:3px}
+.q .n{text-align:right;font-weight:600}
+.tl div{display:grid;grid-template-columns:14px 1fr auto;gap:10px;padding:6px 0;color:var(--t2)}
+.tl i{width:8px;height:8px;border-radius:50%;border:2px solid var(--line2);margin-top:6px}
+.tl b{color:var(--t);font-weight:500}
+.reply{display:flex;gap:8px;align-items:center;border:1px solid var(--line2);border-radius:10px;padding:10px 12px;background:var(--s1);color:var(--t3)}
+</style></head><body>
+<nav>
+<div class="ws"><i></i>Estudio Paquito</div>
+<div class="cmd">Buscar o hacer…<kbd>⌘K</kbd></div>
+<a class="on"><svg viewBox="0 0 24 24"><path d="M4 13l3-8h10l3 8v6H4zM4 13h5l1 2h4l1-2h5"/></svg>Bandeja<span class="n">6</span></a>
+<a><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>Hoy</a>
+<a><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/></svg>Clientes<span class="n">5</span></a>
+<a><svg viewBox="0 0 24 24"><path d="M3 9v6M6 6v12M18 6v12M21 9v6M6 12h12"/></svg>Entrenos</a>
+<a><svg viewBox="0 0 24 24"><path d="M7 3v8a3 3 0 0 0 3 3v7M17 3c-2 2-2 6 0 8v10"/></svg>Nutrición</a>
+<a><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18"/></svg>Agenda</a>
+<a><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>Mensajes<span class="n">2</span></a>
+<div class="sec">Fijados</div>
+<div class="cl"><span class="av" style="background:#C2502A">CV</span>Carmen Vidal</div>
+<div class="cl"><span class="av" style="background:#2E7266">LM</span>Lucía Martín</div>
+<div class="cl"><span class="av" style="background:#4F5AC9">AM</span>Andrés Molina</div>
+</nav>
+<section class="list">
+<div class="lh"><b>Bandeja</b><span class="b" style="padding:4px 10px">Marcar todo revisado</span></div>
+<div class="tabs"><span class="on">Sin revisar 6</span><span>Entrenos</span><span>Check-ins</span><span>Salud</span></div>
+<div class="it sel"><span class="av" style="background:#C2502A">CV</span><div><b>Carmen Vidal terminó Pierna A</b><p>Esfuerzo 9/10 · «me molestó la lumbar en el peso muerto»</p><span class="tag"><i style="background:var(--red)"></i>Lesión lumbar</span></div><time>12 min</time></div>
+<div class="it"><span class="av" style="background:#9A4479">IS</span><div><b>Iker Salas envió su check-in</b><p>Sueño 5/10 · energía 6/10 · 1 foto</p></div><time>1 h</time></div>
+<div class="it"><span class="av" style="background:#4F5AC9">AM</span><div><b>Andrés Molina batió 2 récords</b><p>Press de banca 92,5 kg · Remo 70 kg</p><span class="tag"><i style="background:var(--grn)"></i>Récord</span></div><time>3 h</time></div>
+<div class="it"><span class="av" style="background:#2E7266">LM</span><div><b>Lucía Martín: queda 1 sesión</b><p>Bono de 10 sesiones · caduca el 30 oct</p><span class="tag"><i style="background:var(--amb)"></i>Cobro</span></div><time>ayer</time></div>
+<div class="it"><span class="av" style="background:#646978">NO</span><div><b>Nuria Ortega lleva 9 días sin entrenar</b><p>Último: Cuerpo completo B, 23 sep</p></div><time>ayer</time></div>
+</section>
+<section class="det">
+<div class="bc">Bandeja <span>/</span> <span style="color:var(--t)">Entreno de Carmen Vidal</span></div>
+<div class="dh"><span class="av" style="background:#C2502A">CV</span><div><h1>Pierna A, fase 2</h1><div style="color:var(--t2)">Carmen Vidal · hoy 12:30 · 52 min</div></div>
+<div class="acts"><span class="b">Escribir <kbd style="color:var(--t3);border-color:var(--line)">R</kbd></span><span class="b p">Marcar revisado <kbd>E</kbd></span></div></div>
+<div class="props"><div><small>Esfuerzo</small><b class="n">9/10</b></div><div><small>Volumen</small><b class="n">6 840 kg</b></div><div><small>Series</small><b class="n">16 de 18</b></div><div><small>Frente a lo previsto</small><b class="n" style="color:var(--amb)">−8 %</b></div></div>
+<div class="grid">
+<div class="panel"><h2>Lo hecho frente a lo previsto <span>kg × reps</span></h2>
+<div class="q"><span>Sentadilla goblet</span><div class="bar"><i style="width:100%;background:var(--acc)"></i></div><span class="n">4/4</span></div>
+<div class="q"><span>Peso muerto rumano</span><div class="bar"><i style="width:50%;background:var(--red)"></i></div><span class="n">2/4</span></div>
+<div class="q"><span>Hip thrust</span><div class="bar"><i style="width:100%;background:var(--acc)"></i></div><span class="n">4/4</span></div>
+<div class="q"><span>Zancada búlgara</span><div class="bar"><i style="width:100%;background:var(--acc)"></i></div><span class="n">3/3</span></div>
+<div class="q"><span>Plancha lateral</span><div class="bar"><i style="width:100%;background:var(--acc)"></i></div><span class="n">3/3</span></div>
+</div>
+<div class="panel"><h2>Actividad <span>Esta semana</span></h2>
+<div class="tl">
+<div><i style="border-color:var(--red)"></i><span><b>Comentario</b> «me molestó la lumbar»</span><span class="n">12:58</span></div>
+<div><i></i><span><b>Serie 2</b> de peso muerto omitida</span><span class="n">12:41</span></div>
+<div><i style="border-color:var(--grn)"></i><span><b>Comidas</b> 3 de 4 cumplidas</span><span>ayer</span></div>
+<div><i></i><span><b>Check-in</b> dolor 3/10</span><span>lun</span></div>
+</div></div>
+</div>
+<div class="reply">Contestar a Carmen…<kbd style="margin-left:auto">⌘↵</kbd></div>
+</section>
+</body></html>

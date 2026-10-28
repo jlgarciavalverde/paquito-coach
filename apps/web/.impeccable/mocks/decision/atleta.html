@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+:root{--bg:#F2F2EF;--s1:#FFFFFF;--ink:#0B0B0C;--t2:#56575C;--line:#E2E2DD;--acc:#D63C05;--volt:#DFFF3A;--grn:#1E9E55}
+body{width:1440px;height:900px;overflow:hidden;background:var(--bg);color:var(--ink);font:14.5px/1.5 Barlow,sans-serif}
+.d{font-family:"Barlow Condensed",sans-serif;font-variant-numeric:tabular-nums;text-transform:uppercase;letter-spacing:-.005em}
+header{height:64px;background:var(--ink);color:#fff;display:flex;align-items:center;gap:30px;padding:0 36px}
+header .logo{font:800 22px "Barlow Condensed";letter-spacing:.01em}
+header a{color:#A9AAAF;font-weight:600}header a.on{color:#fff;position:relative}
+header a.on:after{content:"";position:absolute;left:0;right:0;bottom:-22px;height:3px;background:var(--acc)}
+header .r{margin-left:auto;display:flex;gap:10px;align-items:center}
+.btn{background:var(--acc);color:#fff;font-weight:700;border-radius:999px;padding:9px 18px}
+.btn.k{background:#232326;color:#fff}
+main{padding:26px 36px;display:grid;grid-template-columns:1fr 400px;gap:24px}
+.hero{grid-column:1/-1;display:grid;grid-template-columns:1fr auto;align-items:end;border-bottom:2px solid var(--ink);padding-bottom:16px}
+.hero h1{font-size:96px;line-height:.85;font-weight:800}
+.hero p{color:var(--t2);font-size:16px;margin-top:10px}
+.stat{display:flex;gap:36px}
+.stat div{display:flex;flex-direction:column;align-items:flex-end}
+.stat b{font-size:56px;line-height:.9;font-weight:700}.stat small{color:var(--t2);font-weight:600}
+.box{background:var(--s1);border-radius:14px;padding:20px 22px}
+.box h2{font-size:26px;font-weight:700;margin-bottom:12px;display:flex;justify-content:space-between;align-items:baseline}
+.box h2 span{font:600 13px Barlow;color:var(--t2);text-transform:none}
+.log{display:grid;grid-template-columns:160px repeat(7,1fr) 90px;align-items:center;row-gap:4px}
+.log .h{font:700 14px "Barlow Condensed";color:var(--t2);text-align:center;padding-bottom:6px}
+.log .nm{font-weight:600;padding:8px 0;border-top:1px solid var(--line)}
+.log .c{display:grid;place-items:center;border-top:1px solid var(--line);height:100%}
+.log .c i{border-radius:50%;display:block;background:var(--ink)}
+.log .c i.p{background:none;border:2px dashed #B9B9B3}
+.log .c i.a{background:var(--acc)}
+.log .pc{border-top:1px solid var(--line);height:100%;display:flex;align-items:center;justify-content:flex-end;font:700 22px "Barlow Condensed"}
+.today{background:var(--volt) !important;color:var(--ink) !important}
+.pr{background:var(--ink);color:#fff;border-radius:14px;padding:20px 22px;position:relative;overflow:hidden}
+.pr small{color:var(--volt);font:700 15px "Barlow Condensed";letter-spacing:.04em}
+.pr b{display:block;font-size:64px;line-height:.9;margin-top:6px}
+.pr p{color:#B9BAC0;margin-top:6px}
+.pr svg{position:absolute;right:-10px;bottom:-6px;opacity:.9}
+.side{display:flex;flex-direction:column;gap:16px}
+.row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border:0}
+.av{width:38px;height:38px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font:700 15px "Barlow Condensed"}
+.row b{font-weight:700}.row p{color:var(--t2);font-size:13px}
+.flag{margin-left:auto;font:700 13px "Barlow Condensed";padding:3px 10px;border-radius:999px;background:#FFE6DC;color:#B4360A;letter-spacing:.02em}
+.flag.g{background:#E3F5EA;color:#14703C}
+.t{font:700 26px "Barlow Condensed";width:62px}
+</style></head><body>
+<header><span class="logo">ESTUDIO PAQUITO</span><a class="on">Hoy</a><a>Clientes</a><a>Entrenos</a><a>Nutrición</a><a>Agenda</a><a>Mensajes</a><a>Seguimiento</a>
+<div class="r"><span class="btn k">Buscar ⌘K</span><span class="btn">Nuevo cliente</span></div></header>
+<main>
+<div class="hero"><div><h1 class="d">Viernes 2 oct</h1><p>2 citas hoy, la primera a las 09:00. Carmen e Iker entrenan hoy.</p></div>
+<div class="stat"><div><b class="d">23</b><small>entrenos esta semana</small></div><div><b class="d">6</b><small>récords</small></div><div><b class="d" style="color:var(--acc)">41,2 t</b><small>volumen total</small></div></div></div>
+<section class="box"><h2 class="d">Registro de la semana <span>Tamaño = volumen · discontinuo = previsto</span></h2>
+<div class="log">
+<span></span><span class="h">L 28</span><span class="h">M 29</span><span class="h">X 30</span><span class="h">J 1</span><span class="h today" style="border-radius:6px">V 2</span><span class="h">S 3</span><span class="h">D 4</span><span class="h" style="text-align:right">Hecho</span>
+<span class="nm">Andrés Molina</span><span class="c"></span><span class="c"><i style="width:26px;height:26px"></i></span><span class="c"></span><span class="c"><i style="width:30px;height:30px"></i></span><span class="c"></span><span class="c"><i class="p" style="width:22px;height:22px"></i></span><span class="c"></span><span class="pc">2/3</span>
+<span class="nm">Carmen Vidal</span><span class="c"><i style="width:20px;height:20px"></i></span><span class="c"></span><span class="c"><i style="width:22px;height:22px"></i></span><span class="c"></span><span class="c"><i class="a" style="width:24px;height:24px"></i></span><span class="c"></span><span class="c"></span><span class="pc">3/3</span>
+<span class="nm">Iker Salas</span><span class="c"></span><span class="c"><i style="width:16px;height:16px"></i></span><span class="c"></span><span class="c"></span><span class="c"><i class="p" style="width:22px;height:22px"></i></span><span class="c"></span><span class="c"><i class="p" style="width:22px;height:22px"></i></span><span class="pc">1/3</span>
+<span class="nm">Lucía Martín</span><span class="c"><i style="width:18px;height:18px"></i></span><span class="c"></span><span class="c"><i style="width:18px;height:18px"></i></span><span class="c"></span><span class="c"><i class="p" style="width:22px;height:22px"></i></span><span class="c"></span><span class="c"></span><span class="pc">2/3</span>
+<span class="nm">Nuria Ortega</span><span class="c"><i class="p" style="width:22px;height:22px"></i></span><span class="c"></span><span class="c"><i class="p" style="width:22px;height:22px"></i></span><span class="c"></span><span class="c"><i class="p" style="width:22px;height:22px"></i></span><span class="c"></span><span class="c"></span><span class="pc" style="color:var(--acc)">0/3</span>
+</div></section>
+<aside class="side">
+<div class="pr"><small>RÉCORD NUEVO · HACE 3 H</small><b class="d">92,5 kg</b><p>Andrés Molina · Press de banca · +5 kg sobre su mejor marca</p>
+<svg width="170" height="90" viewBox="0 0 170 90"><path d="M0 80 L30 72 L60 74 L90 56 L120 50 L150 30 L170 18" fill="none" stroke="#DFFF3A" stroke-width="4" stroke-linecap="round"/><circle cx="170" cy="18" r="7" fill="#DFFF3A"/></svg></div>
+<section class="box"><h2 class="d">Necesitan atención <span>4</span></h2>
+<div class="row"><span class="av">CV</span><div><b>Carmen Vidal</b><p>PAR-Q con alerta lumbar</p></div><span class="flag">SALUD</span></div>
+<div class="row"><span class="av">NO</span><div><b>Nuria Ortega</b><p>9 días sin entrenar</p></div><span class="flag">INACTIVA</span></div>
+<div class="row"><span class="av">LM</span><div><b>Lucía Martín</b><p>Bono: queda 1 sesión</p></div><span class="flag g">RENOVAR</span></div>
+</section>
+<section class="box"><h2 class="d">Agenda <span>Hoy</span></h2>
+<div class="row"><span class="t d">09:00</span><div><b>Lucía Martín</b><p>Readaptación LCA</p></div></div>
+<div class="row"><span class="t d" style="color:var(--acc)">18:00</span><div><b>Iker Salas</b><p>Torso y glúteo</p></div></div>
+</section>
+</aside>
+</main>
+</body></html>
